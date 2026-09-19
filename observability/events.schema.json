@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BountyPipelineEvent",
+  "type": "object",
+  "required": ["ts","kind","sessionId"],
+  "properties": {
+    "ts": {"type":"string","format":"date-time"},
+    "kind": {"enum":["llm_call","tool_call","finding","validation","chain","report","gate","budget"]},
+    "sessionId": {"type":"string"},
+    "agent": {"type":"string"},
+    "model": {"type":"string"},
+    "inputTokens": {"type":"integer"},
+    "outputTokens": {"type":"integer"},
+    "cacheReadTokens": {"type":"integer"},
+    "costUsd": {"type":"number"},
+    "latencyMs": {"type":"integer"},
+    "payload": {"type":"object"}
+  }
+}

@@ -1,0 +1,6 @@
+- insert:
+    - id: skill-loader
+      name: dsh-skill-loader
+      config:
+        skillsDir: ./skills
+        maxSkillsPerHunt: 3

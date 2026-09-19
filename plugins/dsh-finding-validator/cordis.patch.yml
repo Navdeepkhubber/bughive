@@ -1,0 +1,6 @@
+- insert:
+    - id: finding-validator
+      name: dsh-finding-validator
+      config:
+        maxAttempts: 3
+        requireResponseDiff: true

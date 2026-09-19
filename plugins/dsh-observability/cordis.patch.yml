@@ -1,0 +1,5 @@
+- insert:
+    - id: observability
+      name: dsh-observability
+      config:
+        logFile: ./observability/events.jsonl

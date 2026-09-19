@@ -1,0 +1,6 @@
+- insert:
+    - id: h1-classifier
+      name: dsh-h1-classifier
+      config:
+        pollIntervalMs: 60000
+        maxTokens: 8000

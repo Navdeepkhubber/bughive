@@ -1,0 +1,4 @@
+- insert:
+    - id: report-quality
+      name: dsh-report-quality
+      config: {}

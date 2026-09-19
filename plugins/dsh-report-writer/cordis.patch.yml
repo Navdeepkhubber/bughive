@@ -1,0 +1,5 @@
+- insert:
+    - id: report-writer
+      name: dsh-report-writer
+      config:
+        template: hackerone

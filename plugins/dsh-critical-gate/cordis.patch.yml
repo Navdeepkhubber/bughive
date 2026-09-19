@@ -1,0 +1,8 @@
+- insert:
+    - id: critical-gate
+      name: dsh-critical-gate
+      config:
+        gatedTools:
+          - submit_report
+          - create_report
+          - update_report_severity

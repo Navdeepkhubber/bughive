@@ -1,0 +1,4 @@
+- insert:
+    - id: hunt-state
+      name: dsh-hunt-state
+      config: {}

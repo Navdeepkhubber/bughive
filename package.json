@@ -1,0 +1,15 @@
+{
+  "name": "bughive",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch": "python3 intelligence/fetch-h1-reports.py",
+    "seed": "node scripts/init-skills.js",
+    "verify": "node scripts/verify.js",
+    "package": "bash scripts/package.sh"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

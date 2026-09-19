@@ -1,0 +1,11 @@
+node_modules/
+hunts/
+.env
+*.log
+.dsh/
+recon/output/
+observability/events.jsonl
+memory/facts.db
+reports/
+__pycache__/
+*.pyc

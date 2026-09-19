@@ -1,0 +1,30 @@
+name: Fetch HackerOne Disclosed Reports
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install deps
+        run: pip install -r intelligence/requirements.txt
+      - name: Fetch new reports
+        run: python intelligence/fetch-h1-reports.py
+      - name: Commit queue to repo
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p reports
+          cp -n ~/.dsh/bounty-queue/h1-*.json reports/ 2>/dev/null || true
+          git add reports/ || true
+          git diff --staged --quiet || git commit -m "Auto-update: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push || true

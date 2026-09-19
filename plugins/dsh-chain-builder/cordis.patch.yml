@@ -1,0 +1,5 @@
+- insert:
+    - id: chain-builder
+      name: dsh-chain-builder
+      config:
+        playbooksDir: ./playbooks

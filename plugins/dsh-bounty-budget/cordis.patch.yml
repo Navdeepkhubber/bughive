@@ -1,0 +1,11 @@
+- insert:
+    - id: bounty-budget
+      name: dsh-bounty-budget
+      config:
+        budgets: { session: 2.00, daily: 15.00, monthly: 200.00 }
+        tokenLimits: { maxOutputPerCall: 50000, maxTotalPerSession: 500000, maxCacheMissRatio: 0.30 }
+        onSessionLimit: block
+        onDailyLimit: block
+        onMonthlyLimit: block
+        warnRatio: 0.75
+        webhookUrl: ${BOUNTY_ALERT_WEBHOOK}

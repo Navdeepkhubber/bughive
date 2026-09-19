@@ -1,0 +1,5 @@
+- insert:
+    - id: fp-filter
+      name: dsh-fp-filter
+      config:
+        minConfidence: 0.6

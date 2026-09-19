@@ -1,0 +1,6 @@
+- insert:
+    - id: recon-orchestrator
+      name: dsh-recon-orchestrator
+      config:
+        phasesDir: ./recon/phases
+        outputDir: ./recon/output
