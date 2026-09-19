@@ -45,4 +45,11 @@ reason `timeout` and continue. Never block the phase on one slow source.
 }
 
 ## Phase procedure
-Probe every in-scope host over HTTPS (and HTTP if the port scan showed 80 open). Prefer httpx; fall back to curl -sI. Capture status, title, server header, content-type, TLS cert CN/SAN/issuer, redirect chain.
+Probe every in-scope host over HTTPS (and HTTP if the port scan showed 80
+open), **and** on the common alt-HTTP ports the port scan found open
+(3000, 5000, 7001, 7002, 8000, 8008, 8009, 8080, 8081, 8082, 8088, 8181,
+8443, 8880, 8888, 9000, 9090, 9443, 10000 — pulled from real-world bug
+bounty methodology, not just the top-1000 default; admin panels, Jenkins,
+and dev servers live here). Prefer httpx (`-p 80,443,3000,...`); fall back
+to curl -sI per port. Capture status, title, server header, content-type,
+TLS cert CN/SAN/issuer, redirect chain.

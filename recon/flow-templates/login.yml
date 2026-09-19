@@ -1,0 +1,39 @@
+id: login
+skills: [account-takeover, ratelimit, 2fa-bypass, jwt]
+description: >
+  Standard login. Interesting for rate-limiting, 2FA-bypass surface, and
+  what token/cookie shape comes back (feeds jwt.md).
+
+entry_hints:
+  path_patterns: ["/login", "/signin", "/sign-in", "/auth"]
+  link_text: ["log in", "login", "sign in"]
+
+steps:
+  - name: open_form
+    action: goto
+    side_effect: false
+
+  - name: fill_identity
+    action: fill_fields
+    side_effect: false
+    field_hints:
+      email:    ["email", "e-mail", "username"]
+      password: ["password", "pass", "pwd"]
+    # Login is never attempted with a guessed/real credential. If the
+    # operator supplies a bughive-owned test account via scope config, use
+    # it; otherwise this flow only maps the form and stops (see runner).
+    synthetic_data: { requires_operator_supplied_credential: true }
+
+  - name: submit
+    action: click_submit
+    side_effect: false   # logging in with an operator-owned test account is not
+                          # an irreversible side effect the way registration/checkout are
+    submit_hints: ["log in", "login", "sign in", "continue"]
+
+observe:
+  - failed_login_response_shape     # does it distinguish "no such user" vs "wrong password"? (user enum)
+  - lockout_after_n_attempts
+  - 2fa_step_present
+  - 2fa_step_skippable_via_direct_url  # can the post-2FA URL be hit directly, skipping the 2FA step?
+  - session_token_shape             # JWT vs opaque cookie -- routes into jwt.md if JWT
+  - session_token_scope             # cookie flags: HttpOnly, Secure, SameSite

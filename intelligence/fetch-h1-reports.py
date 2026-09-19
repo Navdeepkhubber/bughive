@@ -56,6 +56,28 @@ def report_id_from_url(url):
     m = re.search(r"/reports/(\d+)", url or "")
     return m.group(1) if m else None
 
+def normalize_cwe(cwe):
+    """Coerce every mode's `cwe` shape to what dsh-h1-classifier expects:
+    `r.cwe.id` truthy, or `r.cwe` falsy. Without this, only Mode C
+    (public GraphQL scrape -- explicitly documented upstream as
+    "currently broken") produces the {"id": ...} shape the classifier
+    reads; Mode A (the REST API path -- the one the docstring calls
+    "reliable" and the one an API token actually configures) passes the
+    raw API value straight through. If that raw value isn't already an
+    {"id": ...} dict, `r.cwe.id` in the classifier silently evaluates to
+    undefined and every report gets classified as "generic" regardless
+    of its real CWE -- quietly defeating the per-vuln-type skill
+    classification this whole pipeline exists to do. Mode B (local
+    dataset) is arbitrary user-supplied JSON, so it needs the same
+    normalization for the same reason.
+    """
+    if cwe is None:
+        return None
+    if isinstance(cwe, dict):
+        return cwe if cwe.get("id") not in (None, "") else None
+    # plain string/int passthrough from Mode A or an arbitrary Mode B file
+    return {"id": str(cwe)}
+
 def queue_one(report):
     """Report dict → queue file. Returns True if written."""
     rid = report.get("h1Id") or report_id_from_url(report.get("reportUrl"))
@@ -71,7 +93,7 @@ def queue_one(report):
         "severity": report.get("severity"),
         "disclosedAt": report.get("disclosedAt") or report.get("disclosed_at"),
         "weakness": report.get("weakness"),
-        "cwe": report.get("cwe"),
+        "cwe": normalize_cwe(report.get("cwe")),
         "cveIds": report.get("cveIds"),
         "teamHandle": report.get("teamHandle"),
         "teamName": report.get("teamName"),

@@ -1,9 +1,10 @@
 import { readdir, readFile, writeFile, mkdir, rename } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
+import { randomUUID } from "node:crypto";
 
 export const name = "h1-classifier";
-export const inject = ["agents", "agentDefaultModel", "agentPresets"];
+export const inject = ["agents", "agentDefaultModel", "agentPresets", "tools"];
 
 function expandHome(p) {
   if (typeof p !== "string") return p;
@@ -36,6 +37,24 @@ export function apply(ctx, config = {}) {
   }
 
   console.log("[h1-classifier] plugin loaded; queueDir =", cfg.queueDir);
+
+  // Calls another registered tool the same way the real ToolRuntime.execute()
+  // contract requires (callId/name/arguments/signal; agent omitted since this
+  // is a plugin-internal call, not a model-direct one). See
+  // plugins/PLUGIN-FIXES.md for the API this was verified against.
+  async function callTool(toolName, args) {
+    const controller = new AbortController();
+    const result = await ctx.tools.execute({
+      callId: randomUUID(),
+      name: toolName,
+      arguments: args,
+      signal: controller.signal,
+    });
+    if (result.isError) {
+      throw new Error(`${toolName} failed: ${JSON.stringify(result.error)}`);
+    }
+    return result.value;
+  }
 
   let busy = false;
 
@@ -123,10 +142,61 @@ export function apply(ctx, config = {}) {
           console.log(`[h1-classifier] processing ${f}`);
           const text = await runOne(r);
           const slug = (r.cwe && r.cwe.id) || "generic";
-          const dest = join(cfg.skillsDir, `h1-${slug}-${r.h1Id}.md`);
-          await writeFile(dest, `<!-- auto: ${r.reportUrl} -->\n\n${text}`, "utf-8");
+          const filename = `h1-${slug}-${r.h1Id}.md`;
+
+          // Write to a staging path OUTSIDE skills/learned/ first. Both gate
+          // tools take a `path` and read the library fresh from disk each
+          // call; if the candidate were already sitting in skills/learned/
+          // when dedupe scans that directory, it would trivially match
+          // itself (100% overlap) and every candidate would self-reject.
+          const stagingDir = join(cfg.skillsDir, "..", "staging");
+          await mkdir(stagingDir, { recursive: true });
+          const stagingPath = join(stagingDir, filename);
+          await writeFile(stagingPath, `<!-- auto: ${r.reportUrl} -->\n\n${text}`, "utf-8");
+
+          // Route through the admission gate before letting this candidate
+          // stay in skills/learned/. This was previously dead code -- the
+          // gate existed (dsh-skill-admission), its REQUIRED_SECTIONS match
+          // this classifier's own prompt exactly, but nothing ever called
+          // it, so every generated skill bypassed the 200-1000 token budget
+          // check, section-completeness check, and dedup entirely.
+          let rejectReason = null;
+          try {
+            const dedupe = await callTool("dedupe_skill_candidate", { path: stagingPath, cwe: slug });
+            if (dedupe.duplicate) {
+              rejectReason = `duplicate of ${dedupe.closest} (overlap ${dedupe.overlap})`;
+            } else {
+              const admission = await callTool("validate_skill_candidate", {
+                path: stagingPath,
+                cwe: slug,
+                severity: r.severity,
+                bounty: r.bountyAmount,
+                source: r.reportUrl,
+              });
+              if (!admission.admitted) {
+                rejectReason = `admission failed: ${(admission.failures || []).join("; ")}`;
+              }
+            }
+          } catch (gateErr) {
+            // Fail closed: if the gate itself errors, don't let an
+            // unvetted candidate reach the live skill library.
+            rejectReason = `admission gate error: ${gateErr.message}`;
+          }
+
+          if (rejectReason) {
+            const rejectedDir = join(cfg.skillsDir, "..", "rejected");
+            await mkdir(rejectedDir, { recursive: true });
+            await rename(stagingPath, join(rejectedDir, filename));
+            console.log(`[h1-classifier] ✗ rejected ${r.h1Id}: ${rejectReason}`);
+          } else {
+            // validate_skill_candidate already wrote frontmatter onto the
+            // staged file in place; promote it into the live library now.
+            const dest = join(cfg.skillsDir, filename);
+            await rename(stagingPath, dest);
+            console.log(`[h1-classifier] ✓ ${r.h1Id} → ${dest} (admitted)`);
+          }
+
           await rename(p, join(cfg.archiveDir, f));
-          console.log(`[h1-classifier] ✓ ${r.h1Id} → ${dest}`);
         } catch (e) {
           console.error(`[h1-classifier] ✗ ${f}: ${e.message}`);
         }

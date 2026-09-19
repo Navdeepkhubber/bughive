@@ -163,7 +163,7 @@ export function apply(ctx, config = {}) {
 
       const top = scored[0];
       return JSON.stringify({
-        duplicate: top && top.overlap > 0.6,
+        duplicate: top ? top.overlap > 0.6 : false,
         overlap: top ? Number(top.overlap.toFixed(3)) : 0,
         closest: top ? `${top.sub}/${top.file}` : null,
         candidates_checked: scored.length,

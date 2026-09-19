@@ -1,0 +1,42 @@
+id: registration
+skills: [account-takeover, business-logic, csrf-token-bypass]
+description: >
+  New-account signup. Interesting for pre-ATO (register with victim's
+  email before they do), email-verification skip, and weak password
+  policy.
+
+entry_hints:
+  # URL path fragments and link text used to find the flow's starting page
+  # from phase 04/05 recon output. First match wins.
+  path_patterns: ["/signup", "/register", "/sign-up", "/create-account", "/join"]
+  link_text: ["sign up", "create account", "register", "join now", "get started"]
+
+steps:
+  - name: open_form
+    action: goto
+    side_effect: false
+
+  - name: fill_identity
+    action: fill_fields
+    side_effect: false
+    field_hints:
+      email:    ["email", "e-mail", "username"]
+      password: ["password", "pass", "pwd"]
+      name:     ["name", "full_name", "first_name"]
+    synthetic_data:
+      email_template: "bughive-flow+{run_id}@{synthetic_domain}"
+      password: "{synthetic_strong_password}"
+      name: "Bughive Test"
+
+  - name: submit
+    action: click_submit
+    side_effect: true   # creates a real account -- gated, see runner safety rules
+    submit_hints: ["sign up", "create account", "register", "continue", "submit"]
+
+observe:
+  # What the runner should record regardless of whether it actually
+  # executes the side-effecting step.
+  - client_side_only_validation   # e.g. a "valid" flag set via JS, never checked server-side
+  - password_policy_enforced_serverside  # does a weak password get rejected by the server, or only by JS?
+  - verification_required_before_login   # can the new account log in before clicking an email link?
+  - rate_limit_on_submit

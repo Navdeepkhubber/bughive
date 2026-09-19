@@ -3,3 +3,4 @@
       name: dsh-chain-builder
       config:
         playbooksDir: ./playbooks
+        reasoningEffort: high

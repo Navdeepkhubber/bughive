@@ -1,0 +1,29 @@
+id: invite-referral
+skills: [business-logic, idor]
+description: >
+  Team-invite or referral-code flows. High-value for referral abuse
+  (self-referral, code reuse across accounts) and IDOR on invite tokens
+  (accepting an invite meant for a different email).
+
+entry_hints:
+  path_patterns: ["/invite", "/referral", "/team/invite", "/refer-a-friend"]
+  link_text: ["invite", "refer a friend", "invite a teammate"]
+
+steps:
+  - name: open_form
+    action: goto
+    side_effect: false
+
+  - name: fill_invite
+    action: fill_fields
+    side_effect: true   # sends a real invite email -- only ever to a bughive-owned address
+    field_hints:
+      email: ["email", "invitee_email", "recipient"]
+    synthetic_data:
+      email_template: "bughive-flow+{run_id}@{synthetic_domain}"
+
+observe:
+  - invite_token_shape                  # sequential / UUID / JWT
+  - invite_acceptable_by_different_email_than_invited   # IDOR: token not bound to the invited address
+  - referral_code_reusable_same_account
+  - referral_code_guessable_pattern

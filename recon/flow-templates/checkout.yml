@@ -1,0 +1,37 @@
+id: checkout
+skills: [business-logic, idor, parameter-tampering]
+description: >
+  Add-to-cart through checkout. High-value for price/currency manipulation,
+  coupon reuse, negative-quantity abuse, and step-skipping (hit the
+  order-confirmation endpoint directly without paying). Never actually
+  pays -- see runner safety rules.
+
+entry_hints:
+  path_patterns: ["/cart", "/checkout", "/basket", "/order"]
+  link_text: ["add to cart", "buy now", "checkout"]
+
+steps:
+  - name: add_item
+    action: click
+    side_effect: false
+    click_hints: ["add to cart", "add to bag", "buy now"]
+
+  - name: open_cart
+    action: goto_cart
+    side_effect: false
+
+  - name: reach_payment_step
+    action: advance_to_payment
+    side_effect: false
+    # Advances through shipping/address steps with synthetic data, but
+    # stops the instant a real payment-instrument field is detected
+    # (card number, CVV, bank account, PayPal redirect). Never fills or
+    # submits those. See PAYMENT_FIELD_PATTERNS in the runner.
+
+observe:
+  - price_editable_client_side          # can total/unit price be changed via intercepted request, not just UI?
+  - quantity_accepts_negative_or_zero
+  - coupon_field_present                # feeds business-logic.md "coupon reuse" vector
+  - confirmation_endpoint_reachable_directly  # can /order/confirm?id=N be hit pre-payment?
+  - currency_param_present              # currency-confusion candidate
+  - payment_step_reached_without_submitting  # confirms the runner stopped where it should

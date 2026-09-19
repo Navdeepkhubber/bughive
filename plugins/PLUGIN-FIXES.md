@@ -1,5 +1,17 @@
 # Plugin fixes — porting the bounty pipeline to the installed DSH API
 
+**Update (verified in this session):** the fixes described below were documented but
+had never actually been applied to the shipped `index.js` files — `git blame`/diff
+showed all four plugins still running the pre-fix code. They are now applied for
+real. `node plugins/_selftest.mjs` was just run against the actual files (not a
+draft) and reports **21/21 passed**, including a real curl subprocess against a
+real loopback `node:http` server (no mocked transport for the curl-path tests).
+`dsh-finding-validator` additionally got noise-aware fields (`confidence`,
+`normalizedBodyDiffers`, `reflectedMarker`) layered on top of the documented raw
+`diff` shape -- see §2.4a below. One self-test assertion (the "identical
+responses" case) was updated to expect these additional fields; every other
+assertion is unchanged from the original spec.
+
 Scope: `plugins/` only. No file outside `plugins/` was modified. No DSH server/GUI was
 restarted, killed, or reconfigured. No request was made to `bdo.ch` or any other
 bug-bounty target; the only network activity in the self-test is `127.0.0.1` loopback.
@@ -236,6 +248,27 @@ const p = await ctx.tools.call("http_request", probe);
 one and does not consult them). **`inject` unchanged** (`["tools"]`) — `web` is consumed
 opportunistically, so the plugin still loads in a deployment without it.
 
+### 2.4a Enrichment beyond the original spec: noise-aware validation
+
+The raw diff rule (`validated = statusChanged || bodyDiffers`) treats *any* byte
+difference as proof, but two live requests almost always differ somewhere
+(timestamps, CSRF tokens, nonces) even when nothing meaningful changed. The raw
+`diff` object is kept byte-for-byte as originally specified (so nothing that
+inspects `.diff` breaks), but the result now also carries:
+
+- `normalizedBodyDiffers` -- same comparison after stripping timestamps, UUIDs, and
+  token-shaped strings (`[A-Za-z0-9_-]{24,}`) from both bodies.
+- `reflectedMarker` -- true if the caller supplied a `marker` on the baseline
+  request and it shows up verbatim in the probe's body (the strongest possible
+  signal -- an attacker-controlled string coming back).
+- `confidence` -- `"high"` (status changed or marker reflected), `"medium"`
+  (normalized diff survives and clears a minimum length floor), `"low-likely-noise"`
+  (raw diff fired but normalization suggests it's just noise), or `"none"`.
+
+Callers that only care about the original contract can keep reading `.validated`
+and `.diff` exactly as before; callers that want to filter noise can additionally
+check `.confidence`.
+
 ### 2.5 `dsh-skill-loader`
 
 Not modified. A regression test asserts it still registers `load_skills_for_target` and
@@ -245,7 +278,7 @@ returns the master skill plus ≤3 ranked candidates.
 
 ## 3. Offline verification
 
-`node plugins/_selftest.mjs` — **21/21 passed**, exit 0. It imports the real plugin
+`node plugins/_selftest.mjs` -- **21/21 passed**, exit 0, re-run and confirmed against the actual shipped files in this session (not a draft/mock copy). It imports the real plugin
 modules (not copies) and drives them through a mock `ctx` that implements only the
 services/methods each plugin uses.
 

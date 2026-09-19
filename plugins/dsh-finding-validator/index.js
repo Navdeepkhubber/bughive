@@ -1,83 +1,194 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import { homedir } from "node:os";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 export const name = "finding-validator";
 export const inject = ["tools"];
 
-function sanitizeDomain(d) {
-  if (!d || typeof d !== "string") throw new Error("domain is required");
-  const clean = d.replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/:\d+$/, "").toLowerCase();
-  if (!/^[a-z0-9.-]+$/.test(clean)) throw new Error(`invalid domain: ${d}`);
-  return clean;
+const execFileP = promisify(execFile);
+const STATUS_MARKER = "__DSH_HTTP_STATUS__";
+
+// --- request normalization -------------------------------------------------
+
+function normalizeRequest(raw, label) {
+  let obj = raw;
+  if (typeof raw === "string") obj = { url: raw };
+  const url = obj && (obj.url || obj.target || obj.endpoint);
+  if (!url || typeof url !== "string") {
+    return { error: { code: "INVALID_REQUEST", message: `${label} is missing a non-empty \`url\` (or \`target\`/\`endpoint\`)` } };
+  }
+  return {
+    request: {
+      url,
+      method: (obj.method || "GET").toUpperCase(),
+      headers: obj.headers || {},
+      body: obj.body,
+      marker: obj.marker,
+      timeoutMs: obj.timeoutMs,
+    },
+  };
 }
 
-async function doRequest(req) {
-  const method = (req.method || "GET").toUpperCase();
-  const headers = { "User-Agent": "bughive-validator/1.0", ...(req.headers || {}) };
-  const opts = { method, headers, redirect: "manual" };
-  if (req.body && method !== "GET" && method !== "HEAD") opts.body = req.body;
-  const res = await fetch(req.url, opts);
-  const body = await res.text();
-  return { status: res.status, headers: Object.fromEntries(res.headers), body };
+function isPlainGet(req) {
+  return req.method === "GET" && Object.keys(req.headers || {}).length === 0 && req.body === undefined;
 }
+
+// --- transports --------------------------------------------------------
+
+async function webFetch(ctx, req, signal) {
+  const web = ctx.get("web");
+  try {
+    const result = await web.fetch({ url: req.url }, signal);
+    if (!result || typeof result.statusCode !== "number" || !result.body || typeof result.body.content !== "string") {
+      return { transport: "web", error: { code: "WEB_BAD_RESPONSE", message: "ctx.web.fetch returned a malformed response" } };
+    }
+    return { transport: "web", status: result.statusCode, body: result.body.content };
+  } catch (e) {
+    return { transport: "web", error: { code: e.code || "WEB_FETCH_FAILED", message: e.message || String(e) } };
+  }
+}
+
+async function curlFetch(req, timeoutMs) {
+  const method = req.method || "GET";
+  const args = ["-sS", "--max-time", String(Math.ceil(timeoutMs / 1000))];
+  if (method === "HEAD") args.push("--head"); // NOT -X HEAD: that makes curl wait for a body that never arrives
+  else if (method !== "GET") args.push("-X", method);
+  for (const [k, v] of Object.entries(req.headers || {})) args.push("-H", `${k}: ${v}`);
+  if (req.body !== undefined && req.body !== null && method !== "GET" && method !== "HEAD") {
+    args.push("--data-binary", String(req.body));
+  }
+  args.push("-o", "-", "-w", `\n${STATUS_MARKER}%{http_code}`, req.url);
+
+  try {
+    const { stdout } = await execFileP("curl", args, { timeout: timeoutMs + 2000, maxBuffer: 20 * 1024 * 1024 });
+    const markerNL = `\n${STATUS_MARKER}`;
+    const idx = stdout.lastIndexOf(markerNL);
+    if (idx === -1) {
+      return { transport: "curl", error: { code: "CURL_BAD_OUTPUT", message: "curl output missing status marker" } };
+    }
+    const body = stdout.slice(0, idx);
+    const status = parseInt(stdout.slice(idx + markerNL.length), 10);
+    return { transport: "curl", status, body };
+  } catch (e) {
+    if (e.killed || e.signal) return { transport: "curl", error: { code: "CURL_TIMEOUT", message: e.message } };
+    if (e.code === "ENOENT") return { transport: "curl", error: { code: "CURL_SPAWN_FAILED", message: e.message } };
+    const exitCode = typeof e.code === "number" || typeof e.code === "string" ? e.code : "UNKNOWN";
+    return { transport: "curl", error: { code: `CURL_EXIT_${exitCode}`, message: e.message } };
+  }
+}
+
+async function fetchOne(ctx, req, timeoutMs, signal) {
+  const web = ctx.get("web");
+  if (isPlainGet(req) && web) return webFetch(ctx, req, signal);
+  return curlFetch(req, timeoutMs);
+}
+
+// --- noise normalization for the validated/not decision --------------------
+// Two requests to a live target almost always differ *somewhere* --
+// timestamps, CSRF tokens, nonces, request IDs. Comparing raw bytes treats
+// that noise as proof. Strip known-dynamic shapes before deciding whether a
+// diff means anything.
+function stripNoise(body) {
+  return (body || "")
+    .replace(/\b\d{10,13}\b/g, "<NUM>")
+    .replace(/\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?\b/g, "<TS>")
+    .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, "<UUID>")
+    .replace(/\b[A-Za-z0-9_-]{24,}\b/g, "<TOKEN>")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+const MIN_MEANINGFUL_LENGTH_DELTA = 8;
 
 export function apply(ctx, config = {}) {
-  const cfg = { huntsRoot: join(homedir(), ".dsh", "hunts"), ...config };
+  const cfg = { timeoutMs: 10000, maxAttempts: 1, requireResponseDiff: true, ...config };
 
   ctx.tools.register({
     name: "validate_finding",
-    description: "Deterministically validate a finding by replaying baseline vs probe and diffing. Writes result to ~/.dsh/hunts/<domain>/findings/.",
+    description: "Deterministically validate a finding by replaying baseline vs probe and diffing (ctx.web for plain GETs, curl fallback for anything else). Never throws on a network/parse error -- returns a structured error instead.",
     parameters: {
       type: "object",
       properties: {
-        domain:   { type: "string", description: "Target domain." },
-        baseline: { type: "string", description: "Baseline request as JSON." },
-        probe:    { type: "string", description: "Probe request as JSON." },
-        label:    { type: "string", description: "Optional short label for the finding." },
+        baseline: { type: "string", description: "Baseline request as JSON ({url|target|endpoint, method?, headers?, body?})." },
+        probe: { type: "string", description: "Probe request as JSON, same shape." },
+        label: { type: "string", description: "Optional short label for the finding." },
       },
-      required: ["domain", "baseline", "probe"],
+      required: ["baseline", "probe"],
     },
     output: {
       schema: { type: "string" },
       render: (_args, value) => [{ type: "text", text: value }],
     },
-    async execute(args) {
-      const domain = sanitizeDomain(args.domain);
-      const baseline = JSON.parse(args.baseline);
-      const probe = JSON.parse(args.probe);
+    async execute(args, exec) {
+      const signal = exec && exec.signal;
+      const timeoutMs = cfg.timeoutMs;
 
-      const b = await doRequest(baseline);
-      const p = await doRequest(probe);
+      let baselineRaw, probeRaw;
+      try { baselineRaw = JSON.parse(args.baseline); } catch {
+        return JSON.stringify({ validated: false, diff: { statusChanged: false, lengthDelta: 0, bodyDiffers: false }, error: { code: "BASELINE_JSON_PARSE", message: "baseline is not valid JSON" } });
+      }
+      try { probeRaw = JSON.parse(args.probe); } catch {
+        return JSON.stringify({ validated: false, diff: { statusChanged: false, lengthDelta: 0, bodyDiffers: false }, error: { code: "PROBE_JSON_PARSE", message: "probe is not valid JSON" } });
+      }
 
-      const diff = {
-        statusChanged:   b.status !== p.status,
-        bodyDiffers:     b.body !== p.body,
-        lengthDelta:     Math.abs(b.body.length - p.body.length),
-        reflectedMarker: baseline.marker && p.body.includes(baseline.marker),
-      };
-      const validated = diff.statusChanged || diff.bodyDiffers || diff.reflectedMarker;
+      const baselineN = normalizeRequest(baselineRaw, "baseline");
+      const probeN = normalizeRequest(probeRaw, "probe");
+      const firstShapeError = baselineN.error || probeN.error;
+      if (firstShapeError) {
+        return JSON.stringify({ validated: false, diff: { statusChanged: false, lengthDelta: 0, bodyDiffers: false }, error: firstShapeError });
+      }
 
-      const finding = {
-        domain,
-        label: args.label || "untitled",
+      const [b, p] = await Promise.all([
+        fetchOne(ctx, baselineN.request, timeoutMs, signal),
+        fetchOne(ctx, probeN.request, timeoutMs, signal),
+      ]);
+
+      const statuses = { baseline: typeof b.status === "number" ? b.status : null, probe: typeof p.status === "number" ? p.status : null };
+      const transports = { baseline: b.transport, probe: p.transport };
+
+      const firstTransportError = b.error || p.error;
+      if (firstTransportError) {
+        const result = {
+          validated: false,
+          diff: { statusChanged: false, lengthDelta: 0, bodyDiffers: false },
+          error: firstTransportError,
+          statuses,
+          transports,
+        };
+        ctx.emit("finding/validation", { label: args.label || "untitled", ...result });
+        return JSON.stringify(result);
+      }
+
+      // Raw diff -- preserved exactly for compatibility with existing
+      // consumers/tests: statusChanged / lengthDelta / bodyDiffers on the
+      // literal bytes.
+      const statusChanged = b.status !== p.status;
+      const bodyDiffers = b.body !== p.body;
+      const lengthDelta = Math.abs((b.body || "").length - (p.body || "").length);
+      const diff = { statusChanged, lengthDelta, bodyDiffers };
+      const validated = statusChanged || bodyDiffers;
+
+      // Additional noise-aware read, surfaced alongside the raw diff rather
+      // than replacing it: two identical-looking requests differing only in
+      // a timestamp/token still show bodyDiffers=true above (by design, for
+      // compatibility) but normalizedBodyDiffers=false tells a caller that
+      // the raw diff is very likely noise, not evidence.
+      const reflectedMarker = Boolean(baselineN.request.marker) && (p.body || "").includes(baselineN.request.marker);
+      const normalizedBodyDiffers = stripNoise(b.body) !== stripNoise(p.body);
+      const meaningfulBodyDiff = normalizedBodyDiffers && lengthDelta >= MIN_MEANINGFUL_LENGTH_DELTA;
+      const confidence = reflectedMarker || statusChanged ? "high" : meaningfulBodyDiff ? "medium" : (validated ? "low-likely-noise" : "none");
+
+      const result = {
         validated,
         diff,
-        baseline: { ...baseline, url: baseline.url, status: b.status },
-        probe:    { ...probe,    url: probe.url,    status: p.status },
-        ts: new Date().toISOString(),
+        confidence,
+        normalizedBodyDiffers,
+        reflectedMarker,
+        statuses,
+        transports,
       };
-
-      const dir = join(cfg.huntsRoot, domain, "findings");
-      await mkdir(dir, { recursive: true });
-      const path = join(dir, `finding-${Date.now()}.json`);
-      await writeFile(path, JSON.stringify(finding, null, 2), "utf-8");
-
-      ctx.emit("finding/validation", { domain, validated, path });
-
-      return JSON.stringify({ validated, diff, path });
+      ctx.emit("finding/validation", { label: args.label || "untitled", ...result });
+      return JSON.stringify(result);
     },
   });
 
-  console.log("[finding-validator] registered; writes to", cfg.huntsRoot, "<domain>/findings/");
+  console.log("[finding-validator] registered; timeoutMs =", cfg.timeoutMs);
 }

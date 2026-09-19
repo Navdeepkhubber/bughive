@@ -7,7 +7,12 @@
     "fetch": "python3 intelligence/fetch-h1-reports.py",
     "seed": "node scripts/init-skills.js",
     "verify": "node scripts/verify.js",
-    "package": "bash scripts/package.sh"
+    "package": "bash scripts/package.sh",
+    "postinstall": "echo 'Run: npx playwright install chromium   (needed once for recon phase 11-flow-mapping)'"
+  },
+  "dependencies": {
+    "playwright": "^1.63.0",
+    "yaml": "^2.6.0"
   },
   "engines": {
     "node": ">=20"

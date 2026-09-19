@@ -17,6 +17,8 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { mkdtemp, mkdir, writeFile, readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
@@ -102,13 +104,14 @@ async function main() {
   console.log(`repo: ${ROOT}\n`);
 
   // ---------------------------------------------------------------- imports
-  await test("all five plugin modules import and export {name, inject, apply}", async () => {
+  await test("all six plugin modules import and export {name, inject, apply}", async () => {
     for (const rel of [
       "plugins/dsh-recon-orchestrator/index.js",
       "plugins/dsh-finding-validator/index.js",
       "plugins/dsh-chain-builder/index.js",
       "plugins/dsh-report-writer/index.js",
       "plugins/dsh-skill-loader/index.js",
+      "plugins/dsh-skill-admission/index.js",
     ]) {
       const mod = await load(rel);
       assert.equal(typeof mod.name, "string", `${rel} name`);
@@ -298,10 +301,14 @@ async function main() {
       },
       makeExec()
     );
-    assert.deepEqual(JSON.parse(value), {
-      validated: false,
-      diff: { statusChanged: false, lengthDelta: 0, bodyDiffers: false },
-    });
+    const parsed = JSON.parse(value);
+    assert.deepEqual(parsed.diff, { statusChanged: false, lengthDelta: 0, bodyDiffers: false });
+    assert.equal(parsed.validated, false);
+    // Enrichment over the original spec: noise-aware fields sit alongside
+    // the raw diff rather than replacing it, so a caller can tell "no raw
+    // diff" apart from "raw diff but it's noise".
+    assert.equal(parsed.normalizedBodyDiffers, false);
+    assert.equal(parsed.confidence, "none");
   });
 
   await test("validate_finding returns a structured error when the web provider rejects the URL", async () => {
@@ -509,6 +516,89 @@ async function main() {
     assert.ok(parsed.master.length > 0, "master skill body loaded");
     assert.ok(parsed.count <= 3, "max 3 skills per hunt");
     assert.ok(Array.isArray(parsed.skills));
+  });
+
+  // ----------------------------------------------------- dsh-skill-admission
+  // Regression coverage for the h1-classifier -> skill-admission wiring:
+  // candidates must be staged OUTSIDE skills/learned/ before dedupe runs, or
+  // dedupe's own directory scan will match a candidate against itself.
+  const admissionTmp = await mkdtemp(join(tmpdir(), "bughive-admission-"));
+  const admissionRoot = join(admissionTmp, "skills");
+  await mkdir(join(admissionRoot, "seeds"), { recursive: true });
+  await mkdir(join(admissionRoot, "learned"), { recursive: true });
+  await mkdir(join(admissionRoot, "staging"), { recursive: true });
+
+  const wellFormedSkill = (
+    "## Trigger Conditions\nAny endpoint returning a JWT.\n" +
+    "## Root Cause Pattern\nMissing signature verification allows algorithm confusion.\n" +
+    "## Recon Checklist\n- Find endpoints issuing JWTs\n" +
+    "## Hunt Methodology\n1. Decode the JWT header, try alg:none\n" +
+    "## Payload Patterns\n{\"alg\":\"none\"}\n" +
+    "## WAF Bypass Tips\nCase variation on header name\n" +
+    "## Triage Guidance\nFull bypass -> Critical\n" +
+    "## Example\nhttps://hackerone.com/reports/999999\n"
+  ).repeat(2);
+
+  await test("validate_skill_candidate admits a well-formed, in-budget candidate", async () => {
+    const { ctx, tools } = makeCtx({});
+    plugins["skill-admission"].apply(ctx, { skillsRoot: admissionRoot });
+    const stagingPath = join(admissionRoot, "staging", "h1-347-999999.md");
+    await writeFile(stagingPath, wellFormedSkill);
+    const parsed = JSON.parse(
+      await tools.get("validate_skill_candidate").execute(
+        { path: stagingPath, cwe: "347", severity: "high", bounty: 500, source: "https://hackerone.com/reports/999999" },
+        makeExec()
+      )
+    );
+    assert.equal(parsed.admitted, true);
+    assert.ok(parsed.tokens >= 200 && parsed.tokens <= 1000, "within the 200-1000 token budget");
+    const written = await readFile(stagingPath, "utf-8");
+    assert.ok(written.startsWith("---"), "frontmatter written on admission");
+  });
+
+  await test("validate_skill_candidate rejects a candidate missing required sections", async () => {
+    const { ctx, tools } = makeCtx({});
+    plugins["skill-admission"].apply(ctx, { skillsRoot: admissionRoot });
+    const stagingPath = join(admissionRoot, "staging", "h1-79-111111.md");
+    await writeFile(stagingPath, "## Trigger Conditions\nsomething\n## Example\nhttps://hackerone.com/reports/1\n");
+    const parsed = JSON.parse(
+      await tools.get("validate_skill_candidate").execute(
+        { path: stagingPath, cwe: "79", severity: "low", bounty: 0, source: "https://hackerone.com/reports/1" },
+        makeExec()
+      )
+    );
+    assert.equal(parsed.admitted, false);
+    assert.ok(parsed.failures.some((f) => f.includes("missing sections")));
+  });
+
+  await test("dedupe_skill_candidate does not self-match when staged outside the scanned library", async () => {
+    const { ctx, tools } = makeCtx({});
+    plugins["skill-admission"].apply(ctx, { skillsRoot: admissionRoot });
+    // Library is still empty at this point in the admission test above's
+    // staging path (learned/ only gets the promoted copy, never tested here) --
+    // scanning learned/ + seeds/ should find nothing matching a file that
+    // only exists in staging/.
+    const stagingPath = join(admissionRoot, "staging", "h1-347-999999.md");
+    const parsed = JSON.parse(
+      await tools.get("dedupe_skill_candidate").execute({ path: stagingPath, cwe: "347" }, makeExec())
+    );
+    assert.equal(parsed.duplicate, false);
+    assert.equal(parsed.candidates_checked, 0, "staging/ candidates must not be scanned as part of the library");
+  });
+
+  await test("dedupe_skill_candidate flags a near-duplicate once the original is promoted into learned/", async () => {
+    const { ctx, tools } = makeCtx({});
+    plugins["skill-admission"].apply(ctx, { skillsRoot: admissionRoot });
+    // Promote the well-formed candidate from the admission test into learned/,
+    // simulating what h1-classifier does after a passing admission check.
+    await writeFile(join(admissionRoot, "learned", "h1-347-999999.md"), wellFormedSkill);
+    const dupPath = join(admissionRoot, "staging", "h1-347-888888.md");
+    await writeFile(dupPath, wellFormedSkill.replace(/999999/g, "888888"));
+    const parsed = JSON.parse(
+      await tools.get("dedupe_skill_candidate").execute({ path: dupPath, cwe: "347" }, makeExec())
+    );
+    assert.equal(parsed.duplicate, true);
+    assert.equal(parsed.closest, "learned/h1-347-999999.md");
   });
 
   // ---------------------------------------------------------------- summary

@@ -4,3 +4,4 @@
       config:
         phasesDir: ./recon/phases
         outputDir: ./recon/output
+        reasoningEffort: low

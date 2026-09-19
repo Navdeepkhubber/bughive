@@ -3,3 +3,4 @@
       name: dsh-report-writer
       config:
         template: hackerone
+        reasoningEffort: medium

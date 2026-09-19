@@ -45,4 +45,7 @@ reason `timeout` and continue. Never block the phase on one slow source.
 }
 
 ## Phase procedure
-Discover hidden parameters. Prefer arjun; fall back to paramspider; if neither, skip and note. Run against URLs from phases 04 and 05 that returned 200.
+Discover hidden parameters. Run against URLs from phases 04 and 05 that
+returned 200, excluding static-asset URLs (same extension list as phase
+05 — no point param-fuzzing a .css file). Prefer arjun; fall back to
+paramspider; if neither, skip and note.
