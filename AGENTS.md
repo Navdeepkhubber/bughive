@@ -117,13 +117,56 @@ flat list at LLM-token cost.
 
 ### Stage 2 — skill selection
 
-    bash scripts/pipeline/run.sh skills <domain>
+ bash scripts/pipeline/run.sh skills <domain>
 
 Deterministically scores every skill in skills/seeds/ and skills/learned/
 against the recon corpus (now including phases 12-17) and writes
 hunts/<domain>/skills-selected.json, each entry showing its score and
-matched evidence terms. This must run before Stage 3, since the hypothesis
-prompt embeds these skills' full checklists.
+matched evidence terms. This is evidence for the decision stage, not the
+decision itself. This must run before Stage 2.5.
+
+### Stage 2.5 — JEV decide **[TOOL]**
+
+ bash scripts/pipeline/run.sh decide <domain>
+
+JEV (TypeSafe System One, `https://api.typesafe.ai/v1/systemone`) does not
+write text. It reads the recon summaries plus the skill catalog and returns
+typed answers with probabilities. `scripts/pipeline/jev-decide.mjs` applies
+hunt policy on top of those answers and writes
+hunts/<domain>/jev-decision.json. Requires `TYPESAFE_API_KEY` (a `.env`
+file in the repo root is read if the variable is unset). Optional
+`TYPESAFE_MODEL` (default `jev-latest`).
+
+The file's `next_action` is binding. Do not re-pick the skill, the
+vulnerability, or the test method in your own reasoning. Re-run `decide`
+before choosing any later stage; the same script reclamps against whatever
+artifacts exist now.
+
+| `next_action` | What you do |
+|---|---|
+| `deepen_recon` | Run the single phase in `recon_phase`, then `decide` again |
+| `select_and_test` | Stage 3, only for `skill` / `vuln`, `test_method`, and `focus_url` |
+| `falsify` | Stages 4 and 5 |
+| `prove` | Stage 6 |
+| `chain` | Stage 7 |
+| `report` | Stages 8 and 9 |
+| `human_gate` | Stop and report the decision to the user |
+| `stop` | Stage 10 |
+
+Policy the script enforces, so you don't: confidence below 0.45 or
+`human_review` above 0.7 becomes `human_gate`; a critical or high nuclei
+hit, or any phase-15 one-liner hit, becomes `human_gate` before hypotheses
+exist; an action that names artifacts that do not exist yet is moved
+forward to the earliest legal stage; a skill is loaded only when its
+confirm probability is at least 0.4. Keyword scores are copied to
+`skills-keyword.json`. The skills Stage 3 actually loads are the JEV
+keep-list rewritten into `skills-selected.json`.
+
+One question in that call is "which skill", one is "which vulnerability
+among the top three", one is "how to test" (`checklist_walk`,
+`tool_hit_falsify`, `flow_step_skip`, `auth_swap`, `param_mutation`,
+`version_match`, `hold`). JEV picks inside that closed set. It does not
+invent payloads.
 
 ### Stage 3 — hypothesis **[SUBAGENT]**
 
@@ -216,11 +259,15 @@ approved reports. Report the summary to the user.
 
 ## Model
 
-DeepSeek V4.1 Flash. Reasoning effort is now tuned per stage rather than
-uniformly high (see each plugin's `cordis.patch.yml`): recon phases
-(dsh-recon-orchestrator) default to `low` -- they follow a fixed,
+DeepSeek V4.1 Flash for generation. Reasoning effort is tuned per stage
+rather than uniformly high (see each plugin's `cordis.patch.yml`): recon
+phases (dsh-recon-orchestrator) default to `low` -- they follow a fixed,
 documented procedure with little open-ended reasoning. `write_report`
 defaults to `medium`. `build_chain` and the hypothesis/falsifier subagents
 stay `high`, since matching evidence against skill checklists and
 proposing exploit chains is exactly the kind of reasoning that budget is
 for.
+
+JEV is the decision layer in front of that. It chooses the next stage, the
+skill, the vulnerability, and the test method. DeepSeek still writes
+hypotheses, chains, and reports inside the choice JEV already made.

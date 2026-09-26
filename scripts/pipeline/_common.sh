@@ -36,7 +36,7 @@ cmd_status() {
   local domain="$1"
   local hd; hd="$(hunt_dir "$domain")"
   echo "root: $hd"
-  for stage in scope recon-01 recon-02 recon-03 recon-04 recon-05 recon-06 recon-07 recon-08 recon-09 recon-10 recon-11 recon-12 recon-13 recon-14 recon-15 recon-16 recon-17 skills hypothesis prefilter falsifier proof chain report quality deliver; do
+  for stage in scope recon-01 recon-02 recon-03 recon-04 recon-05 recon-06 recon-07 recon-08 recon-09 recon-10 recon-11 recon-12 recon-13 recon-14 recon-15 recon-16 recon-17 skills decide hypothesis prefilter falsifier proof chain report quality deliver; do
     if [ -f "$hd/.state/$stage.done" ]; then printf "  ✓ %s\n" "$stage"; else printf "  · %s\n" "$stage"; fi
   done
 }

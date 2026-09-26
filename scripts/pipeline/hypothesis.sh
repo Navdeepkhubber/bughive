@@ -61,6 +61,11 @@ if [ -f "$hd/skills-selected.json" ]; then
   skills_selected_json="$(cat "$hd/skills-selected.json")"
 fi
 
+jev_decision_json=""
+if [ -f "$hd/jev-decision.json" ]; then
+  jev_decision_json="$(cat "$hd/jev-decision.json")"
+fi
+
 skills_dump=""
 if [ -f "$hd/skills-selected.json" ]; then
   # Pull the actual checklist body of every skill that was selected for this
@@ -89,6 +94,14 @@ string, a fingerprinted version) that matches a specific technique in a
 specific skill. If you cannot cite a concrete recon item, do not emit the
 hypothesis -- note in "notes" that the skill had no matching surface
 instead of inventing a speculative one.
+
+BINDING JEV DECISION:
+If the JSON below is non-empty, it is the decision. Do not pick a different
+skill, vulnerability, or test method. Emit hypotheses only for "skill" /
+"vuln", using "test_method" (see test_method_note), against "focus_url"
+when focus_url is not "none". If next_action is anything other than
+select_and_test, write hypotheses.json as [] and stop.
+$jev_decision_json
 
 METHOD (do this explicitly, don't skip steps):
 1. For each loaded skill below, read its checklist/technique list.
