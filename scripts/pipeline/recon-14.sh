@@ -23,7 +23,16 @@ fi
 
 if command -v nuclei >/dev/null 2>&1; then
   log "nuclei scanning $domain webapps"
-  timeout 1200 nuclei -l "$webapps" -severity critical,high,medium,low -jsonl -o "$out/nuclei_output.jsonl" -silent 2>/dev/null || true
+  # Rate-limited on purpose. nuclei's default is ~150 req/s per host, which is
+  # inappropriate for a live, shared production environment -- bug bounty programs
+  # (Abacus/GOBugFree among them) forbid DoS and require scanning to stop the moment
+  # it degrades service for real users. 25 req/s is still thorough for a handful of
+  # hosts while staying a polite guest. Override with NUCLEI_RATE_LIMIT if a program
+  # explicitly permits more.
+  nuclei_rl="${NUCLEI_RATE_LIMIT:-25}"
+  timeout 1200 nuclei -l "$webapps" -severity critical,high,medium,low \
+    -rl "$nuclei_rl" -c 10 -timeout 10 -retries 1 \
+    -jsonl -o "$out/nuclei_output.jsonl" -silent 2>/dev/null || true
   count=0
   items="[]"
   if [ -f "$out/nuclei_output.jsonl" ]; then

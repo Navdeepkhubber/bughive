@@ -9,7 +9,7 @@
 import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { decide, sanitizeDomain } from "./jev-decide.mjs";
+import { decide, sanitizeDomain, phaseRunId } from "./jev-decide.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..");
@@ -30,7 +30,7 @@ function run(command) {
   });
 }
 
-export async function loop(domain, { maxSteps = 32 } = {}) {
+export async function loop(domain, { maxSteps = 32, approveGates = false } = {}) {
   const d = sanitizeDomain(domain);
   const steps = [];
   for (let i = 0; i < maxSteps; i += 1) {
@@ -44,6 +44,21 @@ export async function loop(domain, { maxSteps = 32 } = {}) {
     });
     if (ex.kind === "bash" && ex.command) {
       await run(ex.command);
+      await markStage(d, ex.stage);
+      continue;
+    }
+    // Standing human approval (opt-in): a human_gate whose only blocker was the
+    // human_review score still carries JEV's own requested action in
+    // resume_command. When the operator has approved the gates for this hunt, resume
+    // the planner's action instead of stopping. Never implied -- requires the flag.
+    if (approveGates && ex.kind === "halt" && ex.resume_command) {
+      steps.push({
+        approved_gate: true,
+        clamped_from: decision.clamped_from,
+        resumed: ex.resume_command,
+      });
+      await run(ex.resume_command);
+      await markStage(d, phaseRunId(decision.recon_phase_selected));
       continue;
     }
     return {
@@ -55,17 +70,24 @@ export async function loop(domain, { maxSteps = 32 } = {}) {
   return { status: "max_steps", decision: steps.at(-1) || null, steps };
 }
 
+// Record each executed stage so `status` and the next snapshot reflect real progress.
+async function markStage(domain, stage) {
+  if (!stage) return;
+  await run(`bash scripts/pipeline/run.sh mark ${domain} ${stage}`);
+}
+
 const invokedDirectly =
   process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (invokedDirectly) {
   const domain = process.argv[2];
   const maxIdx = process.argv.indexOf("--max-steps");
   const maxSteps = maxIdx >= 0 ? Number(process.argv[maxIdx + 1]) || 32 : 32;
+  const approveGates = process.argv.includes("--approve-gates");
   if (!domain || domain.startsWith("--")) {
-    console.error("usage: jev-loop.mjs <domain> [--max-steps N]");
+    console.error("usage: jev-loop.mjs <domain> [--max-steps N] [--approve-gates]");
     process.exit(1);
   }
-  loop(domain, { maxSteps })
+  loop(domain, { maxSteps, approveGates })
     .then((out) => {
       console.log(
         JSON.stringify({

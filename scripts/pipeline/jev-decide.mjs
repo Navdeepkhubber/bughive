@@ -610,6 +610,9 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   const hasKeyword = Boolean(snap.hasKeyword);
 
   let action = next.choice && NEXT_ACTIONS[next.choice] ? next.choice : "human_gate";
+  // JEV's own choice before any policy clamp. Needed because some clamps must reason
+  // about what the planner *asked for*, not about the action they replaced it with.
+  const requestedAction = action;
   let clampedFrom = null;
   const untouched = snap.counts.hypotheses === 0 && snap.counts.validated === 0;
   if (urgentToolHit(snap) && untouched) {
@@ -624,8 +627,40 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   const requested = (phase.choice || "").replaceAll("_", "-");
   let reconPhase = pickReconPhase(requested, legal);
 
-  if (next.confidence < CONFIDENCE_FLOOR) clamp("human_gate");
-  if (human > HUMAN_REVIEW_CEILING) clamp("human_gate");
+  // Cold start = nothing has been observed or tested yet. The human_review question
+  // ("should a human review this before any further testing?") cannot be answered
+  // meaningfully against an empty snapshot, and JEV reliably scores it above the
+  // ceiling there. Left unguarded that clamps the very first deepen_recon to
+  // human_gate, so no hunt ever reaches recon-01 -- see hunts/threema.ch/jev-log.jsonl,
+  // which contains exactly one decision, this clamp. Exempt only this case: as soon as
+  // any recon evidence exists, human review gates normally.
+  const coldStart = reconCount === 0 && snap.counts.hypotheses === 0 && snap.counts.validated === 0;
+
+  let gatedBy = null;
+  if (next.confidence < CONFIDENCE_FLOOR) {
+    clamp("human_gate");
+    gatedBy = "confidence";
+  }
+  if (human > HUMAN_REVIEW_CEILING && !coldStart) {
+    clamp("human_gate");
+    // Keep the first reason: a low-confidence gate must not be relabelled as a mere
+    // review gate, or the exhaustion fallback below would override it.
+    gatedBy = gatedBy || "human_review";
+  }
+
+  // Recon exhaustion (the mirror image of the cold-start case above). Once every legal
+  // phase is done, JEV's standing "deepen_recon" has nothing left to run -- it cannot
+  // name a phase because there is none. That request then collides with the
+  // human_review clamp and halts the hunt at the exact moment recon *completes*
+  // (observed on abacus.ch after phase 18: next_action=human_gate, clamped_from=
+  // deepen_recon, recon_phase_selected=null, resume_command=null -- nothing to resume).
+  // No amount of human review can conjure a phase, so advance to the documented next
+  // stage instead. Scoped to this one structural impossibility via requestedAction and
+  // gatedBy, so a genuine low-confidence gate still halts.
+  if (requestedAction === "deepen_recon" && !reconPhase && gatedBy === "human_review") {
+    action = hasKeyword ? "select_and_test" : reconCount ? "score_skills" : "stop";
+    clampedFrom = "deepen_recon";
+  }
 
   if (reconCount === 0 && action !== "human_gate") {
     reconPhase = pickReconPhase(requested, legal.length ? legal : ["01-subdomain-enum"]);
@@ -762,10 +797,17 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
     clamped_from: clampedFrom,
     confidence: next.confidence,
     human_review: human,
+    cold_start: coldStart,
     worth_testing: worth,
     signal_score: signal.score,
     signal_label: signal.label,
     recon_phase: action === "deepen_recon" ? reconPhase : null,
+    // A gate must not destroy the planner's intent. `recon_phase` is deliberately null
+    // unless the action IS deepen_recon, so when a clamp (human_gate / coverage) fires,
+    // these two are the only record of what JEV actually asked for. Without them an
+    // approving human cannot resume JEV's plan and would have to pick a phase themselves.
+    recon_phase_requested: requested || null,
+    recon_phase_selected: reconPhase,
     skill: primary,
     skills: kept.filter((s) => s.load),
     skill_shortlist: ranked.slice(0, 5).map((s) => ({ skill: s.id, probability: s.probability })),
@@ -898,13 +940,26 @@ export function buildExecutor(decision, domain) {
       llm: "Write SUMMARY.md from hunt artifacts. Do not start another test. This is the last step.",
     };
   }
+  // On a human gate, hand the approver the exact command that resumes JEV's own plan,
+  // so approval does not require the operator to choose a stage themselves.
+  const resumeCommand =
+    action === "human_gate" && decision.clamped_from === "deepen_recon" && decision.recon_phase_selected
+      ? `bash scripts/pipeline/run.sh ${phaseRunId(decision.recon_phase_selected)} ${d}`
+      : null;
   return {
     kind: "halt",
     needs_llm: true,
     stage: "human_gate",
     file: `hunts/${d}/jev-decision.json`,
+    resume_command: resumeCommand,
     after: "stop",
-    llm: "Stop. Show the user hunts/" + d + "/jev-decision.json. Do not test, recon, or decide again until they reply.",
+    llm:
+      "Stop. Show the user hunts/" +
+      d +
+      "/jev-decision.json. Do not test, recon, or decide again until they reply." +
+      (resumeCommand
+        ? ` If the human approves, JEV's own requested action was "${decision.clamped_from}"; resume it with: ${resumeCommand}`
+        : ""),
   };
 }
 
@@ -1064,6 +1119,128 @@ export async function selftest() {
     confirm,
   });
   assert(review.next_action === "human_gate", "human review must gate");
+
+  // Cold start: with no recon evidence at all, a high human_review score must not
+  // deadlock the hunt before the first recon phase has ever run. JEV's own chosen
+  // action (deepen_recon) has to survive.
+  const coldSnap = {
+    ...baseSnap,
+    done: ["scope"],
+    recon: {},
+    present: [],
+    legal: ["01-subdomain-enum"],
+    missing: ["01-subdomain-enum"],
+    keyword: [],
+    hasKeyword: false,
+    hasSelected: false,
+  };
+  const cold = applyPolicy(
+    {
+      snap: coldSnap,
+      skills,
+      routing: {
+        ...routing,
+        answers: {
+          ...routing.answers,
+          next_action: { choice: "deepen_recon", confidence: 0.77, probabilities: {} },
+          recon_phase: { choice: "01_subdomain_enum", confidence: 0.6, probabilities: {} },
+          human_review: { noul: 0.9 },
+        },
+      },
+      confirm: null,
+    },
+    { routingOnly: true },
+  );
+  assert(cold.next_action === "deepen_recon", "cold start must reach the first recon phase");
+  assert(cold.recon_phase === "01-subdomain-enum", "cold start must name a recon phase");
+  assert(cold.clamped_from === null, "cold-start recon is JEV's own choice, not a clamp");
+  assert(cold.cold_start === true, "cold start must be reported");
+
+  // The exemption is narrow: one recon phase of evidence and the ceiling gates again.
+  const onePhase = applyPolicy(
+    {
+      snap: { ...coldSnap, recon: baseSnap.recon, present: baseSnap.present, legal: baseSnap.legal },
+      skills,
+      routing: {
+        ...routing,
+        answers: {
+          ...routing.answers,
+          next_action: { choice: "deepen_recon", confidence: 0.9, probabilities: {} },
+          recon_phase: { choice: "14_nuclei_scan", confidence: 0.6, probabilities: {} },
+          human_review: { noul: 0.9 },
+        },
+      },
+      confirm: null,
+    },
+    { routingOnly: true },
+  );
+  assert(onePhase.next_action === "human_gate", "human review still gates once evidence exists");
+  assert(onePhase.cold_start === false, "not a cold start once recon exists");
+
+  // A gate must still carry JEV's own request, so an approving human can resume the
+  // planner's plan instead of having to choose a stage themselves.
+  assert(onePhase.recon_phase === null, "a gated decision exposes no executable phase");
+  assert(onePhase.recon_phase_selected === "14-nuclei-scan", "gated decision preserves JEV's phase");
+  assert(onePhase.recon_phase_requested === "14-nuclei-scan", "gated decision preserves JEV's request");
+
+  // Recon exhaustion: every legal phase is done, so deepen_recon cannot name one. A high
+  // human_review score must not halt the hunt at the moment recon completes -- it has to
+  // advance to the documented next stage, or no hunt can ever leave recon.
+  const exhausted = applyPolicy(
+    {
+      snap: {
+        ...coldSnap,
+        recon: { "01-subdomain-enum": { count: 5 }, "18-source-audit": { degraded: true } },
+        present: ["01-subdomain-enum", "18-source-audit"],
+        legal: [],
+      },
+      skills,
+      routing: {
+        ...routing,
+        answers: {
+          ...routing.answers,
+          next_action: { choice: "deepen_recon", confidence: 0.63, probabilities: {} },
+          recon_phase: { choice: null, confidence: 0, probabilities: {} },
+          human_review: { noul: 0.89 },
+        },
+      },
+      confirm: null,
+    },
+    { routingOnly: true },
+  );
+  assert(exhausted.next_action === "score_skills", "exhausted recon must advance to score_skills");
+  assert(exhausted.clamped_from === "deepen_recon", "records that JEV asked for deepen_recon");
+
+  // A genuine low-confidence signal must still gate even with recon exhausted.
+  const exhaustedLow = applyPolicy(
+    {
+      snap: {
+        ...coldSnap,
+        recon: { "01-subdomain-enum": { count: 5 } },
+        present: ["01-subdomain-enum"],
+        legal: [],
+      },
+      skills,
+      routing: {
+        ...routing,
+        answers: {
+          ...routing.answers,
+          next_action: { choice: "deepen_recon", confidence: 0.2, probabilities: {} },
+          recon_phase: { choice: null, confidence: 0, probabilities: {} },
+          human_review: { noul: 0.89 },
+        },
+      },
+      confirm: null,
+    },
+    { routingOnly: true },
+  );
+  assert(exhaustedLow.next_action === "human_gate", "low confidence still gates after recon exhaustion");
+  const gateExec = buildExecutor(onePhase, "app.example");
+  assert(gateExec.kind === "halt", "gated decision halts");
+  assert(
+    gateExec.resume_command === "bash scripts/pipeline/run.sh recon-14 app.example",
+    "gate hands the approver a resume command for JEV's own phase",
+  );
 
   const earlyChain = applyPolicy(
     {

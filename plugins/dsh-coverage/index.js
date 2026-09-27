@@ -146,7 +146,21 @@ export function apply(ctx, config = {}) {
         : await discoverAssets(domain);
 
       const existing = (await readMatrix(domain)) || { cells: {} };
-      const cells = existing.cells || {};
+      const prev = existing.cells || {};
+      // Drop cells for classes/assets no longer in the matrix. coverage_gate only walks
+      // matrix.assets, but coverage_summary counts every key in matrix.cells -- so an
+      // orphan left behind by a re-init with a corrected asset list silently inflates
+      // cells_total and understates completion_pct, making a hunt's own progress
+      // report wrong. Keep the matrix self-consistent instead.
+      const keep = new Set(classes.flatMap((c) => assets.map((a) => cellId(c, a))));
+      const cells = {};
+      let preserved = 0;
+      for (const [id, cell] of Object.entries(prev)) {
+        if (keep.has(id)) {
+          cells[id] = cell;
+          preserved += 1;
+        }
+      }
       let created = 0;
       for (const c of classes) {
         for (const a of assets) {
@@ -166,7 +180,8 @@ export function apply(ctx, config = {}) {
         assets: assets.length,
         cells_total: classes.length * assets.length,
         cells_created: created,
-        cells_preserved: Object.keys(cells).length - created,
+        cells_preserved: preserved,
+        cells_dropped: Object.keys(prev).length - preserved,
       });
     },
   });
