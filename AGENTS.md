@@ -1,8 +1,8 @@
 # AGENTS.md — bughive Operating Manual
 
-You are the parent orchestrator of a bug bounty hunt. The pipeline is
-implemented as shell scripts under `scripts/pipeline/`. Call them via the
-Bash tool.
+You are the parent executor of a bug bounty hunt. JEV decides the next
+step. You run that step. The pipeline scripts live under
+`scripts/pipeline/`. Call them via the Bash tool.
 
 ## Keeping your own context clean
 
@@ -22,15 +22,15 @@ re-implement its logic ad hoc.
 
 ## Plugin tools
 
-- `pre_validation_filter` (dsh-fp-filter) -- **[TOOL]**, Stage 4.
-- `validate_finding` (dsh-finding-validator) -- **[TOOL]**, Stage 6. Real
+- `pre_validation_filter` (dsh-fp-filter) -- **[TOOL]**, when JEV says prefilter.
+- `validate_finding` (dsh-finding-validator) -- **[TOOL]**, when JEV says prove. Real
   transport layer (ctx.web seam + curl fallback), never throws -- inspect
   the returned `error`/`confidence` fields.
-- `run_recon_phase` (dsh-recon-orchestrator) -- **[TOOL]**, Stage 1, if your
-  environment prefers this over calling the bash scripts directly. Spawns
+- `run_recon_phase` (dsh-recon-orchestrator) -- **[TOOL]**, when JEV says
+  deepen_recon, if you prefer it over the bash recon scripts. Spawns
   a real subagent per phase via `ctx.subagents.start()`.
-- `build_chain` (dsh-chain-builder) -- **[TOOL]**, Stage 7.
-- `write_report` (dsh-report-writer) -- **[TOOL]**, Stage 8.
+- `build_chain` (dsh-chain-builder) -- **[TOOL]**, when JEV says chain.
+- `write_report` (dsh-report-writer) -- **[TOOL]**, when JEV says report.
 
   These five were broken as of the last audit (`ctx.sessions.create().run()`
   doesn't exist on the installed DSH API) and are now fixed and verified --
@@ -43,132 +43,109 @@ infrastructure and should not be invoked directly.
 
 ## Rules
 1. Never run tools outside scope.txt.
-2. Wait for each serial stage to fully return before starting the next.
-3. Report progress using `hunt_mark` after every stage.
-4. Stop and report if any stage fails.
-5. A `critical` or `high` hit from Stage 1's phase 14 (nuclei) or phase 15
-   (mass-oneliners) should be flagged for human-gate review immediately,
-   not left to wait behind the rest of the pipeline -- see Stage 3.
+2. You do not plan the hunt. JEV plans it. After init, the only legal
+   control flow is: decide → run the executor in jev-decision.json →
+   decide again. Do not skip decide. Do not pick a stage, skill, vuln, or
+   test method yourself.
+3. Wait for the current executor to finish before calling decide again.
+4. Report progress using `hunt_mark` after every executed step.
+5. Stop and report if any executor fails.
+6. If `next_action` is `human_gate`, stop and show the user
+   hunts/<domain>/jev-decision.json. Do not continue.
 
-## The pipeline
+## The hunt loop
 
-When the user says "hunt <domain>", execute stages in this order.
+When the user says "hunt <domain>", do this. Do not run recon-01 through
+recon-17 in a hardcoded order.
 
-### Stage 0 — init
+### 0. Init once
 
     bash scripts/pipeline/run.sh init <domain> "<scope host1
     host2
     host3>"
 
-### Stage 1 — recon (STRICT ordering)
+### 1. Let JEV drive
 
-Run these serially, one at a time. Wait for each to return before
-starting the next:
+    bash scripts/pipeline/run.sh decide <domain>
 
-    bash scripts/pipeline/run.sh recon-01 <domain>
-    bash scripts/pipeline/run.sh recon-02 <domain>
-    bash scripts/pipeline/run.sh recon-03 <domain>
-    bash scripts/pipeline/run.sh recon-04 <domain>
+Read only the JSON printed on stdout (and `executor` inside it). Do not
+load recon summaries or skill checklists into your own context.
 
-Then run these concurrently (fire all, do not wait between calls) -- 14
-and 16 only depend on 04 and 01 respectively, so they join this batch
-rather than waiting for phases they don't need:
+Optional: `bash scripts/pipeline/run.sh loop <domain>` runs decide plus
+every `kind: bash` executor (recon phases and skill scoring) until JEV
+needs you. Exit 10 means take the printed `executor` and do that LLM
+step, then `decide` again. Exit 0 with `human_gate` means stop.
 
-    bash scripts/pipeline/run.sh recon-05 <domain>
-    bash scripts/pipeline/run.sh recon-06 <domain>
-    bash scripts/pipeline/run.sh recon-07 <domain>
-    bash scripts/pipeline/run.sh recon-08 <domain>
-    bash scripts/pipeline/run.sh recon-09 <domain>
-    bash scripts/pipeline/run.sh recon-14 <domain>
-    bash scripts/pipeline/run.sh recon-16 <domain>
+### 2. Run exactly one executor
 
-Then:
+`executor.kind` is the only thing you act on:
 
-    bash scripts/pipeline/run.sh recon-10 <domain>
+| kind | What you do |
+|---|---|
+| `bash` | Run `executor.command`. Nothing else. |
+| `subagent` | Run `executor.command` if present, then spawn that subagent. Return a short confirmation, not the trace. |
+| `plugin` | Call the named plugin on `executor.input`. Write `executor.write`. |
+| `write` | Write SUMMARY.md. Stop. |
+| `halt` | Stop. Show the user the decision file. |
 
-Then, since it needs 05/06's merged endpoint list:
-
-    bash scripts/pipeline/run.sh recon-12 <domain>
-
-Then these three concurrently (all only need phase 12's cache, or in
-17's case, phase 06's endpoint list):
-
-    bash scripts/pipeline/run.sh recon-13 <domain>
-    bash scripts/pipeline/run.sh recon-15 <domain>
-    bash scripts/pipeline/run.sh recon-17 <domain>
-
-Then last, since it depends on 04/05/06/07's output for candidate entry
-URLs and executes real (safety-gated) multi-step flows rather than static
-probes:
-
-    bash scripts/pipeline/run.sh recon-11 <domain>
-
-Phases 12-17 are the "proven methodology" additions: 12 caches every
-response body locally (so 13/15 can grep a local file instead of
-re-hitting the live target per check); 13 scans that cache for secrets;
-14 runs nuclei for template-confirmed low-hanging fruit; 15 runs
-deterministic XSS/SSRF/SSTI/CORS one-liners across the whole endpoint
-corpus with zero LLM tokens; 16 runs automated GitHub dorking (the
-existing `github-recon.md` skill had nothing that actually executed it
-before this); 17 flags interesting-looking endpoints (/admin, /api/,
-/graphql, /debug, /swagger, /internal, /openapi, /actuator) by keyword so
-the hypothesis stage doesn't have to rediscover priority targets from a
-flat list at LLM-token cost.
-
-### Stage 2 — skill selection
-
- bash scripts/pipeline/run.sh skills <domain>
-
-Deterministically scores every skill in skills/seeds/ and skills/learned/
-against the recon corpus (now including phases 12-17) and writes
-hunts/<domain>/skills-selected.json, each entry showing its score and
-matched evidence terms. This is evidence for the decision stage, not the
-decision itself. This must run before Stage 2.5.
-
-### Stage 2.5 — JEV decide **[TOOL]**
-
- bash scripts/pipeline/run.sh decide <domain>
+Then `hunt_mark` the stage, then `decide` again unless kind was `halt`
+or `write`.
 
 JEV (TypeSafe System One, `https://api.typesafe.ai/v1/systemone`) does not
-write text. It reads the recon summaries plus the skill catalog and returns
-typed answers with probabilities. `scripts/pipeline/jev-decide.mjs` applies
-hunt policy on top of those answers and writes
-hunts/<domain>/jev-decision.json. Requires `TYPESAFE_API_KEY` (a `.env`
-file in the repo root is read if the variable is unset). Optional
-`TYPESAFE_MODEL` (default `jev-latest`).
+write text. `scripts/pipeline/jev-decide.mjs` asks it: what next, which
+recon phase, which skill, which vuln, how to test. Hunt policy then
+clamps illegal jumps (no recon → phase 01; test without keyword scores →
+score_skills; chain without validated findings → earlier stage;
+confidence < 0.45 or human_review > 0.7 → human_gate; critical/high
+nuclei or any phase-15 hit → human_gate). Requires `TYPESAFE_API_KEY`
+(`.env` in the repo root is read if unset). Optional `TYPESAFE_MODEL`
+(default `jev-latest`).
 
-The file's `next_action` is binding. Do not re-pick the skill, the
-vulnerability, or the test method in your own reasoning. Re-run `decide`
-before choosing any later stage; the same script reclamps against whatever
-artifacts exist now.
+`next_action` values: `deepen_recon`, `score_skills`, `select_and_test`,
+`prefilter`, `falsify`, `prove`, `chain`, `report`, `quality`, `deliver`,
+`human_gate`, `stop`. Test methods stay in the closed set
+`checklist_walk`, `tool_hit_falsify`, `flow_step_skip`, `auth_swap`,
+`param_mutation`, `version_match`, `hold`. JEV does not invent payloads.
 
-| `next_action` | What you do |
-|---|---|
-| `deepen_recon` | Run the single phase in `recon_phase`, then `decide` again |
-| `select_and_test` | Stage 3, only for `skill` / `vuln`, `test_method`, and `focus_url` |
-| `falsify` | Stages 4 and 5 |
-| `prove` | Stage 6 |
-| `chain` | Stage 7 |
-| `report` | Stages 8 and 9 |
-| `human_gate` | Stop and report the decision to the user |
-| `stop` | Stage 10 |
+Each decide appends one line to `hunts/<domain>/jev-log.jsonl`.
 
-Policy the script enforces, so you don't: confidence below 0.45 or
-`human_review` above 0.7 becomes `human_gate`; a critical or high nuclei
-hit, or any phase-15 one-liner hit, becomes `human_gate` before hypotheses
-exist; an action that names artifacts that do not exist yet is moved
-forward to the earliest legal stage; a skill is loaded only when its
-confirm probability is at least 0.4. Keyword scores are copied to
-`skills-keyword.json`. The skills Stage 3 actually loads are the JEV
-keep-list rewritten into `skills-selected.json`.
+### How to execute each action (only when JEV names it)
 
-One question in that call is "which skill", one is "which vulnerability
-among the top three", one is "how to test" (`checklist_walk`,
-`tool_hit_falsify`, `flow_step_skip`, `auth_swap`, `param_mutation`,
-`version_match`, `hold`). JEV picks inside that closed set. It does not
-invent payloads.
+Recon phases 01–17 still exist as scripts. Run the single phase in
+`executor.command` / `recon_phase`. Dependencies are enforced in
+jev-decide, not by you. Phases 12–17 are the proven-methodology ones
+(response cache, secrets, nuclei, one-liners, GitHub dorks, interesting
+endpoints). Do not batch "the rest of recon" because the old manual
+said to.
 
-### Stage 3 — hypothesis **[SUBAGENT]**
+**score_skills** — `bash scripts/pipeline/run.sh skills <domain>`. Keyword
+overlap is evidence. JEV still picks the skill.
+
+**select_and_test** — `bash scripts/pipeline/run.sh hypothesis <domain>`
+then spawn a subagent on `hypothesis-prompt.txt`. It writes
+`hypotheses.json`. Return count and top priorities only.
+
+**prefilter** — `pre_validation_filter` per hypothesis → `hypotheses-pass.json`.
+
+**falsify** — subagent on pass-list + raw recon for tool hits → keep
+verdict==true AND confidence>=0.6 in `hypotheses-real.json`.
+
+**prove** — `validate_finding` baseline+probe → `validated.json`. Treat
+`confidence: "low-likely-noise"` as not validated.
+
+**chain** — `build_chain` → write `chains.json` yourself.
+
+**report** — `write_report` per finding → `reports/report-<id>.md`.
+
+**quality** — subagent checklist → copy passers to `reports/approved/`.
+
+**deliver / stop** — write `SUMMARY.md`.
+
+The old Stage 1 concurrent batches, Stage 2-before-2.5 linear order, and
+"run every recon phase first" are retired. JEV may still run them, one
+legal phase at a time.
+
+### select_and_test — hypothesis **[SUBAGENT]**
 
     bash scripts/pipeline/run.sh hypothesis <domain>
 
@@ -186,7 +163,10 @@ hypothesis -- EXCEPT tool-confirmed hits from phases 13/14/15/16, which
 the prompt itself instructs the subagent to pass through directly at
 priority 9-10 rather than re-deriving.
 
-### Stage 4 — prefilter **[TOOL]**
+When JEV names these later actions, execute them as written. Do not run
+them because they are "next in the old pipeline."
+
+### prefilter **[TOOL]**
 
 Call the `pre_validation_filter` tool (dsh-fp-filter) per hypothesis to
 drop anything out of scope, lacking a baseline, or referencing empty
@@ -268,6 +248,6 @@ stay `high`, since matching evidence against skill checklists and
 proposing exploit chains is exactly the kind of reasoning that budget is
 for.
 
-JEV is the decision layer in front of that. It chooses the next stage, the
-skill, the vulnerability, and the test method. DeepSeek still writes
-hypotheses, chains, and reports inside the choice JEV already made.
+JEV is the planner. The LLM is the executor. JEV chooses the next
+stage, the skill, the vulnerability, and the test method. DeepSeek
+writes hypotheses, chains, and reports only inside that choice.

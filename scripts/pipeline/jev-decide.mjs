@@ -6,8 +6,9 @@
  * questions about the recon state: what to do next, which skill, which
  * vulnerability, and which test method. This script applies hunt policy
  * (legal stage order, confidence floor, human gate) and writes
- * hunts/<domain>/jev-decision.json. The parent orchestrator follows that
- * file; it does not re-decide.
+ * hunts/<domain>/jev-decision.json plus an executor block the parent LLM
+ * must run verbatim. The LLM does not choose stages. It asks JEV, runs
+ * the executor, then asks JEV again.
  *
  * Auth: TYPESAFE_API_KEY (Bearer). Optional TYPESAFE_MODEL (default
  * jev-latest). Optional TYPESAFE_API_BASE for tests.
@@ -16,7 +17,7 @@
  *   node scripts/pipeline/jev-decide.mjs --selftest
  */
 
-import { readFile, writeFile, readdir, mkdir, copyFile } from "node:fs/promises";
+import { readFile, writeFile, readdir, mkdir, copyFile, appendFile } from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -51,18 +52,39 @@ const HIGH_SIGNAL = [
   "08-tech-fingerprint",
 ];
 
+const PHASES = [
+  { id: "01-subdomain-enum", deps: [] },
+  { id: "02-dns-resolution", deps: ["01-subdomain-enum"] },
+  { id: "03-port-scan", deps: ["02-dns-resolution"] },
+  { id: "04-http-probe", deps: ["03-port-scan"] },
+  { id: "05-content-discovery", deps: ["04-http-probe"] },
+  { id: "06-param-discovery", deps: ["04-http-probe"] },
+  { id: "07-js-analysis", deps: ["04-http-probe"] },
+  { id: "08-tech-fingerprint", deps: ["04-http-probe"] },
+  { id: "09-historical-data", deps: ["04-http-probe"] },
+  { id: "10-cloud-assets", deps: ["01-subdomain-enum"] },
+  { id: "11-flow-mapping", deps: ["04-http-probe", "05-content-discovery", "06-param-discovery", "07-js-analysis"] },
+  { id: "12-response-cache", deps: ["04-http-probe", "05-content-discovery", "06-param-discovery"] },
+  { id: "13-secret-scan", deps: ["07-js-analysis", "12-response-cache"] },
+  { id: "14-nuclei-scan", deps: ["04-http-probe"] },
+  { id: "15-mass-oneliners", deps: ["06-param-discovery", "12-response-cache"] },
+  { id: "16-github-dorking", deps: ["01-subdomain-enum"] },
+  { id: "17-interesting-endpoints", deps: ["06-param-discovery", "12-response-cache"] },
+];
+
 const NEXT_ACTIONS = {
-  deepen_recon:
-    "A high-signal recon phase is missing or empty. Run that phase before testing.",
-  select_and_test:
-    "Load the chosen skills and run hypothesis generation only for the chosen vulnerability and test method.",
-  falsify:
-    "Hypotheses already exist. Run prefilter and the falsifier. Do not generate more.",
-  prove: "Falsifier survivors exist. Run the proof validator.",
-  chain: "Validated findings exist. Build a chain.",
-  report: "Validated findings are ready to write up.",
-  human_gate: "Stop and ask the human before any further testing.",
-  stop: "No concrete test. End the hunt and write SUMMARY.md.",
+  deepen_recon: "Run the one recon phase named in recon_phase, then decide again.",
+  score_skills: "Run keyword skill scoring. That is evidence for JEV, not a skill pick.",
+  select_and_test: "Build the hypothesis prompt and spawn the hypothesis subagent for the chosen skill and test method only.",
+  prefilter: "Call pre_validation_filter on each hypothesis. Write hypotheses-pass.json.",
+  falsify: "Spawn the falsifier subagent on hypotheses-pass.json. Write hypotheses-real.json.",
+  prove: "Call validate_finding on each real hypothesis. Write validated.json.",
+  chain: "Call build_chain on validated.json. Write chains.json.",
+  report: "Call write_report once per validated finding. Write reports/report-<id>.md.",
+  quality: "Spawn the quality-gate subagent. Copy passing reports to reports/approved/.",
+  deliver: "Write SUMMARY.md from hunt artifacts and stop.",
+  human_gate: "Stop. Show the user jev-decision.json. Do not test further.",
+  stop: "No concrete test. Write SUMMARY.md and end the hunt.",
 };
 
 const TEST_METHODS = {
@@ -86,6 +108,21 @@ export function sanitizeDomain(raw) {
   d = d.replace(/^https?:\/\//, "");
   d = d.split("/")[0].split(":")[0];
   return d.toLowerCase();
+}
+
+export function phaseRunId(phaseId) {
+  return `recon-${String(phaseId || "").slice(0, 2)}`;
+}
+
+export function legalPhases(present) {
+  const have = present instanceof Set ? present : new Set(present || []);
+  return PHASES.filter((p) => !have.has(p.id) && p.deps.every((d) => have.has(d))).map((p) => p.id);
+}
+
+export function pickReconPhase(requested, legal) {
+  if (requested && legal.includes(requested)) return requested;
+  const high = HIGH_SIGNAL.find((p) => legal.includes(p));
+  return high || legal[0] || null;
 }
 
 function loadDotEnv() {
@@ -198,11 +235,13 @@ async function huntSnapshot(domain) {
   }
 
   const present = new Set(phaseNames.filter((p) => recon[p]));
+  const legal = legalPhases(present);
   const missing = HIGH_SIGNAL.filter((p) => !present.has(p));
 
-  const keyword = (await readJson(join(hd, "skills-keyword.json"))) ||
-    (await readJson(join(hd, "skills-selected.json"))) ||
-    [];
+  const keyword = (await readJson(join(hd, "skills-keyword.json"))) || [];
+  const selected = (await readJson(join(hd, "skills-selected.json"))) || [];
+  const hasKeyword = Array.isArray(keyword) && keyword.length > 0;
+  const hasSelected = Array.isArray(selected) && selected.length > 0;
 
   const counts = {};
   for (const [label, file] of [
@@ -210,12 +249,27 @@ async function huntSnapshot(domain) {
     ["hypotheses_pass", "hypotheses-pass.json"],
     ["hypotheses_real", "hypotheses-real.json"],
     ["validated", "validated.json"],
+    ["chains", "chains.json"],
   ]) {
     const data = await readJson(join(hd, file));
     counts[label] = Array.isArray(data) ? data.length : 0;
   }
+  counts.reports = 0;
+  counts.approved = 0;
+  try {
+    const reportDir = join(hd, "reports");
+    const names = await readdir(reportDir);
+    counts.reports = names.filter((n) => n.endsWith(".md") && n.startsWith("report-")).length;
+    try {
+      counts.approved = (await readdir(join(reportDir, "approved"))).filter((n) => n.endsWith(".md")).length;
+    } catch {
+      counts.approved = 0;
+    }
+  } catch {
+    /* no reports dir */
+  }
 
-  return { hd, done, recon, missing, keyword, counts };
+  return { hd, done, recon, present: [...present], legal, missing, keyword, hasKeyword, hasSelected, counts };
 }
 
 function buildState(snap, skills) {
@@ -237,8 +291,10 @@ function buildState(snap, skills) {
   return [
     "Bug bounty hunt state. Decide only from this evidence.",
     `stages_done: ${snap.done.join(", ") || "(none)"}`,
+    `legal_recon_phases: ${snap.legal.join(", ") || "(none — recon complete or deps unmet)"}`,
     `missing_high_signal_phases: ${snap.missing.join(", ") || "(none)"}`,
-    `artifact_counts: hypotheses=${snap.counts.hypotheses} pass=${snap.counts.hypotheses_pass} real=${snap.counts.hypotheses_real} validated=${snap.counts.validated}`,
+    `keyword_scored: ${snap.hasKeyword ? "yes" : "no"}`,
+    `artifact_counts: hypotheses=${snap.counts.hypotheses} pass=${snap.counts.hypotheses_pass} real=${snap.counts.hypotheses_real} validated=${snap.counts.validated} reports=${snap.counts.reports || 0} approved=${snap.counts.approved || 0}`,
     "Keyword overlap shortlist (evidence, not a decision):",
     keywordLines || "(none)",
     "Skill catalog:",
@@ -275,22 +331,22 @@ function focusOptions(snap) {
 
 function routingQuestions(snap) {
   const phaseCriteria = {};
-  for (const phase of snap.missing) phaseCriteria[phase.replaceAll("-", "_")] = `Run recon phase ${phase}`;
+  for (const phase of snap.legal) {
+    phaseCriteria[phase.replaceAll("-", "_")] = `Run recon phase ${phase}`;
+  }
   if (Object.keys(phaseCriteria).length === 0) {
-    phaseCriteria.none = "Every high-signal recon phase already has a summary.";
+    phaseCriteria.none = "No legal recon phase is left. Do not pick deepen_recon.";
   }
   const questions = {
     next_action: {
       type: "choice",
       instructions:
-        "Given stages already done and the recon evidence, what should the hunt do next?",
-      criteria: Object.fromEntries(
-        Object.entries(NEXT_ACTIONS).map(([k, v]) => [k, v]),
-      ),
+        "You are the hunt controller. Pick the single next action. The LLM will only execute that action. Prefer the cheapest step that unblocks a concrete test. Do not skip to report or chain without the matching artifacts.",
+      criteria: Object.fromEntries(Object.entries(NEXT_ACTIONS)),
     },
     recon_phase: {
       type: "choice",
-      instructions: "If more recon is warranted, which missing phase is the one to run?",
+      instructions: "If next_action is deepen_recon, which legal phase should run now? Only pick from these options.",
       criteria: phaseCriteria,
     },
     signal: {
@@ -475,6 +531,9 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   const human = num(routing.answers.human_review?.noul);
   const signal = nearestSignal(routing.answers.signal);
   const ranked = rankedSkills(skillChoice.probabilities, skills);
+  const legal = Array.isArray(snap.legal) ? snap.legal : legalPhases(snap.present || Object.keys(snap.recon || {}));
+  const reconCount = Object.keys(snap.recon || {}).length;
+  const hasKeyword = Boolean(snap.hasKeyword);
 
   let action = next.choice && NEXT_ACTIONS[next.choice] ? next.choice : "human_gate";
   let clampedFrom = null;
@@ -488,24 +547,51 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
     action = to;
   };
 
-  const phaseKey = (phase.choice || "").replaceAll("_", "-");
-  const reconPhase = snap.missing.includes(phaseKey) ? phaseKey : snap.missing[0] || null;
+  const requested = (phase.choice || "").replaceAll("_", "-");
+  let reconPhase = pickReconPhase(requested, legal);
 
   if (next.confidence < CONFIDENCE_FLOOR) clamp("human_gate");
   if (human > HUMAN_REVIEW_CEILING) clamp("human_gate");
 
-  const toolHit = hasToolHit(snap);
-  if (toolHit && (action === "stop" || action === "deepen_recon")) clamp("select_and_test");
+  if (reconCount === 0 && action !== "human_gate") {
+    reconPhase = pickReconPhase(requested, legal.length ? legal : ["01-subdomain-enum"]);
+    clamp("deepen_recon");
+  }
 
-  if (action === "deepen_recon" && !reconPhase) clamp("select_and_test");
-  if (action === "falsify" && snap.counts.hypotheses === 0) clamp("select_and_test");
+  if (action === "score_skills" && reconCount === 0) clamp("deepen_recon");
+  if (action === "score_skills" && hasKeyword) {
+    clamp(reconPhase ? "deepen_recon" : "select_and_test");
+  }
+
+  const toolHit = hasToolHit(snap);
+  if (toolHit && action === "stop") clamp("select_and_test");
+
+  if (action === "deepen_recon" && !reconPhase) {
+    clamp(hasKeyword ? "select_and_test" : reconCount ? "score_skills" : "stop");
+  }
+  if (action === "select_and_test" && !hasKeyword && reconCount > 0) clamp("score_skills");
+  if (action === "prefilter" && snap.counts.hypotheses === 0) {
+    clamp(hasKeyword ? "select_and_test" : reconCount ? "score_skills" : "deepen_recon");
+  }
+  if (action === "falsify" && snap.counts.hypotheses_pass === 0) {
+    clamp(snap.counts.hypotheses > 0 ? "prefilter" : "select_and_test");
+  }
   if (action === "prove" && snap.counts.hypotheses_real === 0) {
-    clamp(snap.counts.hypotheses > 0 ? "falsify" : "select_and_test");
+    if (snap.counts.hypotheses_pass > 0) clamp("falsify");
+    else if (snap.counts.hypotheses > 0) clamp("prefilter");
+    else clamp("select_and_test");
   }
   if ((action === "chain" || action === "report") && snap.counts.validated === 0) {
     if (snap.counts.hypotheses_real > 0) clamp("prove");
-    else if (snap.counts.hypotheses > 0) clamp("falsify");
-    else clamp("select_and_test");
+    else if (snap.counts.hypotheses_pass > 0) clamp("falsify");
+    else if (snap.counts.hypotheses > 0) clamp("prefilter");
+    else clamp(hasKeyword ? "select_and_test" : reconCount ? "score_skills" : "deepen_recon");
+  }
+  if (action === "quality" && (snap.counts.reports || 0) === 0) {
+    clamp(snap.counts.validated > 0 ? "report" : "prove");
+  }
+  if (action === "deliver" && snap.counts.validated > 0 && (snap.counts.reports || 0) === 0) {
+    clamp("report");
   }
   if (action === "select_and_test" && worth < WORTH_TESTING_FLOOR && !toolHit) {
     clamp(reconPhase ? "deepen_recon" : "stop");
@@ -572,6 +658,7 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
     action === "select_and_test" && focusUrl !== "none" ? `Focus: ${focusUrl}.` : "",
     action === "deepen_recon" && reconPhase ? `Phase: ${reconPhase}.` : "",
     clampedFrom ? `Clamped from JEV's ${clampedFrom} by hunt policy.` : "",
+    "Then call decide again unless this action is human_gate, stop, or deliver.",
   ]
     .filter(Boolean)
     .join(" ");
@@ -604,24 +691,152 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   };
 }
 
-async function writeDecision(snap, decision) {
+export function buildExecutor(decision, domain) {
+  const d = sanitizeDomain(domain);
+  const after = `bash scripts/pipeline/run.sh decide ${d}`;
+  const llm = `You are the executor. JEV already decided. Do not pick a different stage, skill, or test method. Run this executor, then ${after}.`;
+  const action = decision.next_action;
+  if (action === "deepen_recon" && decision.recon_phase) {
+    const stage = phaseRunId(decision.recon_phase);
+    return { kind: "bash", needs_llm: false, stage, command: `bash scripts/pipeline/run.sh ${stage} ${d}`, after, llm };
+  }
+  if (action === "score_skills") {
+    return { kind: "bash", needs_llm: false, stage: "skills", command: `bash scripts/pipeline/run.sh skills ${d}`, after, llm };
+  }
+  if (action === "select_and_test") {
+    return {
+      kind: "subagent",
+      needs_llm: true,
+      stage: "hypothesis",
+      command: `bash scripts/pipeline/run.sh hypothesis ${d}`,
+      then_spawn: "hypothesis",
+      prompt_file: `hunts/${d}/hypothesis-prompt.txt`,
+      write: `hunts/${d}/hypotheses.json`,
+      return: "count written and top priorities only — not the reasoning trace",
+      after,
+      llm,
+    };
+  }
+  if (action === "prefilter") {
+    return {
+      kind: "plugin",
+      needs_llm: true,
+      stage: "prefilter",
+      plugin: "pre_validation_filter",
+      input: `hunts/${d}/hypotheses.json`,
+      write: `hunts/${d}/hypotheses-pass.json`,
+      after,
+      llm,
+    };
+  }
+  if (action === "falsify") {
+    return {
+      kind: "subagent",
+      needs_llm: true,
+      stage: "falsifier",
+      then_spawn: "falsifier",
+      input: `hunts/${d}/hypotheses-pass.json`,
+      write: `hunts/${d}/hypotheses-real.json`,
+      keep: "verdict==true AND confidence>=0.6",
+      after,
+      llm,
+    };
+  }
+  if (action === "prove") {
+    return {
+      kind: "plugin",
+      needs_llm: true,
+      stage: "proof",
+      plugin: "validate_finding",
+      input: `hunts/${d}/hypotheses-real.json`,
+      write: `hunts/${d}/validated.json`,
+      after,
+      llm,
+    };
+  }
+  if (action === "chain") {
+    return {
+      kind: "plugin",
+      needs_llm: true,
+      stage: "chain",
+      plugin: "build_chain",
+      input: `hunts/${d}/validated.json`,
+      write: `hunts/${d}/chains.json`,
+      after,
+      llm,
+    };
+  }
+  if (action === "report") {
+    return {
+      kind: "plugin",
+      needs_llm: true,
+      stage: "report",
+      plugin: "write_report",
+      input: `hunts/${d}/validated.json`,
+      write: `hunts/${d}/reports/report-<id>.md`,
+      after,
+      llm,
+    };
+  }
+  if (action === "quality") {
+    return {
+      kind: "subagent",
+      needs_llm: true,
+      stage: "quality",
+      then_spawn: "quality",
+      input: `hunts/${d}/reports/`,
+      write: `hunts/${d}/reports/approved/`,
+      after,
+      llm,
+    };
+  }
+  if (action === "deliver" || action === "stop") {
+    return {
+      kind: "write",
+      needs_llm: true,
+      stage: "deliver",
+      write: `hunts/${d}/SUMMARY.md`,
+      after: "stop",
+      llm: "Write SUMMARY.md from hunt artifacts. Do not start another test. This is the last step.",
+    };
+  }
+  return {
+    kind: "halt",
+    needs_llm: true,
+    stage: "human_gate",
+    file: `hunts/${d}/jev-decision.json`,
+    after: "stop",
+    llm: "Stop. Show the user hunts/" + d + "/jev-decision.json. Do not test, recon, or decide again until they reply.",
+  };
+}
+
+async function writeDecision(snap, decision, domain) {
   await mkdir(snap.hd, { recursive: true });
+  const host = sanitizeDomain(domain || snap.hd.split(/[/\\]/).pop());
   const selectedPath = join(snap.hd, "skills-selected.json");
   const keywordPath = join(snap.hd, "skills-keyword.json");
   if (existsSync(selectedPath) && !existsSync(keywordPath)) {
     await copyFile(selectedPath, keywordPath);
   }
-  const selected = (decision.skills || []).map((s) => ({
-    skill: s.skill,
-    score: s.score,
-    probability: s.probability,
-    load_noul: s.load_noul,
-    matched_terms: s.matched_terms,
-    reason: s.reason,
-  }));
-  await writeFile(selectedPath, `${JSON.stringify(selected, null, 2)}\n`);
-  const out = { ...decision, created_at: new Date().toISOString() };
+  if (decision.next_action === "select_and_test" && (decision.skills || []).length > 0) {
+    const selected = decision.skills.map((s) => ({
+      skill: s.skill,
+      score: s.score,
+      probability: s.probability,
+      load_noul: s.load_noul,
+      matched_terms: s.matched_terms,
+      reason: s.reason,
+    }));
+    await writeFile(selectedPath, `${JSON.stringify(selected, null, 2)}\n`);
+  }
+  const executor = buildExecutor(decision, host);
+  const out = { ...decision, executor, created_at: new Date().toISOString() };
   await writeFile(join(snap.hd, "jev-decision.json"), `${JSON.stringify(out, null, 2)}\n`);
+  try {
+    await appendFile(join(snap.hd, "jev-log.jsonl"), `${JSON.stringify({ at: out.created_at, next_action: out.next_action, recon_phase: out.recon_phase, skill: out.skill, test_method: out.test_method, clamped_from: out.clamped_from })}\n`);
+  } catch {
+    /* log is best-effort */
+  }
   return out;
 }
 
@@ -662,7 +877,7 @@ export async function decide(domain, { fetchImpl } = {}) {
   }
 
   const decision = applyPolicy({ snap, skills, routing, confirm });
-  return writeDecision(snap, decision);
+  return writeDecision(snap, decision, domain);
 }
 
 function assert(cond, msg) {
@@ -679,9 +894,13 @@ export async function selftest() {
     hd: "/tmp/jev-unused",
     done: ["scope", "recon-06"],
     recon: { "06-param-discovery": { count: 3, items: [{ url: "https://app.example/api/users?id=1" }] } },
+    present: ["06-param-discovery"],
+    legal: ["14-nuclei-scan"],
     missing: ["14-nuclei-scan"],
     keyword: [{ skill: "seeds/idor", score: 4, matched_terms: "userid" }],
-    counts: { hypotheses: 0, hypotheses_pass: 0, hypotheses_real: 0, validated: 0 },
+    hasKeyword: true,
+    hasSelected: true,
+    counts: { hypotheses: 0, hypotheses_pass: 0, hypotheses_real: 0, validated: 0, reports: 0, approved: 0 },
   };
   const routing = {
     model: "jev-test",
@@ -719,6 +938,9 @@ export async function selftest() {
   assert(ok.test_method === "auth_swap", "expected auth_swap");
   assert(ok.focus_url.includes("/api/users"), "expected focus url");
   assert(ok.skills.length === 1, "xss and ssrf below load floor");
+  const exec = buildExecutor(ok, "app.example");
+  assert(exec.kind === "subagent" && exec.stage === "hypothesis", "executor is hypothesis subagent");
+  assert(exec.command.includes("hypothesis"), "executor runs hypothesis.sh");
 
   const low = applyPolicy({
     snap: baseSnap,
@@ -780,7 +1002,7 @@ export async function selftest() {
   assert(thin.recon_phase === "14-nuclei-scan", "picks missing phase");
 
   const rejected = applyPolicy({
-    snap: { ...baseSnap, missing: [] },
+    snap: { ...baseSnap, missing: [], legal: [] },
     skills,
     routing,
     confirm: {
@@ -804,7 +1026,50 @@ export async function selftest() {
   });
   assert(urgent.next_action === "human_gate", "high nuclei hit gates before testing");
 
-  console.log(JSON.stringify({ selftest: "ok", cases: 7 }));
+  const boot = applyPolicy({
+    snap: {
+      ...baseSnap,
+      recon: {},
+      present: [],
+      legal: ["01-subdomain-enum"],
+      missing: HIGH_SIGNAL,
+      hasKeyword: false,
+      keyword: [],
+    },
+    skills,
+    routing,
+    confirm,
+  });
+  assert(boot.next_action === "deepen_recon", "no recon starts at deepen");
+  assert(boot.recon_phase === "01-subdomain-enum", "first legal phase is 01");
+  assert(buildExecutor(boot, "example.com").command.includes("recon-01"), "executor runs recon-01");
+
+  const needScore = applyPolicy({
+    snap: { ...baseSnap, hasKeyword: false, keyword: [] },
+    skills,
+    routing,
+    confirm,
+  });
+  assert(needScore.next_action === "score_skills", "select_and_test waits for keyword scores");
+  assert(buildExecutor(needScore, "example.com").stage === "skills", "executor runs skills");
+
+  const lateFalsify = applyPolicy({
+    snap: { ...baseSnap, counts: { ...baseSnap.counts, hypotheses: 2 } },
+    skills,
+    routing: {
+      ...routing,
+      answers: { ...routing.answers, next_action: { choice: "falsify", confidence: 0.9, probabilities: {} } },
+    },
+    confirm: null,
+  }, { routingOnly: true });
+  assert(lateFalsify.next_action === "prefilter", "falsify without pass file runs prefilter");
+
+  const opened = legalPhases([]);
+  assert(opened[0] === "01-subdomain-enum", "legal start is 01");
+  const after01 = legalPhases(["01-subdomain-enum"]);
+  assert(after01.includes("02-dns-resolution") && after01.includes("16-github-dorking"), "01 unlocks 02 and 16");
+
+  console.log(JSON.stringify({ selftest: "ok", cases: 12 }));
 }
 
 const invokedDirectly =
@@ -826,11 +1091,13 @@ if (invokedDirectly) {
           JSON.stringify({
             phase: "decide",
             next_action: out.next_action,
+            recon_phase: out.recon_phase,
             skill: out.skill,
             vuln: out.vuln,
             test_method: out.test_method,
             focus_url: out.focus_url,
             confidence: out.confidence,
+            executor: out.executor,
             file: join(HUNTS, sanitizeDomain(arg), "jev-decision.json"),
           }),
         );

@@ -13,5 +13,6 @@ case "$stage" in
   hypothesis) bash "$(dirname "$0")/hypothesis.sh" "$@" ;;
   skills)     bash "$(dirname "$0")/skill-select.sh" "$@" ;;
   decide)     bash "$(dirname "$0")/jev-decide.sh" "$@" ;;
+  loop)       node "$(dirname "$0")/jev-loop.mjs" "$@" ;;
   *) die "unknown stage: $stage" ;;
 esac
