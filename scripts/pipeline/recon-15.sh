@@ -28,11 +28,47 @@ if [ "$have_qsreplace" -eq 1 ] && [ "$have_httpx" -eq 1 ]; then
   # XSS
   timeout 300 bash -c "cat '$param_urls' | qsreplace '\"><bughive-xss-marker>' | httpx -ms '<bughive-xss-marker>' -silent -o '$out/vuln-xss'" 2>/dev/null || true
 
-  # SSRF/open-redirect: only if the operator configured a collaborator URL
-  if [ -n "${BUGHIVE_COLLABORATOR_URL:-}" ]; then
-    timeout 300 bash -c "cat '$param_urls' | qsreplace '$BUGHIVE_COLLABORATOR_URL' | httpx -fr -silent -o '$out/vuln-ssrf'" 2>/dev/null || true
+  # SSRF / blind classes need an out-of-band collaborator. Previously this phase simply
+  # skipped them when BUGHIVE_COLLABORATOR_URL was unset, so blind SSRF/XXE/JNDI were
+  # structurally untestable. Now it starts the local OOB listener automatically.
+  #
+  # REACH: a loopback listener is only reachable by a target that can route to this host
+  # (local/CI fixtures, or a target on the same network). For a REMOTE target you must run
+  # the listener behind a tunnel and set BUGHIVE_COLLABORATOR_URL to that public URL --
+  # otherwise no callback can arrive and the absence of a hit proves nothing.
+  repo_root="$(cd "$(dirname "$0")/../.." && pwd)"
+  oob_cli="$repo_root/plugins/dsh-oob/oob-cli.mjs"
+  oob_log="$out/oob.jsonl"
+  oob_port=8787
+  oob_pid=""
+  cleanup_oob() { [ -n "$oob_pid" ] && kill "$oob_pid" 2>/dev/null || true; }
+  trap cleanup_oob EXIT
+
+  collab="${BUGHIVE_COLLABORATOR_URL:-}"
+  if [ -z "$collab" ] && command -v node >/dev/null 2>&1 && [ -f "$oob_cli" ]; then
+    node "$oob_cli" serve --port "$oob_port" --log "$oob_log" >/dev/null 2>&1 &
+    oob_pid=$!
+    sleep 1
+    collab="$(node "$oob_cli" tokens --port "$oob_port" --log "$oob_log" 2>/dev/null \
+      | python3 -c "import json,sys; print(json.load(sys.stdin).get('url',''))" 2>/dev/null || echo '')"
+    if [ -n "$collab" ]; then
+      tools_run+=("oob-local")
+      log "local OOB collaborator: $collab (loopback reach only)"
+    fi
+  fi
+
+  if [ -n "$collab" ]; then
+    timeout 300 bash -c "cat '$param_urls' | qsreplace '$collab' | httpx -fr -silent -o '$out/vuln-ssrf'" 2>/dev/null || true
+    # Correlate any interaction back to the payload.
+    if [ -f "$oob_log" ]; then
+      node "$oob_cli" poll --log "$oob_log" --format urls > "$out/oob-hits" 2>/dev/null || true
+      hits=$(grep -c . "$out/oob-hits" 2>/dev/null || echo 0)
+      [ "$hits" -gt 0 ] && log "OOB: $hits out-of-band interaction(s) recorded — see $out/oob-hits"
+    fi
+    cleanup_oob
+    oob_pid=""
   else
-    tools_skipped+=('{"tool":"ssrf-check","reason":"BUGHIVE_COLLABORATOR_URL not configured; skipping rather than using a third-party URL not controlled by the operator"}')
+    tools_skipped+=('{"tool":"ssrf-check","reason":"no collaborator available: node or oob-cli missing and BUGHIVE_COLLABORATOR_URL unset. Blind SSRF/XXE/JNDI were NOT tested."}')
   fi
 
   # SSTI

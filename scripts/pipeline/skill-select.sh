@@ -69,33 +69,99 @@ for skill_file in "$skills_root"/seeds/*.md "$skills_root"/learned/*.md; do
   echo "$score|$skill_id|$matched_str" >> "$results"
 done
 
-# Rank by score descending, keep anything with at least 2 distinct matches
-# (arbitrary-but-explicit floor to cut pure noise), no arbitrary upper cap
-# beyond a sane budget of 8 so the hypothesis prompt doesn't balloon.
-ranked="$(sort -t'|' -k1,1 -rn "$results" | awk -F'|' '$1>=2' | head -8)"
+# --- Retrieval evidence -------------------------------------------------------
+# Keyword overlap alone misses paraphrase: recon that says "the endpoint takes a file
+# parameter and resolves it" never literally contains "lfi" or "traversal". The skill-rag
+# plugin ranks by TF-IDF, so it catches those. Both signals are merged below; RAG can
+# promote a skill that keyword scoring would have dropped entirely.
+rag_json="$work/rag.json"
+if [ -s "$work/corpus.lower.txt" ]; then
+  node "$WS_ROOT/scripts/plugin-call.mjs" dsh-skill-rag retrieve_skills \
+    "$(python3 -c 'import json,sys; print(json.dumps({"query": open(sys.argv[1]).read()[:20000], "k": 25}))' "$work/corpus.lower.txt")" \
+    > "$rag_json" 2>/dev/null || : > "$rag_json"
+else
+  : > "$rag_json"
+fi
 
-{
-  echo "["
-  first=1
-  emit() {
-    local id="$1" score="$2" evidence="$3" reason="$4"
-    [ "$first" -eq 1 ] || echo ","
-    first=0
-    printf '  {"skill":"%s","score":%s,"matched_terms":"%s","reason":"%s"}' \
-      "$id" "$score" "$evidence" "$reason"
-  }
-  while IFS='|' read -r score id evidence; do
-    [ -z "$id" ] && continue
-    emit "$id" "$score" "$evidence" "keyword overlap with recon corpus"
-  done <<< "$ranked"
-  for forced in "${ALWAYS_INCLUDE[@]}"; do
-    if ! grep -qE "\|seeds/${forced}\|" <<< "$ranked" 2>/dev/null; then
-      emit "seeds/$forced" 0 "" "flow/logic-class skill; no scorable evidence found in this hunt's recon (phase 11 may not have run or found a matching flow) -- always considered as a safety net"
-    fi
-  done
-  echo
-  echo "]"
-} > "$hd/skills-selected.json"
+# Merge, rank, and emit. Keeps the 8-skill budget; a skill qualifies on strong keyword
+# evidence OR because retrieval ranked it highly.
+python3 - "$results" "$rag_json" "$hd/skills-selected.json" "${ALWAYS_INCLUDE[@]}" <<'PY'
+import json, sys
+
+results_path, rag_path, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
+forced = sys.argv[4:]
+
+kw = {}
+with open(results_path) as fh:
+    for line in fh:
+        parts = line.rstrip("\n").split("|")
+        if len(parts) < 2 or not parts[1]:
+            continue
+        try:
+            s = int(parts[0])
+        except ValueError:
+            continue
+        kw[parts[1]] = {"score": s, "matched": parts[2] if len(parts) > 2 else ""}
+
+rag = {}
+try:
+    with open(rag_path) as fh:
+        data = json.load(fh)
+    for rank, c in enumerate(data.get("candidates", [])):
+        rag[c["id"]] = {"score": float(c.get("score", 0)), "rank": rank,
+                        "matched": ",".join(c.get("matched_terms", [])[:6])}
+except Exception:
+    pass
+
+merged = []
+for skill in set(kw) | set(rag):
+    k = kw.get(skill, {"score": 0, "matched": ""})
+    r = rag.get(skill, {})
+    kw_score = k["score"]
+    rag_score = r.get("score", 0.0)
+    rag_rank = r.get("rank")
+    # Qualify on keyword evidence, or on retrieval ranking in the top 12.
+    qualifies = kw_score >= 2 or (rag_rank is not None and rag_rank < 12)
+    if not qualifies:
+        continue
+    reasons = []
+    if kw_score >= 2:
+        reasons.append(f"keyword overlap x{kw_score}")
+    if rag_rank is not None and rag_rank < 12:
+        reasons.append(f"tf-idf rank #{rag_rank + 1}")
+    combined = kw_score + rag_score
+    merged.append({
+        "skill": skill,
+        "score": round(combined, 3),
+        "matched_terms": k["matched"] or r.get("matched", ""),
+        "reason": " + ".join(reasons),
+        "_sort": (kw_score >= 2, combined),
+    })
+
+merged.sort(key=lambda m: m["_sort"], reverse=True)
+merged = merged[:8]
+
+emitted = {m["skill"] for m in merged}
+i = 0
+lines = ["["]
+for m in merged:
+    m.pop("_sort", None)
+    lines.append(("  " if i == 0 else " ,") + json.dumps(m))
+    i += 1
+for f in forced:
+    sid = f"seeds/{f}"
+    if sid in emitted:
+        continue
+    lines.append(("  " if i == 0 else " ,") + json.dumps({
+        "skill": sid, "score": 0, "matched_terms": "",
+        "reason": "flow/logic-class skill; no scorable evidence in this hunt's recon "
+                  "(phase 11 may not have run) -- always considered as a safety net",
+    }))
+    i += 1
+lines.append("]")
+open(out_path, "w").write("\n".join(lines) + "\n")
+print(json.dumps({"selected": i, "keyword_candidates": len(kw), "rag_candidates": len(rag)}))
+PY
 
 mark_done "$domain" "skills"
 echo "{\"phase\":\"skills\",\"selected_file\":\"$hd/skills-selected.json\"}"

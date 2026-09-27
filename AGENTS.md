@@ -34,8 +34,127 @@ re-implement its logic ad hoc.
 
   These five were broken as of the last audit (`ctx.sessions.create().run()`
   doesn't exist on the installed DSH API) and are now fixed and verified --
-  `node plugins/_selftest.mjs` passes 21/21 against the real files, not
+  `node plugins/_selftest.mjs` passes 32/32 against the real files, not
   mocks. See `plugins/PLUGIN-FIXES.md` for the full API citation trail.
+
+### Correctness tools (added after the first audit)
+
+These exist because the pipeline could previously reach `deliver` and print
+"no findings" without ever knowing what it had not tested, and nothing checked a
+report's claims against what the hunt actually did.
+
+- `scope_check` / `scope_assert` (dsh-scope-guard) -- **[TOOL]**. Wildcard-aware
+  scope matching (`*` = one label, `**` = many, `!` excludes, default deny). Call
+  `scope_assert` BEFORE any request loop. `dsh-fp-filter`'s older check compared
+  hosts with `===`/`endsWith`, so a wildcard-only scope (`g-*.0.threema.ch`)
+  matched nothing and the guard silently did nothing.
+- `coverage_init` / `coverage_mark` / `coverage_gaps` / `coverage_summary` /
+  `coverage_gate` (dsh-coverage) -- **[TOOL]**. The vuln-class x asset matrix.
+  Run `coverage_init` right after `init`. Mark each cell as you test it. `n/a`
+  and `blocked` REQUIRE a reason, which is how the hunt states honestly what it
+  did not test. **`coverage_gate` is enforced in `jev-decide` policy**: `deliver`
+  and `stop` are clamped to `human_gate` while any critical cell is unresolved.
+  An untested cell is not a clean bill of health.
+- `hunt_journal_append` / `hunt_journal_tail` / `hunt_journal_leads` /
+  `hunt_journal_stats` (dsh-hunt-journal) -- **[TOOL]**. Durable evidence memory
+  across sessions. Log a `lead` for anything promising and a `deadend` for
+  anything not worth retrying; `hunt_journal_leads` is the resume-work queue.
+- `triage_gate` (dsh-triage-gate) -- **[TOOL]**. The 7-Question Gate, mechanised,
+  plus the always-rejected keyword list and a conservative CVSS hint. Every
+  question must be `true`; a missing answer counts as NO. Run it before writing
+  any report.
+- `analyze_js` (dsh-js-analyzer) -- **[TOOL]**. Static analysis of local JS/HTML
+  bundles for client-side redirect allowlists, client-side authorization, DOM XSS
+  sinks, postMessage handlers, hardcoded secrets, debug flags, internal hosts and
+  more. Emits leads with a suggested next request. `recon-07` now calls the same
+  engine via `plugins/dsh-js-analyzer/cli.mjs` (it was a stub before, so JS was
+  collected and never read).
+- `audit_report` (dsh-claim-audit) -- **[TOOL]**. Checks every endpoint claim in a
+  report against the hunt's own evidence and flags assertions no request ever
+  backed. **Run this before submitting any report or writing a "no findings"
+  SUMMARY.** An unverified negative is worse than no report: an earlier report in
+  this repo claimed SQLi testing across four endpoints when payloads had gone to
+  one.
+- `validate_xss_browser` / `browser_snapshot` (dsh-browser-validate) -- **[TOOL]**.
+  Headless Chromium. `validate_xss_browser` confirms the payload ACTUALLY EXECUTED
+  (dialog fired / `window.__bh_xss` set / console pattern); a reflected string is
+  not an XSS. Fails LOUDLY when the browser is missing rather than reporting a
+  quiet false negative. Chromium is installed via `npx playwright install chromium`.
+- `dedup_assets` / `simhash_text` (dsh-asset-dedup) -- **[TOOL]**. Cluster
+  near-identical responses (clone/staging hosts) by 64-bit SimHash over word
+  shingles. Test the representative, not every clone, and treat a finding in one
+  member as a lead for its siblings.
+- `retrieve_skills` / `skill_rag_reload` (dsh-skill-rag) -- **[TOOL]**. TF-IDF
+  retrieval over `skills/**`. Catches paraphrase that keyword overlap misses
+  ("file parameter resolved on disk" -> LFI). Evidence only; JEV still chooses.
+- `parse_program_scope` / `scope_txt` (dsh-scope-intake) -- **[TOOL]**. Turn a
+  program's scope/policy prose into in-scope patterns, exclusions, policy flags and
+  `excluded_classes`. Feed `excluded_classes` into `triage_gate` via
+  `programExclusions` so a class the program forbids is killed before write-up.
+- `eval_scenarios` / `eval_start_fixture` / `eval_stop_fixture` / `eval_score`
+  (dsh-eval) -- **[TOOL]**. Measures the pipeline itself against a bundled
+  vulnerable fixture (loopback-only) with ground truth: true positives, false
+  positives, false negatives, precision/recall/F1 and a per-class breakdown. **Use
+  it whenever you change the pipeline** -- an unmeasured change is a guess.
+- `oob_start` / `oob_mint` / `oob_poll` / `oob_wait` / `oob_stop` (dsh-oob) --
+  **[TOOL]**. Out-of-band interaction listener (HTTP + UDP DNS) for blind SSRF /
+  XXE / XSS / JNDI. Also available to the bash pipeline via
+  `plugins/dsh-oob/oob-cli.mjs` (used by recon-15).
+- `validate_timing` / `validate_boolean` / `validate_redirect` / `validate_oob`
+  (dsh-validators) -- **[TOOL]**. Per-class proof conditions. Prefer these over
+  `validate_finding` whenever the bug class matches.
+
+### Pipeline stages that expose the tools to bash
+
+The plugin tools are reachable from the shell through `scripts/plugin-call.mjs`
+(any plugin, any tool, JSON in/out). These `run.sh` stages wrap the ones a hunt
+should actually invoke:
+
+| Stage | What it does |
+|---|---|
+| `run.sh scope <domain> <file>` | Parse a program page into `scope.txt` plus `program-scope.json` (exclusions + policy flags + `excluded_classes`). |
+| `run.sh coverage init\|gate\|gaps\|summary <domain>` | Coverage matrix; `gate` **exits non-zero** while critical cells are unresolved, so it can block delivery. |
+| `run.sh ingest <domain>` | Harvest request evidence from `recon/` into the journal (proxy history). Idempotent. Run it after recon so `audit` has evidence. |
+| `run.sh dedup <domain>` | Collapse clone/staging hosts from the response cache into `recon/asset-clusters.json`. |
+| `run.sh retrieve <domain>` | TF-IDF skill retrieval as evidence; `skills` also merges RAG into selection. |
+| `run.sh audit <domain> <report>` | Verify a report's claims against the hunt's evidence; **exits non-zero** on an unsupported claim. |
+| `run.sh eval scenarios\|start\|stop\|score` | The self-measurement harness (see `dsh-eval`). |
+| `run.sh proxy start\|stop\|requests\|env <domain>` | Live capture proxy. `start` records a pid; `env` prints the exports; then run any tool and its traffic lands in `recon/proxy-capture.jsonl`. Add `--mitm` for full HTTPS capture. |
+| `run.sh shots <domain>` | Screenshot + perceptual-hash each in-scope host, then cluster clones into `recon/image-clusters.json`. |
+
+**Capturing traffic you did not originate.** The journal only saw pipeline requests
+until the proxy existed. To capture a raw `curl`, a python script or a third-party
+binary:
+
+```
+bash scripts/pipeline/run.sh proxy start <domain>
+eval "$(bash scripts/pipeline/run.sh proxy env <domain>)"
+# ... run whatever you like ...
+bash scripts/pipeline/run.sh proxy stop <domain>
+bash scripts/pipeline/run.sh ingest <domain>     # folds captures into the journal
+```
+
+HTTPS is tunnelled and the CONNECT target recorded. With `--mitm` the proxy generates a
+CA (openssl) and terminates TLS to capture full paths; clients must trust it
+(`curl --cacert "$(node plugins/dsh-proxy/proxy-cli.mjs ca | jq -r .ca_cert)"`,
+`NODE_EXTRA_CA_CERTS=...`). Neither mode is on by default because MITM requires
+trusting a generated CA.
+
+Typical order: `init` -> `scope` (if a program page exists) -> `proxy start` (if you
+will run tools by hand) -> recon phases -> `ingest` -> `skills` -> `coverage init` ->
+hunting -> `coverage gate` -> `shots`/`dedup` for clone collapsing -> `audit` before
+any report.
+
+**Skill retrieval** has three layers: TF-IDF always, a curated security concept
+thesaurus for synonymy ("server fetches a URL" -> SSRF) which is offline and
+deterministic, and an optional embeddings rerank when `EMBEDDINGS_URL` or
+`OPENAI_API_KEY` is set. `retrieve_skills` reports which layer fired, so a result is
+never mistaken for semantic matching when only lexical matching ran.
+
+See `IMPROVEMENTS.md` for the research these came from, and for the prioritised
+roadmap (Playwright/browser XSS validation, benchmark harness, asset dedup,
+source-audit phase) -- all of which are now implemented; that file records the
+status and the known gaps.
 
 Every other plugin (dsh-observability, dsh-hunt-state, dsh-skill-admission,
 dsh-h1-classifier, etc.) is background observability/skill-management
@@ -52,6 +171,23 @@ infrastructure and should not be invoked directly.
 5. Stop and report if any executor fails.
 6. If `next_action` is `human_gate`, stop and show the user
    hunts/<domain>/jev-decision.json. Do not continue.
+7. Run `coverage_init` immediately after `init`, and `coverage_mark` every cell
+   you test. Never report a clean result while `coverage_gate` fails. Cells you
+   did not test must be marked `n/a` or `blocked` WITH A REASON -- silent omission
+   is how a hunt lies about its own coverage.
+8. Run `audit_report` on every report and on SUMMARY.md before delivering. If it
+   flags an unsupported claim, either produce the missing evidence or cut the
+   claim. Never ship an assertion the hunt cannot back with a request.
+9. Record leads and dead ends with `hunt_journal_append` as you go. The next
+   session has no memory of this one; the journal is the only thing that survives.
+10. After changing any plugin, prompt or skill, run `node plugins/_selftest.mjs`
+   and then the eval harness (`eval_start_fixture` -> probe -> `eval_score`).
+   An unmeasured change is a guess; report the before/after precision and recall.
+11. If the target has source available (open-source app, SDK, vendor client),
+   place a checkout at `hunts/<domain>/source/` and run
+   `bash scripts/pipeline/run.sh recon-18 <domain>`. White-box consistently
+   outperforms black-box on published benchmarks, and the phase reports
+   `degraded: true` when no checkout exists rather than silently skipping.
 
 ## The hunt loop
 

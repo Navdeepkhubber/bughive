@@ -1,0 +1,4 @@
+- insert:
+    - id: skill-rag
+      name: dsh-skill-rag
+      config: {}

@@ -1,0 +1,4 @@
+- insert:
+    - id: proxy
+      name: dsh-proxy
+      config: {}

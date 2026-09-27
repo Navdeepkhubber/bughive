@@ -22,6 +22,10 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+// Critical vuln classes come from the coverage plugin so hunt policy and the
+// coverage tooling can never drift apart.
+import { CRITICAL_CLASSES } from "../../plugins/dsh-coverage/index.js";
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..");
 const HUNTS = join(ROOT, "hunts");
@@ -39,6 +43,11 @@ const SKILL_LOAD_FLOOR = 0.4;
 const MAX_SKILLS = 8;
 const CONFIRM_TOP = 3;
 const STATE_BUDGET = 24000;
+// Explicit iteration budget. The methodology prescribes time-boxing (max ~45 min per
+// parameter, min ~30h per target); without a machine-checkable budget a hunt can either
+// wander indefinitely or stall and keep re-deciding with nothing to show.
+const MAX_DECIDES = 80;
+const STALL_DECIDES = 20;
 
 const HIGH_SIGNAL = [
   "14-nuclei-scan",
@@ -70,6 +79,10 @@ const PHASES = [
   { id: "15-mass-oneliners", deps: ["06-param-discovery", "12-response-cache"] },
   { id: "16-github-dorking", deps: ["01-subdomain-enum"] },
   { id: "17-interesting-endpoints", deps: ["06-param-discovery", "12-response-cache"] },
+  // White-box source audit. Independent of the HTTP phases: it only needs a checkout at
+  // hunts/<domain>/source/ to exist, and the phase itself reports `degraded: true` when
+  // there is none rather than silently contributing nothing.
+  { id: "18-source-audit", deps: [] },
 ];
 
 const NEXT_ACTIONS = {
@@ -78,7 +91,7 @@ const NEXT_ACTIONS = {
   select_and_test: "Build the hypothesis prompt and spawn the hypothesis subagent for the chosen skill and test method only.",
   prefilter: "Call pre_validation_filter on each hypothesis. Write hypotheses-pass.json.",
   falsify: "Spawn the falsifier subagent on hypotheses-pass.json. Write hypotheses-real.json.",
-  prove: "Call validate_finding on each real hypothesis. Write validated.json.",
+  prove: "Prove each real hypothesis with the validator for its bug class: validate_by_class (timing/boolean/redirect/OOB/browser-XSS). Fall back to validate_finding only when the class has no specific proof condition. Write validated.json.",
   chain: "Call build_chain on validated.json. Write chains.json.",
   report: "Call write_report once per validated finding. Write reports/report-<id>.md.",
   quality: "Spawn the quality-gate subagent. Copy passing reports to reports/approved/.",
@@ -269,7 +282,58 @@ async function huntSnapshot(domain) {
     /* no reports dir */
   }
 
-  return { hd, done, recon, present: [...present], legal, missing, keyword, hasKeyword, hasSelected, counts };
+  // Iteration budget: count decide rounds consumed so far.
+  let decides = 0;
+  try {
+    const raw = await readFile(join(hd, "jev-log.jsonl"), "utf8");
+    decides = raw.split("\n").filter((l) => l.trim()).length;
+  } catch {
+    /* no decide log yet */
+  }
+  // Stalled: many rounds in and still nothing validated. Surfaced so JEV can change
+  // tactic or hand back, rather than looping until the budget cap forces a stop.
+  const stalled = decides >= STALL_DECIDES && (counts.validated || 0) === 0;
+
+  // Coverage matrix (plugins/dsh-coverage). Drives the completeness gate: a hunt
+  // must not declare "no findings" while critical (vuln class x asset) cells are
+  // unresolved. Absent matrix => not enforced (backwards compatible).
+  let coverage = { present: false, critical_completion_pct: 0, blocking_count: 0 };
+  const covRaw = await readJson(join(hd, "coverage.json"));
+  if (covRaw && covRaw.cells && Array.isArray(covRaw.classes) && Array.isArray(covRaw.assets)) {
+    const RESOLVED = new Set(["tested", "lead", "finding", "n/a", "blocked"]);
+    const crit = covRaw.classes.filter((c) => CRITICAL_CLASSES.includes(c));
+    const total = covRaw.assets.length * crit.length;
+    let resolved = 0;
+    for (const a of covRaw.assets) {
+      for (const c of crit) {
+        const cell = covRaw.cells[`${c}|${a}`];
+        if (cell && RESOLVED.has(cell.status)) resolved += 1;
+      }
+    }
+    coverage = {
+      present: true,
+      critical_classes: crit.length,
+      assets: covRaw.assets.length,
+      critical_completion_pct: total ? Math.round((resolved / total) * 100) : 100,
+      blocking_count: total - resolved,
+    };
+  }
+
+  return {
+    hd,
+    done,
+    recon,
+    present: [...present],
+    legal,
+    missing,
+    keyword,
+    hasKeyword,
+    hasSelected,
+    counts,
+    coverage,
+    decides,
+    stalled,
+  };
 }
 
 function buildState(snap, skills) {
@@ -295,10 +359,20 @@ function buildState(snap, skills) {
     `missing_high_signal_phases: ${snap.missing.join(", ") || "(none)"}`,
     `keyword_scored: ${snap.hasKeyword ? "yes" : "no"}`,
     `artifact_counts: hypotheses=${snap.counts.hypotheses} pass=${snap.counts.hypotheses_pass} real=${snap.counts.hypotheses_real} validated=${snap.counts.validated} reports=${snap.counts.reports || 0} approved=${snap.counts.approved || 0}`,
+    `coverage: ${
+      snap.coverage && snap.coverage.present
+        ? `critical ${snap.coverage.critical_completion_pct}% complete, ${snap.coverage.blocking_count} unresolved critical cells. A "no findings" conclusion is NOT defensible below 100%.`
+        : "no coverage matrix yet (run coverage_init)"
+    }`,
     "Keyword overlap shortlist (evidence, not a decision):",
     keywordLines || "(none)",
     "Skill catalog:",
     skills.map((s) => `${s.key}: ${s.blurb}`).join("\n"),
+    `budget: ${snap.decides || 0}/${MAX_DECIDES} decide rounds used${
+      snap.stalled
+        ? ` — STALLED: ${snap.decides} rounds with zero validated findings. Change tactic, widen recon, or hand back to the human rather than looping.`
+        : ""
+    }`,
     "Recon summaries:",
     reconText || "(no recon yet)",
   ].join("\n");
@@ -650,6 +724,24 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
     testMethod = action === "falsify" || action === "prove" ? "tool_hit_falsify" : "hold";
   }
 
+  // Completeness gate (plugins/dsh-coverage). `deliver` and `stop` are the two
+  // actions that end a hunt with a conclusion. Neither may conclude while critical
+  // (vuln class x asset) cells are unresolved -- that is how a hunt ends up
+  // claiming "no bugs" over surface it never touched. Only enforced once a
+  // coverage matrix exists, so pre-existing hunts keep working.
+  if (action === "deliver" || action === "stop") {
+    const cov = snap.coverage;
+    if (cov && cov.present && cov.critical_completion_pct < 100) {
+      clamp("human_gate");
+    }
+  }
+
+  // Hard iteration budget. A hunt that has burned its decide budget without resolving its
+  // coverage goes to the human, not round again.
+  if ((snap.decides || 0) >= MAX_DECIDES && action !== "human_gate") {
+    clamp("human_gate");
+  }
+
   const primary = vuln || kept.find((s) => s.load)?.skill || null;
   const instruction = [
     NEXT_ACTIONS[action],
@@ -747,7 +839,13 @@ export function buildExecutor(decision, domain) {
       kind: "plugin",
       needs_llm: true,
       stage: "proof",
-      plugin: "validate_finding",
+      // Route by bug class so each finding meets its real proof condition (timing,
+      // boolean, redirect, out-of-band, or browser execution) instead of a generic
+      // response diff. validate_finding stays as the fallback for unclassified classes.
+      plugin: "validate_by_class",
+      fallback_plugin: "validate_finding",
+      plugin_note:
+        "Call validate_by_class with {bugClass, spec}. A class the router reports as 'manual' (IDOR/CSRF/ATO/takeover) must NOT be marked validated from a payload diff. Treat confidence 'low-likely-noise' as not validated.",
       input: `hunts/${d}/hypotheses-real.json`,
       write: `hunts/${d}/validated.json`,
       after,
@@ -984,6 +1082,68 @@ export async function selftest() {
   );
   assert(earlyChain.next_action === "select_and_test", "chain without findings clamps forward");
   assert(earlyChain.clamped_from === "chain", "records clamp");
+
+  // Completeness gate: a hunt may not deliver/stop while critical coverage cells
+  // are unresolved, and must be allowed to once they are.
+  const incompleteCov = {
+    ...baseSnap,
+    coverage: { present: true, critical_completion_pct: 40, blocking_count: 12 },
+  };
+  const gatedDeliver = applyPolicy({
+    snap: incompleteCov,
+    skills,
+    routing: {
+      ...routing,
+      answers: {
+        ...routing.answers,
+        worth_testing: { noul: 0.9 },
+        human_review: { noul: 0.1 },
+        next_action: { choice: "deliver", confidence: 0.95, probabilities: {} },
+      },
+    },
+    confirm,
+  });
+  assert(gatedDeliver.next_action === "human_gate", "incomplete coverage must block delivery");
+  assert(gatedDeliver.clamped_from === "deliver", "records the coverage clamp");
+
+  const completeCov = {
+    ...baseSnap,
+    coverage: { present: true, critical_completion_pct: 100, blocking_count: 0 },
+  };
+  const allowedDeliver = applyPolicy({
+    snap: completeCov,
+    skills,
+    routing: {
+      ...routing,
+      answers: {
+        ...routing.answers,
+        worth_testing: { noul: 0.9 },
+        human_review: { noul: 0.1 },
+        next_action: { choice: "deliver", confidence: 0.95, probabilities: {} },
+      },
+    },
+    confirm,
+  });
+  assert(allowedDeliver.next_action === "deliver", "complete coverage permits delivery");
+
+  // Iteration budget: once the decide budget is exhausted the hunt goes to the human
+  // rather than looping, even if coverage looks resolvable.
+  const overBudget = { ...baseSnap, decides: MAX_DECIDES + 1 };
+  const capped = applyPolicy({
+    snap: overBudget,
+    skills,
+    routing: {
+      ...routing,
+      answers: {
+        ...routing.answers,
+        worth_testing: { noul: 0.9 },
+        human_review: { noul: 0.1 },
+        next_action: { choice: "select_and_test", confidence: 0.95, probabilities: {} },
+      },
+    },
+    confirm,
+  });
+  assert(capped.next_action === "human_gate", "exhausted decide budget must gate to the human");
 
   const thin = applyPolicy({
     snap: baseSnap,

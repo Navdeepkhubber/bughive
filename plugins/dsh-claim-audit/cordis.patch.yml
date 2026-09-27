@@ -1,0 +1,4 @@
+- insert:
+    - id: claim-audit
+      name: dsh-claim-audit
+      config: {}

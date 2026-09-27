@@ -1,0 +1,4 @@
+- insert:
+    - id: asset-dedup
+      name: dsh-asset-dedup
+      config: {}

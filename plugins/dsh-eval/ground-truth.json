@@ -1,0 +1,61 @@
+{
+  "target": "bughive-eval-fixture",
+  "version": 2,
+  "note": "Ground truth for plugins/dsh-eval/fixture-app.mjs. 19 deliberately planted bugs across 19 classes plus benign endpoints that exist purely to make false positives measurable. Scoring a hunt against this manifest yields real true-positive / false-positive / false-negative numbers per class and per difficulty tier.",
+  "tiers": {
+    "L1": "obvious - a single request reveals it",
+    "L2": "needs a second request, a second identity, or a crafted body",
+    "L3": "needs chaining, concurrency, or state awareness"
+  },
+  "bugs": [
+    { "id": "F1",  "class": "idor",                  "tier": "L1", "method": "GET",  "path": "/api/users/{id}",        "path_prefix": "/api/users/",     "severity": "high",     "proof": "GET /api/users/2 returns bob's record including apiKey, with no authorization check." },
+    { "id": "F2",  "class": "missing-auth",          "tier": "L1", "method": "GET",  "path": "/admin/users",           "path_prefix": "/admin/users",    "severity": "high",     "proof": "GET /admin/users returns the full user table unauthenticated." },
+    { "id": "F3",  "class": "xss",                   "tier": "L1", "method": "GET",  "path": "/search?q=",             "path_prefix": "/search",         "severity": "medium",   "proof": "GET /search?q=<img src=x onerror=alert(1)> reflects unescaped and executes in a browser." },
+    { "id": "F4",  "class": "sqli",                  "tier": "L1", "method": "GET",  "path": "/api/items?id=",         "path_prefix": "/api/items",      "severity": "high",     "proof": "GET /api/items?id=1' OR 1=1-- returns every item, bypassing the owner filter." },
+    { "id": "F5",  "class": "open-redirect",         "tier": "L1", "method": "GET",  "path": "/go?next=",              "path_prefix": "/go",             "severity": "medium",   "proof": "GET /go?next=https://evil.example/ answers 302 with an off-origin Location." },
+    { "id": "F6",  "class": "path-traversal",        "tier": "L1", "method": "GET",  "path": "/files?name=",           "path_prefix": "/files",          "severity": "high",     "proof": "GET /files?name=../../etc/passwd resolves outside the intended root and discloses the path." },
+    { "id": "F7",  "class": "blind-sqli",            "tier": "L1", "method": "GET",  "path": "/api/ping?delay=",       "path_prefix": "/api/ping",       "severity": "medium",   "proof": "GET /api/ping?delay=5000 takes ~5s; the value is honoured unvalidated (timing oracle)." },
+    { "id": "F8",  "class": "ssrf",                  "tier": "L1", "method": "GET",  "path": "/fetch?url=",            "path_prefix": "/fetch",          "severity": "high",     "proof": "GET /fetch?url=http://127.0.0.1:<oob>/<token> causes a server-side request, confirmed out of band." },
+
+    { "id": "F9",  "class": "idor-write",            "tier": "L2", "method": "PUT",  "path": "/api/users/{id}",        "path_prefix": "/api/users/",     "severity": "high",     "proof": "PUT /api/users/2 with a JSON body overwrites another user's record." },
+    { "id": "F10", "class": "mass-assignment",       "tier": "L2", "method": "POST", "path": "/api/profile",           "path_prefix": "/api/profile",    "severity": "high",     "proof": "POST /api/profile {\"role\":\"admin\"} escalates privilege; the field is not allowlisted." },
+    { "id": "F11", "class": "ssti",                  "tier": "L2", "method": "GET",  "path": "/render?name=",          "path_prefix": "/render",         "severity": "high",     "proof": "GET /render?name={{7*7}} returns 49; the template is evaluated server-side." },
+    { "id": "F12", "class": "jwt",                   "tier": "L2", "method": "GET",  "path": "/api/admin/whoami",      "path_prefix": "/api/admin",      "severity": "critical", "proof": "An unsigned alg=none JWT is trusted as admin." },
+    { "id": "F13", "class": "nosql",                 "tier": "L2", "method": "GET",  "path": "/api/search?q=",         "path_prefix": "/api/search",     "severity": "high",     "proof": "GET /api/search?q[$ne]=x returns every user; the operator reaches the matcher." },
+    { "id": "F14", "class": "cors",                  "tier": "L2", "method": "GET",  "path": "/api/cors-me",           "path_prefix": "/api/cors-me",    "severity": "medium",   "proof": "Arbitrary Origin is reflected together with Access-Control-Allow-Credentials: true." },
+    { "id": "F15", "class": "host-header-injection", "tier": "L2", "method": "POST", "path": "/forgot-password",       "path_prefix": "/forgot-password","severity": "high",     "proof": "POST /forgot-password with Host: evil.example returns a reset link pointing at that host." },
+    { "id": "F16", "class": "graphql",               "tier": "L2", "method": "POST", "path": "/graphql",               "path_prefix": "/graphql",        "severity": "medium",   "proof": "Introspection is enabled and a mutation executes unauthenticated." },
+
+    { "id": "F17", "class": "race-condition",        "tier": "L3", "method": "POST", "path": "/api/redeem?code=",      "path_prefix": "/api/redeem",     "severity": "medium",   "proof": "Concurrent POST /api/redeem?code=SAVE10 applies the single-use coupon more than once." },
+    { "id": "F18", "class": "xxe",                   "tier": "L3", "method": "POST", "path": "/api/import",            "path_prefix": "/api/import",     "severity": "high",     "proof": "An external entity in the XML body is resolved and its file content returned (confined to fixture-data/)." },
+    { "id": "F19", "class": "cache-poisoning",       "tier": "L3", "method": "GET",  "path": "/page?cb=",              "path_prefix": "/page",           "severity": "medium",   "proof": "The response varies on a query param the cache key omits, and an unkeyed header is reflected." }
+  ],
+  "benign": [
+    { "path": "/",             "why": "health endpoint, no input - flagging it is a false positive" },
+    { "path": "/health",       "why": "health endpoint, no input" },
+    { "path": "/api/version",  "why": "version banner only; disclosure without a working CVE is not a finding" },
+    { "path": "/login",        "why": "ordinary login form" },
+    { "path": "/static/app.js","why": "static asset" }
+  ],
+  "class_aliases": {
+    "idor": ["idor", "insecure direct object reference", "broken authorization", "broken access control", "access control"],
+    "idor-write": ["idor-write", "idor write", "cross-user write", "object reference write"],
+    "missing-auth": ["missing-auth", "missing authentication", "unauthenticated access", "auth bypass", "broken authentication"],
+    "xss": ["xss", "cross-site scripting", "reflected xss", "dom xss"],
+    "sqli": ["sqli", "sql injection"],
+    "blind-sqli": ["blind-sqli", "blind sql injection", "time-based", "timing attack"],
+    "open-redirect": ["open-redirect", "open redirect", "unvalidated redirect"],
+    "path-traversal": ["path-traversal", "path traversal", "directory traversal", "lfi", "local file inclusion"],
+    "ssrf": ["ssrf", "server-side request forgery"],
+    "mass-assignment": ["mass-assignment", "mass assignment", "privilege escalation", "role escalation"],
+    "ssti": ["ssti", "template injection", "server-side template injection"],
+    "jwt": ["jwt", "json web token", "alg none", "algorithm confusion", "unsigned token"],
+    "nosql": ["nosql", "nosql injection", "operator injection"],
+    "cors": ["cors", "cross-origin resource sharing", "cors misconfiguration"],
+    "host-header-injection": ["host-header-injection", "host header injection", "password reset poisoning"],
+    "graphql": ["graphql", "introspection", "graphql introspection"],
+    "race-condition": ["race-condition", "race condition", "toctou", "double spend"],
+    "xxe": ["xxe", "xml external entity", "entity expansion"],
+    "cache-poisoning": ["cache-poisoning", "cache poisoning", "web cache deception"]
+  }
+}

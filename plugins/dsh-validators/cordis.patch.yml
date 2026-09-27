@@ -1,0 +1,4 @@
+- insert:
+    - id: validators
+      name: dsh-validators
+      config: {}

@@ -1,0 +1,4 @@
+- insert:
+    - id: oob
+      name: dsh-oob
+      config: {}

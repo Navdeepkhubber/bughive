@@ -1,0 +1,4 @@
+- insert:
+    - id: triage-gate
+      name: dsh-triage-gate
+      config: {}

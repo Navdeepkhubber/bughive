@@ -1,0 +1,4 @@
+- insert:
+    - id: browser-validate
+      name: dsh-browser-validate
+      config: {}
