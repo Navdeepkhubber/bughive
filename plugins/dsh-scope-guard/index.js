@@ -58,16 +58,26 @@ export function patternToRegex(pattern) {
 export function parseScope(text) {
   const include = [];
   const exclude = [];
-  for (const rawLine of String(text || "").split(/[\n,]/)) {
-    let line = rawLine.trim();
-    if (!line || line.startsWith("#")) continue;
-    line = line.replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/:\d+$/, "");
+  // A `#` comment runs to end of LINE, not to the next comma, so comments are
+  // stripped per line BEFORE the comma split. Splitting first (the original
+  // behaviour) promoted the tail of any comment containing a comma into a bogus
+  // scope pattern -- e.g. a scope comment `# covers *.a.com, *.b.com` produced
+  // the include `*.b.com` from inside the comment. Must stay in lockstep with
+  // parse_scope() in scripts/pipeline/_scope.py.
+  for (const rawLine of String(text || "").split("\n")) {
+    const line = rawLine.split("#")[0].trim();
     if (!line) continue;
-    if (line.startsWith("!")) {
-      const v = line.slice(1).trim().toLowerCase();
-      if (v) exclude.push(v);
-    } else {
-      include.push(line.toLowerCase());
+    for (const rawEntry of line.split(",")) {
+      let entry = rawEntry.trim();
+      if (!entry) continue;
+      entry = entry.replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/:\d+$/, "");
+      if (!entry) continue;
+      if (entry.startsWith("!")) {
+        const v = entry.slice(1).trim().toLowerCase();
+        if (v) exclude.push(v);
+      } else {
+        include.push(entry.toLowerCase());
+      }
     }
   }
   return { include: [...new Set(include)], exclude: [...new Set(exclude)] };

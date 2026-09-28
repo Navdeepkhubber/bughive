@@ -183,11 +183,25 @@ cmd_shots() {
   [ -f "$hd/scope.txt" ] || die "no scope.txt for $domain"
   local out="$hd/recon/image-hashes.json"
 
+  # Prefer the wildcard-expanded asset list from recon-01. A wildcard-only scope
+  # (`*.synedra.com`) contains no concrete hosts, so filtering `*` out of scope.txt
+  # silently hashed nothing; wildcards must be resolved to real hostnames first.
+  local hosts_src=""
+  if [ -s "$hd/recon/01-subdomain-enum/assets.txt" ]; then
+    hosts_src="$hd/recon/01-subdomain-enum/assets.txt"
+  elif [ -s "$hd/recon/04-http-probe/hosts.txt" ]; then
+    hosts_src="$hd/recon/04-http-probe/hosts.txt"
+  fi
+
   # Exclude `!` exclusions and comments; cap the list so a wide scope stays bounded.
   local urls
-  urls="$(grep -v '^!' "$hd/scope.txt" | grep -v '^#' | grep -v '^\*' | head -25 | sed 's|^|https://|')"
+  if [ -n "$hosts_src" ]; then
+    urls="$(grep -v '^!' "$hosts_src" | grep -v '^#' | grep -v '^\*' | head -25 | sed 's|^|https://|')"
+  else
+    urls="$(python3 "$WS_ROOT/scripts/pipeline/_scope.py" roots "$hd/scope.txt" 2>/dev/null | head -25 | sed 's|^|https://|')"
+  fi
   if [ -z "$urls" ]; then
-    echo '{"hashed":0,"note":"no concrete hosts in scope (wildcards need resolving first)"}' | tee "$out"
+    echo '{"hashed":0,"note":"no concrete in-scope hosts: run recon-01 so wildcard scope entries resolve to real hostnames"}' | tee "$out"
     return 0
   fi
 
