@@ -1,0 +1,17 @@
+{
+  "h1Id": 3878399,
+  "title": "Large-site Quick Edit reparses a Contributor display name into active HTML",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-21T20:03:54.046Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Cross-site Scripting (XSS) - DOM"
+  },
+  "cveIds": [],
+  "teamHandle": "wordpress",
+  "teamName": "WordPress",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3878399",
+  "vulnerabilityInformation": "A stored cross-site scripting vulnerability was discovered in the Posts list Quick Edit feature on WordPress sites with more than 10,000 users. When an administrator opened a crafted URL and clicked Quick Edit on a pending post authored by a contributor, the contributor's entity-encoded display name was decoded and reparsed as active HTML through jQuery, allowing arbitrary JavaScript execution. This vulnerability was confirmed to enable the creation of unauthorized administrator accounts through automated exploitation.",
+  "fetchedAt": "2026-10-23T19:53:59.962518+00:00"
+}

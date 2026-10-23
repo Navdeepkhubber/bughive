@@ -1,0 +1,17 @@
+{
+  "h1Id": 4132132,
+  "title": "POP3: data after the end-of-body terminator is written into the retrieved message",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-21T04:21:36.257Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Acceptance of Extraneous Untrusted Data With Trusted Data"
+  },
+  "cveIds": [],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4132132",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.962648+00:00"
+}

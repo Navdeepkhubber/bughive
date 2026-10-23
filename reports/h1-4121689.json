@@ -1,0 +1,17 @@
+{
+  "h1Id": 4121689,
+  "title": "CRLF injection in the HTTP request-line via `CURLOPT_REQUEST_TARGET` (`--request-target`)",
+  "severity": "High",
+  "disclosedAt": "2026-10-18T10:54:45.422Z",
+  "weakness": null,
+  "cwe": {
+    "id": "CRLF Injection"
+  },
+  "cveIds": [],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4121689",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.964475+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "h1Id": 3966599,
+  "title": "Unauthenticated go-httpbin servers : Leads to Cookie Tossing on *.aws.dev and Open Redirect",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-16T21:35:28.537Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Missing Authentication for Critical Function"
+  },
+  "cveIds": [],
+  "teamHandle": "aws_vdp",
+  "teamName": "AWS VDP",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3966599",
+  "vulnerabilityInformation": "Multiple security vulnerabilities were identified in an unauthenticated go-httpbin server instance. An endpoint was found to accept arbitrary cookie domain parameters, allowing attacker-controlled cookies to be set across subdomains of a parent domain. This caused cookies to be delivered to unrelated sibling applications. A crafted cookie value was observed to trigger a denial of service response when received by another application on the same domain. Additionally, an open redirect endpoint was discovered that accepted arbitrary URLs and redirected users without validation. The cookie injection issue was verified to have practical cross-tenant impact through denial of service conditions.",
+  "fetchedAt": "2026-10-23T19:53:59.964719+00:00"
+}

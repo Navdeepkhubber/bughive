@@ -1,0 +1,17 @@
+{
+  "h1Id": 4028616,
+  "title": "Memory exhaustion (DoS) via unbounded file read in `EncodingDiscovery.detect_encoding()`",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-16T10:08:54.470Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Uncontrolled Resource Consumption"
+  },
+  "cveIds": [],
+  "teamHandle": "weblate",
+  "teamName": "Weblate",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4028616",
+  "vulnerabilityInformation": "A memory exhaustion vulnerability was discovered in the encoding detection function that loaded entire files into memory without size restrictions. The vulnerability affected the translation discovery process, where a single large translation file could cause peak memory usage to reach approximately three times the file size. This issue was present across multiple code paths and could be triggered automatically during version control system updates, potentially resulting in out-of-memory conditions on resource-constrained systems. The vulnerability was addressed by implementing bounded file reading with a size limit consistent with other sniffing operations in the codebase.",
+  "fetchedAt": "2026-10-23T19:53:59.964848+00:00"
+}

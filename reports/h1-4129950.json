@@ -1,0 +1,20 @@
+{
+  "h1Id": 4129950,
+  "title": "IDN decoding inserts authority delimiters and can redirect proxy CONNECT to a different host",
+  "severity": "High",
+  "disclosedAt": "2026-10-21T21:34:54.462Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Server-Side Request Forgery (SSRF)"
+  },
+  "cveIds": [
+    "CVE-2016-8625",
+    "CVE-2022-42916"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4129950",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.962236+00:00"
+}

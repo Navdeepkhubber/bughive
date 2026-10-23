@@ -1,0 +1,17 @@
+{
+  "h1Id": 4121675,
+  "title": "CRLF injection in the RTSP request-line and Transport header via `CURLOPT_RTSP_STREAM_URI` and `CURLOPT_RTSP_TRANSPORT`",
+  "severity": "High",
+  "disclosedAt": "2026-10-18T10:54:35.547Z",
+  "weakness": null,
+  "cwe": {
+    "id": "CRLF Injection"
+  },
+  "cveIds": [],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4121675",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.964595+00:00"
+}

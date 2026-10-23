@@ -1,0 +1,15 @@
+{
+  "h1Id": 4121685,
+  "title": "curl RTSP connection reuse routes response headers to the RTP callback (rtsp_conn state machine not reset between sessions)",
+  "severity": "High",
+  "disclosedAt": "2026-10-19T09:13:40.317Z",
+  "weakness": null,
+  "cwe": null,
+  "cveIds": [],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4121685",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.964007+00:00"
+}

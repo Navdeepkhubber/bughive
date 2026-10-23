@@ -1,0 +1,17 @@
+{
+  "h1Id": 3547607,
+  "title": "IBC2 Entry Points Skip SetupContractCost - Systematic Gas Underpricing",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-19T17:18:34.331Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Uncontrolled Resource Consumption"
+  },
+  "cveIds": [],
+  "teamHandle": "cosmos",
+  "teamName": "Cosmos",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3547607",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.963746+00:00"
+}

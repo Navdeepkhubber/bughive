@@ -1,0 +1,17 @@
+{
+  "h1Id": 3923967,
+  "title": "WordPress 7.1 Media Processing Race Enables Persistent PHP File Write and Author-to-RCE",
+  "severity": "High",
+  "disclosedAt": "2026-10-21T20:04:47.645Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Code Injection"
+  },
+  "cveIds": [],
+  "teamHandle": "wordpress",
+  "teamName": "WordPress",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3923967",
+  "vulnerabilityInformation": "A race condition vulnerability was discovered in WordPress 7.1 that allowed authenticated users with Author role to achieve persistent arbitrary PHP execution. The vulnerability involved exploiting media finalization, URL-media sideload, and image post-processing flows to generate persistent image files with PHP extensions containing PHP code in image metadata. The issue was confirmed in WordPress 7.1 development versions from Beta 2 through RC2, but was not present in the current 7.0 branch. The vulnerability required a PHP-served writable temporary directory and successful exploitation of a race condition window between multiple REST API calls.",
+  "fetchedAt": "2026-10-23T19:53:59.962374+00:00"
+}

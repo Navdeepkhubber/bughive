@@ -1,0 +1,19 @@
+{
+  "h1Id": 3962304,
+  "title": "Improper certificate validation for non-canonical IPv4 hostnames allows DNS SANs to authenticate IP endpoints",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-23T17:08:32.059Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Certificate Validation"
+  },
+  "cveIds": [
+    "CVE-2026-106072"
+  ],
+  "teamHandle": "nodejs",
+  "teamName": "Node.js",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3962304",
+  "vulnerabilityInformation": "A flaw was discovered in TLS hostname verification that allowed certificates with only DNS Subject Alternative Names to authenticate IP endpoints when clients connected using non-canonical IPv4 address formats. The verification function failed to classify these alternate spellings as IP addresses and instead normalized them to their canonical form, matching them against certificate DNS names. This resulted in certificates containing numeric DNS entries being incorrectly accepted for IP endpoint authentication. The vulnerability affected multiple versions of a popular runtime environment.",
+  "fetchedAt": "2026-10-23T19:53:59.961103+00:00"
+}

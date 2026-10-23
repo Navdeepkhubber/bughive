@@ -1,0 +1,19 @@
+{
+  "h1Id": 4124549,
+  "title": "CURLOPT_PROXYHEADER is not part of the HTTP-proxy connection reuse key: a second CONNECT-tunnel transfer silently reuses the first tunnel's Proxy-Auth",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-20T06:17:04.081Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Authentication - Generic"
+  },
+  "cveIds": [
+    "CVE-2026-3784"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4124549",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.963352+00:00"
+}

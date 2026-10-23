@@ -1,0 +1,20 @@
+{
+  "h1Id": 4129638,
+  "title": "TLS session cache ignores CURLOPT_SSL_CTX_FUNCTION identity and resumes one client's session for another",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-20T17:00:44.628Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Certificate Validation"
+  },
+  "cveIds": [
+    "CVE-2016-5419",
+    "CVE-2017-7468"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4129638",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.962905+00:00"
+}

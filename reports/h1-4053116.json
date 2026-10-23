@@ -1,0 +1,17 @@
+{
+  "h1Id": 4053116,
+  "title": "curl CONNECT response header colon-check bypass in cf-h1-proxy single_header \u2014 proxy authentication bypass via injected HTTP/1.x status line",
+  "severity": "High",
+  "disclosedAt": "2026-10-19T14:16:13.444Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Authentication - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4053116",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.963874+00:00"
+}

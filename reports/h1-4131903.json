@@ -1,0 +1,20 @@
+{
+  "h1Id": 4131903,
+  "title": "A server response that answers nothing is used as the next transfer's reply \u2014 and with IMAP, a fully compliant server does this by accident",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-22T06:55:50.434Z",
+  "weakness": null,
+  "cwe": null,
+  "cveIds": [
+    "CVE-2026-92387",
+    "CVE-2020-8284",
+    "CVE-2026-86411",
+    "CVE-2023-27535"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4131903",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.962078+00:00"
+}

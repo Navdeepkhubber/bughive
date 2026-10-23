@@ -1,0 +1,17 @@
+{
+  "h1Id": 4122039,
+  "title": "libcurl shared-HSTS-cache race leads to use-after-free with attacker-controlled function-pointer call",
+  "severity": "Critical",
+  "disclosedAt": "2026-10-19T09:13:19.225Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Use After Free"
+  },
+  "cveIds": [],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4122039",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.964346+00:00"
+}

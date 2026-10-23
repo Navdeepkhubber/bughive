@@ -1,0 +1,19 @@
+{
+  "h1Id": 4006744,
+  "title": "TLS certificate hostname bypass when the host loosely resolves to an IP address",
+  "severity": "High",
+  "disclosedAt": "2026-10-23T14:49:38.066Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Certificate Validation"
+  },
+  "cveIds": [
+    "CVE-2026-106069"
+  ],
+  "teamHandle": "nodejs",
+  "teamName": "Node.js",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4006744",
+  "vulnerabilityInformation": "A flaw was discovered in TLS hostname verification that could allow a server certificate to be validated against a different IP address than the one the client connected to. This occurred when a host used a non-canonical IPv4 literal with a leading zero, as the certificate validation normalization followed different rules than the operating system resolver on some platforms. The vulnerability affected multiple versions of Node.js.",
+  "fetchedAt": "2026-10-23T19:53:59.961662+00:00"
+}

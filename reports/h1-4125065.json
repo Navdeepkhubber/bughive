@@ -1,0 +1,19 @@
+{
+  "h1Id": 4125065,
+  "title": "curl EXPIRE_SHUTDOWN timer never armed for silent servers: connection-shutdown timeout bypass in cshutdn (event-driven mode)",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-23T07:26:37.097Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Uncontrolled Resource Consumption"
+  },
+  "cveIds": [
+    "CVE-2026-92387"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4125065",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.961946+00:00"
+}

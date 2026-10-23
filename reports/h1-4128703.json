@@ -1,0 +1,17 @@
+{
+  "h1Id": 4128703,
+  "title": "curl reuses an HTTPS connection when a response is already buffered in the TLS stack",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-20T21:39:05.020Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Acceptance of Extraneous Untrusted Data With Trusted Data"
+  },
+  "cveIds": [],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4128703",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.962777+00:00"
+}

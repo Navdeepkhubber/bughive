@@ -1,0 +1,20 @@
+{
+  "h1Id": 4129642,
+  "title": "HSTS cache file: three trailing dots silently disable HSTS for that host",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-20T17:00:34.508Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Certificate Validation"
+  },
+  "cveIds": [
+    "CVE-2026-8924",
+    "CVE-2023-46219"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4129642",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.963032+00:00"
+}

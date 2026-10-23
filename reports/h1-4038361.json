@@ -1,0 +1,19 @@
+{
+  "h1Id": 4038361,
+  "title": "Keep-alive socket process a response that was written before the request was sent",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-23T15:03:11.124Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Time-of-check Time-of-use (TOCTOU) Race Condition"
+  },
+  "cveIds": [
+    "CVE-2026-105481"
+  ],
+  "teamHandle": "nodejs",
+  "teamName": "Node.js",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4038361",
+  "vulnerabilityInformation": "A flaw was discovered in HTTP Agent connection reuse where a client could accept a response that was sent before the request was transmitted. This occurred because the guard that destroys idle keep-alive sockets when unexpected data arrives only ran when the event loop polled for I/O. If an unsolicited response had already reached the socket but was not yet read when the socket was handed to a new request, the guard was removed without detecting the data, causing it to be parsed as the response to the new request. This vulnerability affected multiple versions of a runtime environment.",
+  "fetchedAt": "2026-10-23T19:53:59.961526+00:00"
+}

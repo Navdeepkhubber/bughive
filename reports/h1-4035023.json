@@ -1,0 +1,17 @@
+{
+  "h1Id": 4035023,
+  "title": "Ordinary HEY user can make HEY originate authenticated mail from attacker-selected @hey.com  addresses",
+  "severity": "High",
+  "disclosedAt": "2026-10-20T09:35:56.849Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "basecamp",
+  "teamName": "Basecamp",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4035023",
+  "vulnerabilityInformation": "A vulnerability was discovered in HEY's email service that allowed ordinary users to send authenticated emails from arbitrary HEY addresses without authorization. An attacker could create a temporary external account claiming any target HEY address using unrelated SMTP credentials, enqueue a message, and then delete the external account before delivery. This caused the message to be delivered through HEY's infrastructure while retaining the claimed identity and valid authentication signatures. The vulnerability was successfully reproduced, with messages displaying spoofed sender information being delivered to recipient inboxes with passing SPF, DKIM, and DMARC validation.",
+  "fetchedAt": "2026-10-23T19:53:59.963174+00:00"
+}

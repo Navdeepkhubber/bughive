@@ -1,0 +1,19 @@
+{
+  "h1Id": 4038342,
+  "title": "dns.resolve truncates names containing NUL char",
+  "severity": "High",
+  "disclosedAt": "2026-10-23T12:16:47.965Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [
+    "CVE-2026-105482"
+  ],
+  "teamHandle": "nodejs",
+  "teamName": "Node.js",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4038342",
+  "vulnerabilityInformation": "A patch for CVE-2026-48930 was found to be incomplete. The fix rejected embedded NUL bytes in DNS lookup entry points but failed to apply the same validation to dns.resolve* entry points that interface with c-ares binding. When a NUL character was passed within a hostname to dns.resolve4(), the call did not throw an error and instead truncated the name at the NUL byte before querying the DNS server. This allowed a different hostname to be resolved than the one validated by the application, bypassing hostname validation checks in SSRF allowlists and DNS-rebinding guards. The vulnerability affected all dns.resolve* methods in both callback and promise APIs.",
+  "fetchedAt": "2026-10-23T19:53:59.961810+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "h1Id": 4105853,
+  "title": "libcurl TLS shorter-retry mismatch discloses client heap memory during cancelled IMAPS upload",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-19T09:13:30.904Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Out-of-bounds Read"
+  },
+  "cveIds": [],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4105853",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.964216+00:00"
+}

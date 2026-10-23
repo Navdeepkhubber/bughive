@@ -1,0 +1,19 @@
+{
+  "h1Id": 4038287,
+  "title": "TLS certificate hostname bypass when the IP is written fullwidth digits",
+  "severity": "High",
+  "disclosedAt": "2026-10-23T15:03:39.523Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Certificate Validation"
+  },
+  "cveIds": [
+    "CVE-2026-105483"
+  ],
+  "teamHandle": "nodejs",
+  "teamName": "Node.js",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4038287",
+  "vulnerabilityInformation": "A flaw was discovered in TLS hostname verification that allowed a certificate without a matching IP address to authenticate connections when the host was written using non-ASCII characters. The verification function failed to recognize such hosts as IP addresses and instead matched them against certificate DNS names and Common Name. A certificate issued for one IP endpoint could be accepted for a different IP endpoint. This regression affected specific versions of the runtime.",
+  "fetchedAt": "2026-10-23T19:53:59.961376+00:00"
+}

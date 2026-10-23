@@ -1,0 +1,19 @@
+{
+  "h1Id": 4124583,
+  "title": "SSH (SCP/SFTP) host-key verification is skipped on connection reuse \u2014 a pinned/known_hosts transfer silently reuses a previously-unverified connection",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-20T06:04:23.739Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Validation of Certificate with Host Mismatch"
+  },
+  "cveIds": [
+    "CVE-2022-27782"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4124583",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.963485+00:00"
+}

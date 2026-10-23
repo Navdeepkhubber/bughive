@@ -1,0 +1,17 @@
+{
+  "h1Id": 4127399,
+  "title": "wolfSSL Backend Silently Ignores --cert-status (OCSP Stapling Bypass)",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-20T06:04:13.868Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Certificate Validation"
+  },
+  "cveIds": [],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4127399",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-10-23T19:53:59.963609+00:00"
+}
