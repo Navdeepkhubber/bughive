@@ -107,13 +107,21 @@ def queue_one(report):
     return True
 
 # ─── Mode A: REST API ───────────────────────────────────────────────────────
-def hacktivity_query(since):
-    """Hacktivity accepts Lucene dates in MM-DD-YYYY form, not API filters."""
+def hacktivity_cutoff(since):
+    """Earliest disclosed_at we care about (UTC datetime).
+
+    The Hacker API rejects `disclosed_at:>=...` in queryString with HTTP 400
+    ("Unable to parse ElasticSearch query"), so the date window is applied
+    client-side. Results are requested newest-first, so paging stops as soon as
+    an item falls at or before the cutoff.
+    """
     if since:
-        start = datetime.fromisoformat(since.replace("Z", "+00:00"))
-    else:
-        start = datetime.now(timezone.utc) - timedelta(days=30)
-    return f"disclosed:true AND disclosed_at:>={start:%m-%d-%Y}"
+        return parse_dt(since)
+    return datetime.now(timezone.utc) - timedelta(days=30)
+
+
+def parse_dt(value):
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
 def check_api_auth():
@@ -154,7 +162,9 @@ def fetch_via_api():
     written = 0
     newest = since
     page = 1
-    query = hacktivity_query(since)
+    query = "disclosed:true"
+    cutoff = hacktivity_cutoff(since)
+    reached_cutoff = False
     while True:
         params = {
             "queryString": query,
@@ -185,8 +195,11 @@ def fetch_via_api():
             if a.get("disclosed") is not True:
                 continue
             da = a.get("disclosed_at")
-            if not da or (since and da <= since):
+            if not da:
                 continue
+            if parse_dt(da) <= cutoff:
+                reached_cutoff = True  # sorted newest-first: everything after is older
+                break
             if da and (not newest or da > newest):
                 newest = da
             if str(a.get("severity_rating", "")).lower() not in ("critical", "high", "medium"):
@@ -208,7 +221,7 @@ def fetch_via_api():
                 "vulnerabilityInformation": summary.get("hacktivity_summary"),
             }):
                 written += 1
-        if len(reports) < 100:
+        if reached_cutoff or len(reports) < 100:
             break
         page += 1
 
