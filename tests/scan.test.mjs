@@ -89,9 +89,15 @@ test("a live target with no matcher hits still writes an explained empty report"
     assert.match(result.jsonl, /"type":"run"/);
     const dir = await mkdtemp(join(tmpdir(), "bh-scan-"));
     await writeScanOutput(dir, result);
+    await writeScanOutput(dir, result);
     const sarif = JSON.parse(await readFile(join(dir, "findings.sarif"), "utf8"));
     assert.equal(sarif.version, "2.1.0");
     assert.equal(sarif.runs[0].results.length, 0);
+    const history = (await readFile(join(dir, "scan-history.jsonl"), "utf8")).trim().split("\n").map((line) => JSON.parse(line));
+    assert.equal(history.length, 2);
+    assert.equal(history[0].confirmed, 0);
+    assert.equal(history[1].rulesLoaded, result.stats.rulesLoaded);
+    assert.equal("findings" in history[0], false);
     await rm(dir, { recursive: true, force: true });
   } finally {
     await new Promise((resolve) => server.close(resolve));

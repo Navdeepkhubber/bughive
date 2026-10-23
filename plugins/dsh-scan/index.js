@@ -951,13 +951,33 @@ function finish(stats, findings, sarif) {
 }
 
 export async function writeScanOutput(dir, result) {
-  const { mkdir, writeFile: write } = await import("node:fs/promises");
+  const { mkdir, writeFile: write, appendFile } = await import("node:fs/promises");
   await mkdir(dir, { recursive: true });
   await write(join(dir, "findings.sarif"), JSON.stringify(result.sarif, null, 2));
   await write(join(dir, "findings.jsonl"), result.jsonl);
   await write(join(dir, "findings.json"), JSON.stringify(result.findings, null, 2));
   await write(join(dir, "validated.json"), JSON.stringify(result.confirmed, null, 2));
   await write(join(dir, "scan-summary.json"), JSON.stringify({ verdict: result.stats.verdict, stats: result.stats }, null, 2));
+  const mods = result.stats.modules || {};
+  const history = {
+    type: "scan",
+    at: new Date().toISOString(),
+    ok: result.ok,
+    brokenReason: result.brokenReason,
+    verdict: result.stats.verdict,
+    confirmed: result.confirmed.length,
+    unverified: result.findings.length - result.confirmed.length,
+    rulesLoaded: result.stats.rulesLoaded,
+    requests: result.stats.requests,
+    errors: result.stats.errors,
+    modules: {
+      nuclei: mods.nuclei || null,
+      trufflehog: mods.trufflehog || null,
+      "osv-scanner": mods["osv-scanner"] || null,
+      bbot: mods.bbot || null,
+    },
+  };
+  await appendFile(join(dir, "scan-history.jsonl"), `${JSON.stringify(history)}\n`);
 }
 
 export function apply(ctx) {

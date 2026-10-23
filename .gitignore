@@ -11,3 +11,4 @@ reports/*
 !reports/.last-fetch.json
 __pycache__/
 *.pyc
+skills/staging/harvest-manifest.json

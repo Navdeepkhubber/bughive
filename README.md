@@ -47,6 +47,7 @@ Written under the `--out` directory (the hunt directory for `run.sh scan`):
 | `validated.json` | Confirmed findings only (`status: verified`). |
 | `findings.json` | Confirmed and unverified together. |
 | `scan-summary.json` | Verdict plus every check: `verified`, `miss`, `skipped`, `unverified`, or `error`. |
+| `scan-history.jsonl` | One line per scan. Later runs append. The line has counts and module status, not request bodies. |
 
 `status` is `verified`, `unverified`, or `verification_skipped`. Unverified rows stay out of `validated.json`. A verified row has a saved request and response (or the verifier's own output). The fingerprint is `sha256(skill_id + asset + evidence_hash)`.
 
@@ -82,5 +83,17 @@ The canaries that must hit:
 | Strix / pentest-harness | A finding without a saved exchange is not confirmed. The run log is written even when the result is empty, so a step cannot vanish. No agent or UI code was copied. |
 
 Nuclei, TruffleHog, and osv-scanner are optional unmodified subprocesses (`plugins/dsh-scan/modules.js`). TruffleHog and BBOT are AGPL-3.0 and are not vendored or wrapped as a service. Semgrep registry rules and the CodeQL CLI are not included. Staged files under `skills/staging/` stay there until they are rewritten; the new seeds are original and do not contain harvest text.
+
+## Reference repos
+
+These were read as structure, not as code to paste. Proof rules did not change: a confirmed finding still needs a saved request and response, or a verified API result, and active checks still need `scope.txt`.
+
+| Repo | Kept | Left out |
+|---|---|---|
+| [pentest-harness](https://github.com/S1N6H/pentest-harness) (MIT) | A run log that is not thrown away, and a misconfiguration that fails the process instead of looking like an empty result. Credentials stay out of the log. | The Cordis UI, plugin tree, and agent runtime. This repo already has its own plugin host. |
+| [Bug-Bounty-Skills](https://github.com/S1N6H/Bug-Bounty-Skills) (pipeline MIT; skill text is not) | Content-hash dedupe, `owner-repo-path` filenames, and a license hint on each staged file. A failed harvest exits non-zero. | The aggregator source list and the habit of dropping third-party `SKILL.md` files where an agent would load them. Staging is still not loaded. |
+| [S1N6H-Recon](https://github.com/S1N6H/S1N6H-Recon) (no license) | The idea that several passive sources should be unioned, then marked when a tool is missing. Phase 01 already calls subfinder and amass as argv, then scope-filters. It now sets `degraded: true` when neither tool ran. | The script itself. It interpolates the domain into `shell=True`, prints "finished" before the processes exit, has no scope check, and has no license. |
+| [Barcha](https://github.com/S1N6H/Barcha) (MIT) | Append-only scan history, and the existing rule that a TLS error means the host is up. | Shodan wildcard enumeration and `ghauri --dump` against discovered hosts. That is exploitation without a per-host scope decision. |
+| [Pentest-AI-BurpSuite](https://github.com/S1N6H/Pentest-AI-BurpSuite) (MIT) | Claims cite a saved exchange. The scan history line does not invent findings. | The Burp agent, the jar, and a tool loop that sends arbitrary requests from model output. |
 
 HackerOne API tokens and `TYPESAFE_API_KEY` are read from the environment. Do not commit them.

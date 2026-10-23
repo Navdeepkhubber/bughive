@@ -18,8 +18,17 @@ Before promoting anything out of this folder:
 4. Move the finished file into `skills/seeds/`, dated and credited in the
    commit message, and delete the staged original.
 
-Run the harvester manually: `python3 scripts/harvest-bb-skills.py`
-(`GITHUB_TOKEN` env var optional, raises the GitHub API rate limit).
+Run the harvester manually: `python3 scripts/harvest-bb-skills.py`.
+It shallow-clones the curated list in the script. A content hash that is
+already staged is recorded as a duplicate and not written again. If every
+source fails to clone, the process exits 1 and says the pipeline is broken.
+Zero configured sources exits 2. A clone that succeeds and contains no skill
+files is a real empty result and exits 0. `harvest-manifest.json` is the run
+record and is gitignored.
+
+The public Bug-Bounty-Skills aggregator is not a source. Its pipeline license
+does not cover the skill text, and its source list includes red-team and
+malware packs. This folder stays reference material.
 
 ## License gate
 
