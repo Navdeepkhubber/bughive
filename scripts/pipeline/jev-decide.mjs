@@ -520,7 +520,7 @@ export async function jevCall(state, questions, fetchImpl = globalThis.fetch) {
   const key = process.env.TYPESAFE_API_KEY;
   if (!key) {
     const err = new Error(
-      "TYPESAFE_API_KEY is not set. JEV decisions require a TypeSafe API key.",
+      "TYPESAFE_API_KEY is not set. JEV decisions require a TypeSafe API key. Confirmed findings do not require it: bash scripts/pipeline/run.sh scan <domain> <baseUrl> after init.",
     );
     err.code = "NO_KEY";
     throw err;

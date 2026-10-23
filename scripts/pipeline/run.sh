@@ -26,5 +26,6 @@ case "$stage" in
   skills)     bash "$(dirname "$0")/skill-select.sh" "$@" ;;
   decide)     bash "$(dirname "$0")/jev-decide.sh" "$@" ;;
   loop)       node "$(dirname "$0")/jev-loop.mjs" "$@" ;;
+  scan)       cmd_scan "$@" ;;
   *) die "unknown stage: $stage" ;;
 esac

@@ -1,0 +1,8 @@
+{
+  "name": "dsh-scan",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "files": ["index.js", "pack.js", "modules.js", "cli.mjs", "cordis.patch.yml"],
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } }
+}
