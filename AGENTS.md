@@ -386,3 +386,27 @@ for.
 JEV is the planner. The LLM is the executor. JEV chooses the next
 stage, the skill, the vulnerability, and the test method. DeepSeek
 writes hypotheses, chains, and reports only inside that choice.
+
+## Cursor Cloud specific instructions
+
+Nothing has to stay running between sessions. The eval fixture is started on demand and binds `127.0.0.1` only.
+
+Install is three commands, from the repo root. `npm ci` does not download a browser; its postinstall script only prints a reminder. Python `requests` is not an npm dependency.
+
+```bash
+npm ci
+python3 -m pip install --user -r intelligence/requirements.txt
+npx playwright install chromium
+```
+
+`H1_API_USERNAME`, `H1_API_TOKEN`, and `TYPESAFE_API_KEY` are optional. The checks below do not call HackerOne or TypeSafe.
+
+```bash
+node scripts/verify.js
+npm run test:accuracy
+node plugins/_selftest.mjs
+python3 -m unittest tests/test_report_fetch.py
+node plugins/dsh-eval/fixture-app.mjs --port 8099
+```
+
+`/health` on that fixture returns `{"ok":true,"service":"bughive-eval-fixture"}`. Stop the process when finished. Playwright Chromium is required for `validate_xss_browser`; without it the self-test skips browser execution instead of failing the launch.
