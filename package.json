@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:accuracy": "node --test tests/accuracy.test.mjs",
     "fetch": "python3 intelligence/fetch-h1-reports.py",
     "seed": "node scripts/init-skills.js",
     "verify": "node scripts/verify.js",

@@ -266,8 +266,9 @@ then spawn a subagent on `hypothesis-prompt.txt`. It writes
 **falsify** — subagent on pass-list + raw recon for tool hits → keep
 verdict==true AND confidence>=0.6 in `hypotheses-real.json`.
 
-**prove** — `validate_finding` baseline+probe → `validated.json`. Treat
-`confidence: "low-likely-noise"` as not validated.
+**prove** — use `validate_by_class` for a class-specific proof condition.
+`validate_finding` records a response difference as a lead only. Do not put
+it in `validated.json` without independent proof.
 
 **chain** — `build_chain` → write `chains.json` yourself.
 
@@ -322,16 +323,14 @@ summary.
 
 ### Stage 6 — proof validator **[TOOL]**
 
-For each survivor, craft the minimal deterministic payload and call the
-`validate_finding` tool (dsh-finding-validator) with baseline + probe. It
+For each survivor, craft the minimal deterministic payload and use the
+class-specific validator. The generic `validate_finding` tool can compare
+baseline + probe responses, but cannot confirm a vulnerability. It
 never throws -- a network/parse failure comes back as
 `{validated:false, error:{code, message}}`, not an exception. On success
-it reports the raw `diff` (statusChanged/lengthDelta/bodyDiffers, for
-compatibility) plus noise-aware `confidence`
-(high/medium/low-likely-noise/none) and `normalizedBodyDiffers` -- treat
-`confidence: "low-likely-noise"` as not actually validated even though the
-raw `diff` fired, since that combination means the only difference found
-was timestamp/token noise. Per-finding evidence lands wherever the tool's
+it reports the raw `diff` (statusChanged/lengthDelta/bodyDiffers) and
+`observedDifference`. Its `validated` field is always false; a raw response
+difference is not exploit proof. Per-finding evidence lands wherever the tool's
 `finding/validation` event routes it; collect the validated list into
 hunts/<domain>/validated.json.
 

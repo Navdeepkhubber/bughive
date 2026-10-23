@@ -41,12 +41,26 @@ const WORTH_TESTING_FLOOR = 0.35;
 const SKILL_PROB_FLOOR = 0.08;
 const SKILL_LOAD_FLOOR = 0.4;
 const MAX_SKILLS = 8;
-const CONFIRM_TOP = 3;
+// Candidate breadth per decision round. We surface EVERY skill the ranker judges
+// plausibly relevant to this target (probability >= SKILL_PROB_FLOOR) instead of a
+// fixed top-N, so a relevant class is never pre-filtered out before the model and the
+// load floors (noul >= SKILL_LOAD_FLOOR) get to weigh it. On a sparse target this is a
+// handful; on a rich one it's however many actually apply.
+//
+// CONFIRM_MAX is ONLY a context-protection ceiling, not a coverage cap: each candidate's
+// skill body (<=3500 chars) is concatenated into a single planner prompt, so a literally
+// unbounded list would overflow the model's context and *degrade* its judgment. Raise it
+// with BUGHIVE_CONFIRM_MAX if you have a large skill library and a big-context model.
+const CONFIRM_MAX = Number(process.env.BUGHIVE_CONFIRM_MAX) || 24;
+function candidateSkills(ranked) {
+  const relevant = ranked.filter((s) => s.probability >= SKILL_PROB_FLOOR);
+  return (relevant.length ? relevant : ranked).slice(0, CONFIRM_MAX);
+}
 const STATE_BUDGET = 24000;
 // Explicit iteration budget. The methodology prescribes time-boxing (max ~45 min per
 // parameter, min ~30h per target); without a machine-checkable budget a hunt can either
 // wander indefinitely or stall and keep re-deciding with nothing to show.
-const MAX_DECIDES = 80;
+const MAX_DECIDES = Number(process.env.BUGHIVE_MAX_DECIDES) || 80;
 const STALL_DECIDES = 20;
 
 const HIGH_SIGNAL = [
@@ -88,10 +102,10 @@ const PHASES = [
 const NEXT_ACTIONS = {
   deepen_recon: "Run the one recon phase named in recon_phase, then decide again.",
   score_skills: "Run keyword skill scoring. That is evidence for JEV, not a skill pick.",
-  select_and_test: "Build the hypothesis prompt and spawn the hypothesis subagent for the chosen skill and test method only.",
+  select_and_test: "Build the hypothesis prompt and check selected skills against concrete recon evidence, prioritizing JEV's chosen skill.",
   prefilter: "Call pre_validation_filter on each hypothesis. Write hypotheses-pass.json.",
   falsify: "Spawn the falsifier subagent on hypotheses-pass.json. Write hypotheses-real.json.",
-  prove: "Prove each real hypothesis with the validator for its bug class: validate_by_class (timing/boolean/redirect/OOB/browser-XSS). Fall back to validate_finding only when the class has no specific proof condition. Write validated.json.",
+  prove: "Prove each real hypothesis with the validator for its bug class: validate_by_class (timing/boolean/redirect/OOB/browser-XSS). The generic validate_finding only records a response difference and never confirms a vulnerability. Write validated.json only for class-specific proof.",
   chain: "Call build_chain on validated.json. Write chains.json.",
   report: "Call write_report once per validated finding. Write reports/report-<id>.md.",
   quality: "Spawn the quality-gate subagent. Copy passing reports to reports/approved/.",
@@ -251,8 +265,9 @@ async function huntSnapshot(domain) {
   const legal = legalPhases(present);
   const missing = HIGH_SIGNAL.filter((p) => !present.has(p));
 
-  const keyword = (await readJson(join(hd, "skills-keyword.json"))) || [];
   const selected = (await readJson(join(hd, "skills-selected.json"))) || [];
+  const storedKeyword = await readJson(join(hd, "skills-keyword.json"));
+  const keyword = Array.isArray(storedKeyword) && storedKeyword.length ? storedKeyword : selected;
   const hasKeyword = Array.isArray(keyword) && keyword.length > 0;
   const hasSelected = Array.isArray(selected) && selected.length > 0;
 
@@ -393,7 +408,7 @@ function focusOptions(snap) {
       for (const v of Object.values(node)) walk(v, depth + 1);
     }
   };
-  for (const phase of ["17-interesting-endpoints", "14-nuclei-scan", "15-mass-oneliners", "06-param-discovery"]) {
+  for (const phase of ["17-interesting-endpoints", "14-nuclei-scan", "15-mass-oneliners", "06-param-discovery", "07-js-analysis", "05-content-discovery", "04-http-probe"]) {
     if (snap.recon[phase]) walk(snap.recon[phase]);
   }
   const criteria = { none: "No single URL. Test the class against the cited recon item." };
@@ -544,12 +559,19 @@ function choiceOf(answer) {
   };
 }
 
-function rankedSkills(probabilities, skills) {
+function rankedSkills(probabilities, skills, keyword = []) {
   const byKey = new Map(skills.map((s) => [s.key, s]));
-  return Object.entries(probabilities)
-    .map(([key, p]) => ({ ...(byKey.get(key) || { id: key, key, blurb: "" }), probability: num(p) }))
-    .filter((s) => s.id.includes("/"))
+  const ranked = Object.entries(probabilities || {})
+    .filter(([key]) => byKey.has(key))
+    .map(([key, p]) => ({ ...byKey.get(key), probability: num(p) }))
     .sort((a, b) => b.probability - a.probability);
+  if (ranked.length) return ranked;
+  // JEV sometimes omits probabilities despite naming a skill. The saved
+  // recon shortlist is still enough to ask for one evidence-bound candidate.
+  return (Array.isArray(keyword) ? keyword : [])
+    .filter((row) => skills.some((s) => s.id === row.skill))
+    .sort((a, b) => num(b.score) - num(a.score))
+    .map((row) => ({ ...skills.find((s) => s.id === row.skill), probability: SKILL_PROB_FLOOR }));
 }
 
 function nearestSignal(scoreAnswer) {
@@ -568,19 +590,6 @@ function nearestSignal(scoreAnswer) {
 function keywordScore(snap, id) {
   const row = (Array.isArray(snap.keyword) ? snap.keyword : []).find((s) => s.skill === id);
   return row || null;
-}
-
-function urgentToolHit(snap) {
-  const nuclei = snap.recon["14-nuclei-scan"];
-  if (nuclei && typeof nuclei === "object" && Array.isArray(nuclei.items)) {
-    if (nuclei.items.some((it) => /^(critical|high)$/i.test(String(it?.severity || "")))) return true;
-  }
-  const oneliners = snap.recon["15-mass-oneliners"];
-  if (oneliners && typeof oneliners === "object") {
-    if (num(oneliners.count) > 0) return true;
-    if (Array.isArray(oneliners.items) && oneliners.items.length > 0) return true;
-  }
-  return false;
 }
 
 function hasToolHit(snap) {
@@ -604,7 +613,7 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   const worth = num(routing.answers.worth_testing?.noul);
   const human = num(routing.answers.human_review?.noul);
   const signal = nearestSignal(routing.answers.signal);
-  const ranked = rankedSkills(skillChoice.probabilities, skills);
+  const ranked = rankedSkills(skillChoice.probabilities, skills, snap.keyword);
   const legal = Array.isArray(snap.legal) ? snap.legal : legalPhases(snap.present || Object.keys(snap.recon || {}));
   const reconCount = Object.keys(snap.recon || {}).length;
   const hasKeyword = Boolean(snap.hasKeyword);
@@ -614,11 +623,6 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   // about what the planner *asked for*, not about the action they replaced it with.
   const requestedAction = action;
   let clampedFrom = null;
-  const untouched = snap.counts.hypotheses === 0 && snap.counts.validated === 0;
-  if (urgentToolHit(snap) && untouched) {
-    clampedFrom = action === "human_gate" ? null : action;
-    action = "human_gate";
-  }
   const clamp = (to) => {
     if (action !== to) clampedFrom = action;
     action = to;
@@ -641,7 +645,10 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
     clamp("human_gate");
     gatedBy = "confidence";
   }
-  if (human > HUMAN_REVIEW_CEILING && !coldStart) {
+  // Recon, scoring and hypothesis writing do not assert a finding. A high
+  // review score must not stop these preparatory stages before anything can
+  // be tested. Keep the gate for proof and downstream decisions.
+  if (human > HUMAN_REVIEW_CEILING && !coldStart && !["deepen_recon", "score_skills", "select_and_test", "prefilter", "falsify"].includes(action)) {
     clamp("human_gate");
     // Keep the first reason: a low-confidence gate must not be relabelled as a mere
     // review gate, or the exhaustion fallback below would override it.
@@ -702,7 +709,7 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   if (action === "deliver" && snap.counts.validated > 0 && (snap.counts.reports || 0) === 0) {
     clamp("report");
   }
-  if (action === "select_and_test" && worth < WORTH_TESTING_FLOOR && !toolHit) {
+  if (action === "select_and_test" && worth < WORTH_TESTING_FLOOR && !toolHit && legal.length > 0) {
     clamp(reconPhase ? "deepen_recon" : "stop");
   }
 
@@ -714,7 +721,7 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   let focusLabel = "none";
 
   if (confirm) {
-    const top = ranked.slice(0, CONFIRM_TOP);
+    const top = candidateSkills(ranked);
     kept = top.map((s, i) => {
       const noul = num(confirm.answers[`load_${i}`]?.noul);
       const kw = keywordScore(snap, s.id);
@@ -745,18 +752,39 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
     const vulnSkill = skills.find((s) => s.key === vulnChoice.choice);
     vuln = loaded.find((s) => s.skill === vulnSkill?.id)?.skill || loaded[0]?.skill || null;
 
-    if (action === "select_and_test" && !vuln) {
-      clamp(reconPhase ? "deepen_recon" : "stop");
-    }
-    if (testMethod === "hold" && action === "select_and_test") {
-      clamp(reconPhase ? "deepen_recon" : "stop");
-    }
+    if (action === "select_and_test" && !vuln) vuln = ranked[0]?.id || null;
+    if (testMethod === "hold" && action === "select_and_test") testMethod = "checklist_walk";
   } else if (!routingOnly && action === "select_and_test") {
-    clamp(reconPhase ? "deepen_recon" : "stop");
+    vuln = ranked[0]?.id || null;
+    testMethod = "checklist_walk";
+  }
+
+  // Once recon is exhausted, generate hypotheses once from the concrete URL
+  // evidence before accepting a stop. This stage only writes candidates;
+  // prefilter, falsification and class-specific proof still follow.
+  const attemptedHypothesis = (snap.done || []).includes("hypothesis");
+  const candidateUrl = focusOptions(snap).urls.length > 0;
+  if (legal.length === 0 && reconCount > 0 && hasKeyword && candidateUrl &&
+      snap.counts.hypotheses === 0 && !attemptedHypothesis &&
+      ["stop", "human_gate", "score_skills", "select_and_test"].includes(action) &&
+      requestedAction !== "human_gate" &&
+      next.confidence >= CONFIDENCE_FLOOR) {
+    clamp("select_and_test");
+    vuln ||= ranked[0]?.id || null;
+    if (testMethod === "hold") testMethod = "checklist_walk";
   }
 
   if (action !== "select_and_test") {
     testMethod = action === "falsify" || action === "prove" ? "tool_hit_falsify" : "hold";
+  } else if (vuln && !kept.some((s) => s.load)) {
+    const candidate = ranked.find((s) => s.id === vuln);
+    const kw = keywordScore(snap, vuln);
+    kept.push({
+      skill: vuln, probability: candidate?.probability || 0,
+      load_noul: 0, load: true, score: kw ? num(kw.score) : 0,
+      matched_terms: kw?.matched_terms || "",
+      reason: "candidate for hypothesis generation; not a validated finding",
+    });
   }
 
   // Completeness gate (plugins/dsh-coverage). `deliver` and `stop` are the two
@@ -883,11 +911,11 @@ export function buildExecutor(decision, domain) {
       stage: "proof",
       // Route by bug class so each finding meets its real proof condition (timing,
       // boolean, redirect, out-of-band, or browser execution) instead of a generic
-      // response diff. validate_finding stays as the fallback for unclassified classes.
+      // response diff. validate_finding is observation-only for unclassified classes.
       plugin: "validate_by_class",
       fallback_plugin: "validate_finding",
       plugin_note:
-        "Call validate_by_class with {bugClass, spec}. A class the router reports as 'manual' (IDOR/CSRF/ATO/takeover) must NOT be marked validated from a payload diff. Treat confidence 'low-likely-noise' as not validated.",
+        "Call validate_by_class with {bugClass, spec}. A class reported as 'manual' (IDOR/CSRF/ATO/takeover) needs independent proof. validate_finding records observedDifference only and must never populate validated.json by itself.",
       input: `hunts/${d}/hypotheses-real.json`,
       write: `hunts/${d}/validated.json`,
       after,
@@ -972,7 +1000,7 @@ async function writeDecision(snap, decision, domain) {
     await copyFile(selectedPath, keywordPath);
   }
   if (decision.next_action === "select_and_test" && (decision.skills || []).length > 0) {
-    const selected = decision.skills.map((s) => ({
+    const chosen = decision.skills.map((s) => ({
       skill: s.skill,
       score: s.score,
       probability: s.probability,
@@ -980,6 +1008,11 @@ async function writeDecision(snap, decision, domain) {
       matched_terms: s.matched_terms,
       reason: s.reason,
     }));
+    const shortlist = (await readJson(keywordPath)) || (await readJson(selectedPath)) || [];
+    const selected = [...chosen];
+    for (const row of Array.isArray(shortlist) ? shortlist : []) {
+      if (row?.skill && !selected.some((s) => s.skill === row.skill)) selected.push(row);
+    }
     await writeFile(selectedPath, `${JSON.stringify(selected, null, 2)}\n`);
   }
   const executor = buildExecutor(decision, host);
@@ -1012,7 +1045,7 @@ export async function decide(domain, { fetchImpl } = {}) {
   const probe = applyPolicy({ snap, skills, routing, confirm: null }, { routingOnly: true });
   let confirm = null;
   if (probe.next_action === "select_and_test" || probe.next_action === "deepen_recon") {
-    const top = rankedSkills(choiceOf(routing.answers.skill).probabilities, skills).slice(0, CONFIRM_TOP);
+    const top = candidateSkills(rankedSkills(choiceOf(routing.answers.skill).probabilities, skills, snap.keyword));
     if (top.length > 0 && probe.next_action === "select_and_test") {
       const built = confirmQuestions(top, snap);
       const skillBodies = [];
@@ -1118,7 +1151,7 @@ export async function selftest() {
     },
     confirm,
   });
-  assert(review.next_action === "human_gate", "human review must gate");
+  assert(review.next_action === "select_and_test", "review score must not block hypothesis generation");
 
   // Cold start: with no recon evidence at all, a high human_review score must not
   // deadlock the hunt before the first recon phase has ever run. JEV's own chosen
@@ -1156,7 +1189,7 @@ export async function selftest() {
   assert(cold.clamped_from === null, "cold-start recon is JEV's own choice, not a clamp");
   assert(cold.cold_start === true, "cold start must be reported");
 
-  // The exemption is narrow: one recon phase of evidence and the ceiling gates again.
+  // Human review cannot block preparatory recon after one phase either.
   const onePhase = applyPolicy(
     {
       snap: { ...coldSnap, recon: baseSnap.recon, present: baseSnap.present, legal: baseSnap.legal },
@@ -1174,14 +1207,10 @@ export async function selftest() {
     },
     { routingOnly: true },
   );
-  assert(onePhase.next_action === "human_gate", "human review still gates once evidence exists");
+  assert(onePhase.next_action === "deepen_recon", "review score must not block legal recon");
   assert(onePhase.cold_start === false, "not a cold start once recon exists");
 
-  // A gate must still carry JEV's own request, so an approving human can resume the
-  // planner's plan instead of having to choose a stage themselves.
-  assert(onePhase.recon_phase === null, "a gated decision exposes no executable phase");
-  assert(onePhase.recon_phase_selected === "14-nuclei-scan", "gated decision preserves JEV's phase");
-  assert(onePhase.recon_phase_requested === "14-nuclei-scan", "gated decision preserves JEV's request");
+  assert(onePhase.recon_phase === "14-nuclei-scan", "recon keeps JEV's legal phase");
 
   // Recon exhaustion: every legal phase is done, so deepen_recon cannot name one. A high
   // human_review score must not halt the hunt at the moment recon completes -- it has to
@@ -1235,12 +1264,9 @@ export async function selftest() {
     { routingOnly: true },
   );
   assert(exhaustedLow.next_action === "human_gate", "low confidence still gates after recon exhaustion");
-  const gateExec = buildExecutor(onePhase, "app.example");
+  const gateExec = buildExecutor(low, "app.example");
   assert(gateExec.kind === "halt", "gated decision halts");
-  assert(
-    gateExec.resume_command === "bash scripts/pipeline/run.sh recon-14 app.example",
-    "gate hands the approver a resume command for JEV's own phase",
-  );
+  assert(gateExec.resume_command === null, "low-confidence gate has no automatic resume");
 
   const earlyChain = applyPolicy(
     {
@@ -1347,7 +1373,7 @@ export async function selftest() {
       answers: { ...confirm.answers, load_0: { noul: 0.1 }, test_method: { choice: "hold", confidence: 0.6, probabilities: {} } },
     },
   });
-  assert(rejected.next_action === "stop", "rejected skills and no missing phase stops");
+  assert(rejected.next_action === "select_and_test", "concrete surface gets one hypothesis attempt");
 
   const urgent = applyPolicy({
     snap: {
@@ -1361,7 +1387,7 @@ export async function selftest() {
     routing,
     confirm,
   });
-  assert(urgent.next_action === "human_gate", "high nuclei hit gates before testing");
+  assert(urgent.next_action === "select_and_test", "tool hit reaches hypothesis and falsifier stages");
 
   const boot = applyPolicy({
     snap: {

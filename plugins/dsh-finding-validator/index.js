@@ -103,7 +103,7 @@ export function apply(ctx, config = {}) {
 
   ctx.tools.register({
     name: "validate_finding",
-    description: "Deterministically validate a finding by replaying baseline vs probe and diffing (ctx.web for plain GETs, curl fallback for anything else). Never throws on a network/parse error -- returns a structured error instead.",
+    description: "Compare baseline and probe responses as a lead only. A difference does not validate a vulnerability; use a class-specific proof validator. Network and parse errors return structured errors.",
     parameters: {
       type: "object",
       properties: {
@@ -164,7 +164,7 @@ export function apply(ctx, config = {}) {
       const bodyDiffers = b.body !== p.body;
       const lengthDelta = Math.abs((b.body || "").length - (p.body || "").length);
       const diff = { statusChanged, lengthDelta, bodyDiffers };
-      const validated = statusChanged || bodyDiffers;
+      const observedDifference = statusChanged || bodyDiffers;
 
       // Additional noise-aware read, surfaced alongside the raw diff rather
       // than replacing it: two identical-looking requests differing only in
@@ -174,14 +174,22 @@ export function apply(ctx, config = {}) {
       const reflectedMarker = Boolean(baselineN.request.marker) && (p.body || "").includes(baselineN.request.marker);
       const normalizedBodyDiffers = stripNoise(b.body) !== stripNoise(p.body);
       const meaningfulBodyDiff = normalizedBodyDiffers && lengthDelta >= MIN_MEANINGFUL_LENGTH_DELTA;
-      const confidence = reflectedMarker || statusChanged ? "high" : meaningfulBodyDiff ? "medium" : (validated ? "low-likely-noise" : "none");
+      // A differential response is a lead, not proof of a vulnerability. In
+      // particular, comparing two unrelated endpoints produces a difference
+      // even when both behave correctly. Class-specific validators must set
+      // validated=true after checking an actual exploit condition.
+      const validated = false;
+      const confidence = observedDifference ? "unproven-difference" : "none";
 
       const result = {
         validated,
+        observedDifference,
         diff,
         confidence,
         normalizedBodyDiffers,
         reflectedMarker,
+        meaningfulBodyDiff,
+        note: observedDifference ? "Response difference observed; use a class-specific proof validator before reporting a finding." : "No response difference observed.",
         statuses,
         transports,
       };

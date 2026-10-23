@@ -37,9 +37,7 @@ const ASSERTION_RE =
 const METHOD_URL_RE =
   /\b(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(https?:\/\/[^\s`"')\]]+|\/[A-Za-z0-9_\-./{}:%*]+)/g;
 
-const URL_ONLY_RE = /https?:\/\/[^\s"'`<>)]+/g;
-
-const TEXT_EXT = new Set([".json", ".jsonl", ".txt", ".md", ".log"]);
+const TEXT_EXT = new Set([".json", ".jsonl", ".txt", ".log"]);
 
 /**
  * Technique signatures. `claim` detects the technique in a report sentence; `markers`
@@ -82,13 +80,13 @@ export const TECHNIQUES = [
 ];
 
 function pathOf(u) {
-  let s = u.replace(/^https?:\/\//, "");
+  let s = u.replace(/[.,;:!?]+$/, "").replace(/^https?:\/\//, "");
   const slash = s.indexOf("/");
   s = slash === -1 ? "/" : s.slice(slash);
   return s.split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
 }
 
-async function collectEvidence(paths) {
+async function collectEvidence(paths, reportPath) {
   const chunks = [];
   const files = [];
   async function walk(p) {
@@ -99,8 +97,15 @@ async function collectEvidence(paths) {
       return;
     }
     if (st.isDirectory()) {
-      for (const e of await readdir(p, { withFileTypes: true })) await walk(join(p, e.name));
+      // A hunt directory also contains generated hypotheses, reports and
+      // prompts. None is a record of a request actually sent.
+      for (const e of await readdir(p, { withFileTypes: true })) {
+        if (e.isFile() && !/^(journal|proxy-capture)\.jsonl$/i.test(e.name)) continue;
+        if (e.isDirectory() && e.name !== "logs") continue;
+        await walk(join(p, e.name));
+      }
     } else if (TEXT_EXT.has(extname(p).toLowerCase())) {
+      if (reportPath && p === reportPath) return;
       files.push(p);
       try {
         chunks.push(await readFile(p, "utf8"));
@@ -121,21 +126,26 @@ export function auditClaims(report, evidenceText) {
 
   // Index evidence by the paths each line mentions, so a technique marker can be
   // correlated with the endpoint it was actually sent to.
-  const pathsOfLine = (l) => {
+  const requestsOfLine = (l) => {
     const out = new Set();
-    for (const m of l.matchAll(METHOD_URL_RE)) out.add(pathOf(m[2]));
-    for (const m of l.matchAll(URL_ONLY_RE)) out.add(pathOf(m[0]));
+    for (const m of l.matchAll(METHOD_URL_RE)) out.add(`${m[1].toUpperCase()} ${pathOf(m[2])}`);
+    try {
+      const event = JSON.parse(l);
+      if (event.kind === "request") {
+        const detail = event.detail || {};
+        if (detail.url && detail.method) out.add(`${String(detail.method).toUpperCase()} ${pathOf(detail.url)}`);
+      }
+    } catch { /* plain request log */ }
     return out;
   };
-  const linesByPath = new Map();
+  const linesByRequest = new Map();
   for (const l of evidenceLines) {
-    for (const p of pathsOfLine(l)) {
-      if (!linesByPath.has(p)) linesByPath.set(p, []);
-      linesByPath.get(p).push(l);
+    for (const request of requestsOfLine(l)) {
+      if (!linesByRequest.has(request)) linesByRequest.set(request, []);
+      linesByRequest.get(request).push(l);
     }
   }
-  const allPaths = [...linesByPath.keys()];
-  const pathSeen = (p) => allPaths.some((ep) => ep === p || ep.startsWith(p) || p.startsWith(ep));
+  const allRequests = [...linesByRequest.keys()];
 
   const claimed = new Map();
   for (const m of report.matchAll(METHOD_URL_RE)) {
@@ -162,7 +172,7 @@ export function auditClaims(report, evidenceText) {
 
     for (const r of refs) {
       const endpoint = `${r.method} ${r.path}`;
-      if (!pathSeen(r.path)) {
+      if (!linesByRequest.has(endpoint)) {
         claims.push({
           assertion: s.slice(0, 240),
           endpoint,
@@ -171,7 +181,7 @@ export function auditClaims(report, evidenceText) {
         });
         continue;
       }
-      const related = linesByPath.get(r.path) || [];
+      const related = linesByRequest.get(endpoint) || [];
       let flagged = false;
       for (const t of techniques) {
         if (t.markers.length === 0) {
@@ -197,35 +207,38 @@ export function auditClaims(report, evidenceText) {
         }
       }
       if (!flagged) {
+        const positiveFinding = /\b(confirmed|vulnerable|exploitable|injectable)\b/i.test(s);
         claims.push({
           assertion: s.slice(0, 240),
           endpoint,
-          status: "supported",
+          status: positiveFinding ? "unverifiable" : "supported",
           reason:
-            techniques.length === 0
+            positiveFinding
+              ? "request and payload records do not prove exploit impact; attach class-specific validation evidence"
+              : techniques.length === 0
               ? "endpoint appears in the evidence"
-              : "endpoint requested and the claimed technique's payload appears in evidence",
+                : "endpoint requested and the claimed technique's payload appears in evidence",
         });
       }
     }
   }
 
   const neverRequested = [...claimed.values()]
-    .filter(({ path }) => !pathSeen(path))
+    .filter(({ method, path }) => !linesByRequest.has(`${method} ${path}`))
     .map(({ method, path }) => `${method} ${path}`);
 
   const unsupported = claims.filter((c) => c.status === "unsupported");
   const unverifiable = claims.filter((c) => c.status === "unverifiable");
   return {
     claimed_endpoints: claimed.size,
-    evidenced_paths: allPaths.length,
+    evidenced_paths: allRequests.length,
     claims: claims.slice(0, 200),
     unsupported_count: unsupported.length,
     unsupported: unsupported.slice(0, 100),
     unverifiable_count: unverifiable.length,
     unverifiable: unverifiable.slice(0, 50),
     endpoints_never_requested: [...new Set(neverRequested)].slice(0, 100),
-    pass: unsupported.length === 0 && claimed.size > 0,
+    pass: unsupported.length === 0 && unverifiable.length === 0 && claims.length > 0,
     note:
       "Point evidencePaths at the hunt journal or recon items (request lines with URLs). " +
       "Raw response captures alone contain no request lines and will look unsupported.",
@@ -274,7 +287,7 @@ export function apply(ctx) {
         .split(/[\n,]/)
         .map((s) => s.trim())
         .filter(Boolean);
-      const { text, files } = await collectEvidence(evPaths);
+      const { text, files } = await collectEvidence(evPaths, args.reportPath);
       if (!text.trim()) {
         return JSON.stringify({
           pass: false,

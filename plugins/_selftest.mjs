@@ -293,13 +293,14 @@ async function main() {
     );
     const parsed = JSON.parse(value);
     assert.deepEqual(parsed.diff, { statusChanged: true, lengthDelta: 1, bodyDiffers: true });
-    assert.equal(parsed.validated, true);
+    assert.equal(parsed.validated, false, "a raw differential does not prove a vulnerability");
+    assert.equal(parsed.observedDifference, true);
     assert.equal(parsed.error, undefined);
     const event = events.find((e) => e.name === "finding/validation");
     assert.ok(event, "finding/validation emitted");
     assert.deepEqual(event.payload.transports, { baseline: "web", probe: "web" });
     assert.deepEqual(event.payload.statuses, { baseline: 200, probe: 500 });
-    assert.equal(event.payload.validated, true);
+    assert.equal(event.payload.validated, false);
   });
 
   await test("validate_finding reports validated=false for identical responses (no throw)", async () => {
@@ -449,7 +450,8 @@ async function main() {
         makeExec()
       );
       const parsed = JSON.parse(value);
-      assert.equal(parsed.validated, true);
+      assert.equal(parsed.validated, false);
+      assert.equal(parsed.observedDifference, true);
       // "plain" (5) vs "posted:payload" (14) -> delta 9
       assert.deepEqual(parsed.diff, { statusChanged: true, lengthDelta: 9, bodyDiffers: true });
       const event = events.find((e) => e.name === "finding/validation");
@@ -925,6 +927,7 @@ async function main() {
     const idor = JSON.parse(await audit.execute({ reportText: idorReport, evidencePaths: dir }));
     assert.ok(idor.unverifiable_count >= 1, "IDOR must be marked unverifiable");
     assert.equal(idor.unverifiable[0].technique, "idor");
+    assert.equal(idor.pass, false, "an unverified claim cannot pass the audit");
 
     // No evidence at all is a hard fail, never a silent pass.
     const empty = await mkdtemp(join(tmpdir(), "bh-audit-empty-"));

@@ -30,11 +30,27 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 /** Normalise a free-text class label to a canonical one using the manifest aliases. */
 export function canonicalClass(label, aliases) {
   const l = String(label || "").toLowerCase().trim();
+  if (Object.hasOwn(aliases || {}, l)) return l;
   for (const [canon, list] of Object.entries(aliases || {})) {
-    if (canon === l) return canon;
-    if (list.some((a) => l === a || l.includes(a))) return canon;
+    if (list.some((a) => l === a)) return canon;
   }
   return l;
+}
+
+function normalizedPath(value) {
+  try {
+    const u = new URL(String(value || ""), "http://fixture.invalid");
+    return u.pathname;
+  } catch {
+    return "";
+  }
+}
+
+function matchesBug(finding, bug) {
+  const path = normalizedPath(finding.path);
+  const prefix = normalizedPath(bug.path_prefix || bug.path);
+  if (!path || !prefix || !(path === prefix || path.startsWith(prefix.endsWith("/") ? prefix : `${prefix}/`))) return false;
+  return !finding.method || String(finding.method).toUpperCase() === String(bug.method).toUpperCase();
 }
 
 /**
@@ -50,12 +66,8 @@ export function score(findings, truth) {
 
   for (const f of findings) {
     const c = canonicalClass(f.class, aliases);
-    const path = String(f.path || "");
-    const hit = bugs.find(
-      (b, i) =>
-        !used.has(i) &&
-        canonicalClass(b.class, aliases) === c &&
-        (path === b.path || path.startsWith(b.path_prefix) || b.path_prefix.startsWith(path.split("?")[0]))
+    const hit = bugs.find((b, i) =>
+      !used.has(i) && canonicalClass(b.class, aliases) === c && matchesBug(f, b)
     );
     if (hit) {
       used.add(bugs.indexOf(hit));

@@ -1,3 +1,5 @@
+import { scopeAllows } from "../dsh-scope-guard/index.js";
+
 export const name = "fp-filter";
 export const inject = ["tools", "sessions"];
 
@@ -7,7 +9,7 @@ export function apply(ctx, config = {}) {
   ctx.tools.register({
     name: "pre_validation_filter",
     description:
-      "Cheap deterministic filter. Rejects hypotheses that are out of scope, lack a baseline, or hit an unreachable surface before any HTTP traffic is sent.",
+      "Cheap deterministic filter. Rejects out-of-scope hypotheses and candidates without a request target before HTTP traffic is sent.",
     parameters: {
       type: "object",
       properties: {
@@ -30,29 +32,22 @@ export function apply(ctx, config = {}) {
 
       // 1. Scope
       if (args.scope) {
-        const scopeHosts = args.scope.split(/\s+/).filter(Boolean).map((h) => h.toLowerCase());
         const target = String(hyp.target || hyp.endpoint || "").toLowerCase();
-        const host = target.replace(/^https?:\/\//, "").split("/")[0];
-        if (host && !scopeHosts.some((s) => host === s || host.endsWith(`.${s}`) || s.endsWith(`.${host}`))) {
-          reasons.push(`target ${host} not in scope list`);
+        const scope = scopeAllows(args.scope, target);
+        if (!scope.allowed) {
+          reasons.push(`target out of scope: ${scope.reason}`);
         }
       }
 
       // 2. Baseline exists
-      if (!hyp.baseline && !hyp.baselineRequest) {
-        reasons.push("no baseline request supplied");
+      const targetUrl = String(hyp.target || hyp.endpoint || "");
+      if (!hyp.baseline && !hyp.baselineRequest && !/^https?:\/\//i.test(targetUrl)) {
+        reasons.push("no baseline request or target URL supplied");
       }
 
-      // 3. Attack surface reachable
-      if (args.reconSummary) {
-        let rs;
-        try { rs = JSON.parse(args.reconSummary); } catch {}
-        if (rs && Array.isArray(rs.items) && rs.items.length === 0) {
-          reasons.push("recon summary is empty — nothing to test against");
-        }
-      }
-
-      return JSON.stringify({ pass: reasons.length === 0, reasons });
+      return JSON.stringify({ pass: reasons.length === 0, reasons,
+        suggested_baseline: !hyp.baseline && !hyp.baselineRequest && /^https?:\/\//i.test(targetUrl)
+          ? { method: "GET", url: targetUrl } : null });
     },
   });
 

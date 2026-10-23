@@ -71,7 +71,7 @@ if [ -f "$hd/skills-selected.json" ]; then
   # Pull the actual checklist body of every skill that was selected for this
   # target, so the hypothesis agent has the concrete techniques in front of
   # it instead of having to recall them.
-  for skill_id in $(grep -oE '"(seeds|learned)/[a-zA-Z0-9._-]+"' "$hd/skills-selected.json" | tr -d '"'); do
+  while IFS= read -r skill_id; do
     skill_path="$(dirname "$0")/../../skills/${skill_id}.md"
     [ -f "$skill_path" ] || skill_path="$(dirname "$0")/../../skills/${skill_id}"
     if [ -f "$skill_path" ]; then
@@ -80,7 +80,14 @@ if [ -f "$hd/skills-selected.json" ]; then
 $(cat "$skill_path")
 "
     fi
-  done
+  done < <(python3 - "$hd/skills-selected.json" <<'PY'
+import json, sys
+for row in json.load(open(sys.argv[1])):
+    skill = row.get('skill', '')
+    if skill.startswith(('seeds/', 'learned/')) and '\n' not in skill:
+        print(skill)
+PY
+)
 fi
 
 cat > "$hd/hypothesis-prompt.txt" <<EOF
@@ -96,11 +103,10 @@ hypothesis -- note in "notes" that the skill had no matching surface
 instead of inventing a speculative one.
 
 BINDING JEV DECISION:
-If the JSON below is non-empty, it is the decision. Do not pick a different
-skill, vulnerability, or test method. Emit hypotheses only for "skill" /
-"vuln", using "test_method" (see test_method_note), against "focus_url"
-when focus_url is not "none". If next_action is anything other than
-select_and_test, write hypotheses.json as [] and stop.
+If next_action is anything other than select_and_test, write hypotheses.json
+as [] and stop. Prioritize the chosen "skill" / "vuln", "test_method", and
+"focus_url", then inspect the other selected skills and tool hits for
+independent concrete matches. Do not turn an endpoint name alone into a bug.
 $jev_decision_json
 
 METHOD (do this explicitly, don't skip steps):
