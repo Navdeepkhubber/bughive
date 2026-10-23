@@ -2,9 +2,9 @@
 """
 HackerOne ingestion — dual mode.
 
-Mode A (REST API, reliable):
-  Set H1_API_USERNAME and H1_API_TOKEN env vars.
-  Register a token at https://hackerone.com/settings/api_token/edit
+Mode A (Hacker API Hacktivity):
+  Set H1_API_USERNAME (your HackerOne username) and H1_API_TOKEN (your
+  personal Hacker API token). Fetches public disclosed Hacktivity items.
 
 Mode B (local dataset):
   Drop HackerOne report JSONs into ./reports/ — anything with the fields
@@ -22,7 +22,7 @@ import re
 import time
 import sys
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import requests
 
 QUEUE_DIR   = Path.home() / ".dsh" / "bounty-queue"
@@ -107,15 +107,39 @@ def queue_one(report):
     return True
 
 # ─── Mode A: REST API ───────────────────────────────────────────────────────
+def hacktivity_query(since):
+    """Hacktivity accepts Lucene dates in MM-DD-YYYY form, not API filters."""
+    if since:
+        start = datetime.fromisoformat(since.replace("Z", "+00:00"))
+    else:
+        start = datetime.now(timezone.utc) - timedelta(days=30)
+    return f"disclosed:true AND disclosed_at:>={start:%m-%d-%Y}"
+
+
+def check_api_auth():
+    """Read one public Hacktivity item without writing reports or the cursor."""
+    user = os.environ.get("H1_API_USERNAME")
+    token = os.environ.get("H1_API_TOKEN")
+    if not user or not token:
+        raise RuntimeError("Set H1_API_USERNAME and H1_API_TOKEN first")
+    response = requests.get(
+        f"{API_BASE}/hackers/hacktivity",
+        params={"queryString": "disclosed:true", "page[size]": 1},
+        auth=(user, token), headers={"Accept": "application/json"}, timeout=30,
+    )
+    if not response.ok:
+        raise RuntimeError(f"HackerOne Hacker API authentication check failed: HTTP {response.status_code}")
+    response.json()
+    print("HackerOne Hacker API authentication: OK")
+
+
 def fetch_via_api():
     user = os.environ.get("H1_API_USERNAME")
     token = os.environ.get("H1_API_TOKEN")
     if not user or not token:
         return None  # not configured
 
-    print("[fetcher] Mode A: official REST API")
-    auth = ("Basic " + __import__("base64")
-            .b64encode(f"{user}:{token}".encode()).decode())
+    print("[fetcher] Mode A: Hacker API Hacktivity")
 
     # GitHub runners are disposable. Keep the cursor with the committed report
     # corpus so the next scheduled run resumes where this one finished.
@@ -130,46 +154,58 @@ def fetch_via_api():
     written = 0
     newest = since
     page = 1
+    query = hacktivity_query(since)
     while True:
         params = {
-            "filter[severity][]": ["critical", "high", "medium"],
-            "filter[disclosed_at][gt]": since or "2020-01-01T00:00:00Z",
+            "queryString": query,
             "sort": "-disclosed_at",
             "page[size]": 100,
             "page[number]": page,
         }
         r = requests.get(
-            f"{API_BASE}/reports",
+            f"{API_BASE}/hackers/hacktivity",
             params=params,
-            headers={"Authorization": auth, "Accept": "application/json"},
+            auth=(user, token),
+            headers={"Accept": "application/json"},
             timeout=30,
         )
         if r.status_code == 429:
             print("[fetcher] 429; sleeping 70s")
             time.sleep(70)
-            r = requests.get(f"{API_BASE}/reports", params=params,
-                             headers={"Authorization": auth, "Accept": "application/json"},
+            r = requests.get(f"{API_BASE}/hackers/hacktivity", params=params,
+                             auth=(user, token), headers={"Accept": "application/json"},
                              timeout=30)
         if not r.ok:
-            raise RuntimeError(f"HackerOne API {r.status_code}: {r.text[:200]}")
+            raise RuntimeError(f"HackerOne Hacker API {r.status_code}: {r.text[:200]}")
         reports = r.json().get("data", [])
         if not reports:
             break
         for rep in reports:
             a = rep.get("attributes", {})
+            if a.get("disclosed") is not True:
+                continue
             da = a.get("disclosed_at")
+            if not da or (since and da <= since):
+                continue
             if da and (not newest or da > newest):
                 newest = da
+            if str(a.get("severity_rating", "")).lower() not in ("critical", "high", "medium"):
+                continue
+            relationships = rep.get("relationships") or {}
+            summary = ((relationships.get("report_generated_content") or {}).get("data") or {}).get("attributes") or {}
+            program = ((relationships.get("program") or {}).get("data") or {}).get("attributes") or {}
             if queue_one({
                 "h1Id": rep.get("id"),
                 "title": a.get("title"),
                 "severity": a.get("severity_rating"),
                 "disclosedAt": da,
-                "weakness": a.get("weakness"),
                 "cwe": a.get("cwe"),
-                "bountyAmount": a.get("bounty_awarded_amount"),
-                "reportUrl": f"https://hackerone.com/reports/{rep.get('id')}",
-                "vulnerabilityInformation": a.get("vulnerability_information"),
+                "cveIds": a.get("cve_ids"),
+                "teamHandle": program.get("handle"),
+                "teamName": program.get("name"),
+                "bountyAmount": a.get("total_awarded_amount"),
+                "reportUrl": a.get("url") or f"https://hackerone.com/reports/{rep.get('id')}",
+                "vulnerabilityInformation": summary.get("hacktivity_summary"),
             }):
                 written += 1
         if len(reports) < 100:
@@ -277,10 +313,10 @@ def main():
     print()
     print("No reports ingested. To fix:")
     print()
-    print("  Option A — official API token (recommended):")
+    print("  Option A — personal Hacker API token (recommended):")
     print("    1. Go to https://hackerone.com/settings/api_token/edit")
     print("    2. Create a token (label: 'dsh-pipeline')")
-    print("    3. export H1_API_USERNAME=<token identifier>")
+    print("    3. export H1_API_USERNAME=<your HackerOne username>")
     print("       export H1_API_TOKEN=<token value>")
     print("    4. Re-run: npm run fetch")
     print()
@@ -295,4 +331,7 @@ def main():
     sys.exit(1)
 
 if __name__ == "__main__":
-    main()
+    if sys.argv[1:] == ["--check-auth"]:
+        check_api_auth()
+    else:
+        main()

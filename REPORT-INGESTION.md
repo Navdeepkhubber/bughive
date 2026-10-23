@@ -1,9 +1,22 @@
 # Disclosed report ingestion
 
 `.github/workflows/fetch-reports.yml` runs weekly and can also be started with
-`workflow_dispatch`. Configure the repository secrets `H1_API_USERNAME` and
-`H1_API_TOKEN` with HackerOne API credentials. The workflow fails with a clear
+`workflow_dispatch`. Configure the repository secrets `H1_API_USERNAME` (your
+HackerOne username) and `H1_API_TOKEN` (your personal Hacker API token). The
+workflow fails with a clear
 error if either secret is missing or the API request fails.
+
+The fetcher calls the Hacker API's `GET /v1/hackers/hacktivity` endpoint for
+disclosed reports. The organization `GET /v1/reports` endpoint is a different
+API and does not provide the public Hacktivity feed. The first run looks back
+30 days; subsequent runs use the committed cursor. Hacktivity provides report
+metadata and a generated summary, not the full report body. Reports with no
+useful summary may be rejected by skill admission.
+
+To verify credentials locally without ingesting reports, set those two
+environment variables and run `python3 intelligence/fetch-h1-reports.py
+--check-auth`. It prints only whether authentication succeeded. Keep the token
+in a secret store or your shell environment; never commit it to the repository.
 
 The fetcher writes normalized disclosed reports to the runner's
 `~/.dsh/bounty-queue/`, then the workflow commits `reports/h1-<id>.json` to the
