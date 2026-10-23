@@ -414,6 +414,9 @@ async function scanPackage(rule, packageJson, fetchImpl) {
     if (!response.ok) throw new Error(`osv.dev HTTP ${response.status} for ${name}@${version}: ${text.slice(0, 200)}`);
     const data = JSON.parse(text);
     const ids = (data.vulns || []).map((vuln) => vuln.id).filter(Boolean);
+    const compact = JSON.stringify({
+      vulns: (data.vulns || []).map((vuln) => ({ id: vuln.id, summary: vuln.summary, aliases: vuln.aliases || [] })),
+    });
     if (ids.length === 0) {
       checks.push({ id: rule.id, result: "miss", detail: `${name}@${version} has no OSV advisories` });
       continue;
@@ -422,7 +425,7 @@ async function scanPackage(rule, packageJson, fetchImpl) {
     const finding = makeFinding(rule, `npm:${name}@${version}`, proof, [
       {
         request: { method: "POST", url: "https://api.osv.dev/v1/query", headers: {}, body },
-        response: { status: response.status, headers: {}, body: text.slice(0, 2000) },
+        response: { status: response.status, headers: {}, body: compact },
       },
     ], "verified");
     finding.advisories = ids;
@@ -450,18 +453,43 @@ function tlsProbe(host, port, servername) {
 }
 
 function peerCertificate(host, port, servername) {
-  const res = spawnSync(
-    "openssl",
-    ["s_client", "-connect", `${host}:${port}`, "-servername", servername || host, "-showcerts"],
-    { input: "\n", encoding: "utf8", timeout: 20000 },
-  );
-  const match = String(res.stdout || "").match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/);
-  return match ? match[0] : "";
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (value) => {
+      if (done) return;
+      done = true;
+      resolve(value);
+    };
+    const socket = tls.connect(
+      {
+        host,
+        port,
+        servername: servername || host,
+        rejectUnauthorized: false,
+        checkServerIdentity: () => undefined,
+        timeout: 8000,
+      },
+      () => {
+        const raw = socket.getPeerCertificate()?.raw;
+        socket.end();
+        if (!raw) {
+          finish({ pem: "", detail: "handshake completed without a peer certificate" });
+          return;
+        }
+        const body = raw.toString("base64").match(/.{1,64}/g).join("\n");
+        finish({ pem: `-----BEGIN CERTIFICATE-----\n${body}\n-----END CERTIFICATE-----\n`, detail: "ok" });
+      },
+    );
+    socket.on("error", (error) => finish({ pem: "", detail: error.message }));
+  });
 }
 
-function opensslRevoked({ host, port, servername, caFile, crlFile }) {
-  const pem = peerCertificate(host, port, servername);
-  if (!pem) return { completed: true, revoked: false, detail: "error: peer certificate was not presented" };
+async function opensslRevoked({ host, port, servername, caFile, crlFile }) {
+  const peer = await peerCertificate(host, port, servername);
+  if (!peer.pem) {
+    return { completed: true, revoked: false, detail: `error: peer certificate was not presented (${peer.detail})` };
+  }
+  const pem = peer.pem;
   if (!caFile || !crlFile) {
     const uri = spawnSync("openssl", ["x509", "-noout", "-ocsp_uri"], { input: pem, encoding: "utf8" });
     const ocspUri = (uri.stdout || "").trim();
@@ -678,7 +706,7 @@ export async function runScan(opts = {}) {
               if (!gate.allowed) {
                 checks.push({ id: rule.id, result: "skipped", detail: `${target.host} out of scope` });
               } else {
-                const result = opensslRevoked(target);
+                const result = await opensslRevoked(target);
                 requests += 1;
                 if (!result.completed) {
                   errors += 1;
@@ -708,7 +736,7 @@ export async function runScan(opts = {}) {
                 checks.push({ id: rule.id, result: "skipped", detail: `${name} out of scope` });
                 continue;
               }
-              const result = opensslRevoked({ host: name, port: 443, servername: name });
+              const result = await opensslRevoked({ host: name, port: 443, servername: name });
               requests += 1;
               checks.push({
                 id: rule.id,

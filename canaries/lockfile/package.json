@@ -1,0 +1,8 @@
+{
+  "name": "bughive-canary-lockfile",
+  "private": true,
+  "description": "Pinned to lodash 4.17.20 so an OSV query must return published GHSA ids. Not installed and not executed.",
+  "dependencies": {
+    "lodash": "4.17.20"
+  }
+}

@@ -20,3 +20,18 @@ Before promoting anything out of this folder:
 
 Run the harvester manually: `python3 scripts/harvest-bb-skills.py`
 (`GITHUB_TOKEN` env var optional, raises the GitHub API rate limit).
+
+## License gate
+
+Staging files keep their upstream licenses. TruffleHog and BBOT are AGPL-3.0:
+call the unmodified binaries, do not vendor them. Semgrep registry rules and
+the CodeQL CLI are not harvested. nuclei-templates is MIT, but this repo does
+not copy template text; `plugins/dsh-scan/pack.js` is an original pack in that
+shape.
+
+Promotion is a rewrite into `skills/seeds/` (see the house style above), then
+delete that staged file. Seeds must not contain the `STAGING ONLY` or
+`harvested:` markers. Classes rewritten as original seeds, not copied:
+ssti, nosql, cors, race-condition, mass-assignment, secret-detection,
+sca-advisory, tls.
+
