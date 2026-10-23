@@ -37,6 +37,7 @@ test("pinned rules confirm every planted fixture bug and none of the benign rout
       base: `http://127.0.0.1:${port}`,
       scopeText: "127.0.0.1",
       skillsDir: join(ROOT, "skills"),
+      modules: false,
     });
     assert.equal(result.ok, true, result.stats.verdict);
     assert.equal(result.stats.errors, 0, JSON.stringify(result.stats.checks.filter((item) => item.result === "error")));
@@ -55,6 +56,8 @@ test("pinned rules confirm every planted fixture bug and none of the benign rout
       assert.ok(finding.request && finding.response, finding.ruleId);
       assert.equal(finding.fingerprint.length, 64);
     }
+    const sqli = result.confirmed.find((item) => item.ruleId === "sqli-boolean-items");
+    assert.equal(sqli.extracted.row_count, 2);
     const ids = new Set(result.findings.map((item) => item.fingerprint));
     assert.equal(ids.size, result.findings.length);
     assert.equal(result.sarif.version, "2.1.0");
@@ -82,6 +85,7 @@ test("a live target with no matcher hits still writes an explained empty report"
     assert.ok(result.stats.requests > 0);
     assert.match(result.stats.verdict, /No results found/);
     assert.equal(result.sarif.runs[0].results.length, 0);
+    assert.match(result.jsonl, /"type":"MODULE"/);
     assert.match(result.jsonl, /"type":"run"/);
     const dir = await mkdtemp(join(tmpdir(), "bh-scan-"));
     await writeScanOutput(dir, result);
@@ -106,6 +110,7 @@ test("zero loaded rules is a broken pipeline, not a clean target", async () => {
   assert.match(result.stats.verdict, /PIPELINE BROKEN/);
   assert.equal(result.stats.requests, 0);
   assert.equal(result.sarif.version, "2.1.0");
+  assert.match(result.jsonl, /"type":"MODULE"/);
 });
 
 test("an out-of-scope base is refused before any request", async () => {

@@ -10,7 +10,8 @@
  *   5. Fingerprint = sha256(skill_id + asset + evidence_hash).
  *   6. Always emit SARIF 2.1.0 and JSONL, including the empty case.
  *
- * TruffleHog and BBOT are not linked. See modules.js.
+ * Nuclei, TruffleHog, and osv-scanner run as unmodified subprocesses when
+ * they are on PATH. See modules.js. Unverified output is never confirmed.
  */
 
 import { createHash } from "node:crypto";
@@ -28,7 +29,7 @@ import tls from "node:tls";
 import { scopeAllows } from "../dsh-scope-guard/index.js";
 import { decideTiming } from "../dsh-validators/index.js";
 import { PACK } from "./pack.js";
-import { moduleStatus } from "./modules.js";
+import { moduleStatus, runExternalModules } from "./modules.js";
 
 export const name = "scan";
 export const inject = ["tools"];
@@ -229,9 +230,35 @@ export function validateRule(rule, skillsDir) {
       if (!Array.isArray(rule.requests) || rule.requests.length === 0) errors.push(`${rule.id}: no requests`);
       if (!Array.isArray(rule.matchers) || rule.matchers.length === 0) errors.push(`${rule.id}: no matchers`);
       if (!rule.class || !rule.method || !rule.path) errors.push(`${rule.id}: class, method, and path are required`);
+      const ids = new Set((rule.requests || []).map((spec) => spec.id));
+      if (Array.isArray(rule.flow)) {
+        for (const id of rule.flow) {
+          if (!ids.has(id)) errors.push(`${rule.id}: flow id ${id} is not a request`);
+        }
+      }
+      for (const extractor of rule.extractors || []) {
+        if (!extractor?.type || !extractor?.name) errors.push(`${rule.id}: extractor needs type and name`);
+        else if (!["json", "regex"].includes(extractor.type)) errors.push(`${rule.id}: extractor ${extractor.name} has an unknown type`);
+        else if (extractor.type === "json" && !extractor.path) errors.push(`${rule.id}: extractor ${extractor.name} needs a path`);
+        else if (extractor.type === "regex" && !extractor.regex) errors.push(`${rule.id}: extractor ${extractor.name} needs a regex`);
+        else if (extractor.request && !ids.has(extractor.request)) errors.push(`${rule.id}: extractor ${extractor.name} request is not defined`);
+      }
     } else if (!rule.class) errors.push(`${rule.id}: class is required`);
   }
   return errors;
+}
+
+export function validatePack(pack, skillsDir) {
+  const rules = Array.isArray(pack?.rules) ? pack.rules : [];
+  const errors = rules.flatMap((rule) => validateRule(rule, skillsDir));
+  const rulesLoaded = rules.length > 0 && errors.length === 0 ? rules.length : 0;
+  return {
+    ok: rulesLoaded > 0,
+    name: pack?.name || "",
+    version: pack?.version || "",
+    rulesLoaded,
+    errors,
+  };
 }
 
 function packHash(pack) {
@@ -244,11 +271,26 @@ function isTlsVerifyError(error) {
 }
 
 function buildSarif(pack, hash, findings, stats) {
-  const rules = (pack.rules || []).map((rule) => ({
-    id: rule.id,
-    shortDescription: { text: rule.id },
-    properties: { tags: [rule.class || rule.type || "http"], severity: rule.severity },
-  }));
+  const seen = new Set();
+  const rules = [];
+  for (const rule of pack.rules || []) {
+    if (seen.has(rule.id)) continue;
+    seen.add(rule.id);
+    rules.push({
+      id: rule.id,
+      shortDescription: { text: rule.id },
+      properties: { tags: [rule.class || rule.type || "http"], severity: rule.severity },
+    });
+  }
+  for (const finding of findings) {
+    if (seen.has(finding.ruleId)) continue;
+    seen.add(finding.ruleId);
+    rules.push({
+      id: finding.ruleId,
+      shortDescription: { text: finding.ruleId },
+      properties: { tags: [finding.class || "module"], severity: finding.severity, source: finding.module || finding.skill },
+    });
+  }
   return {
     $schema: "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
     version: "2.1.0",
@@ -302,13 +344,13 @@ function buildSarif(pack, hash, findings, stats) {
   };
 }
 
-function makeFinding(rule, asset, proof, exchanges, status) {
+function makeFinding(rule, asset, proof, exchanges, status, extra = {}) {
   const hash = evidenceHash(proof);
   const id = fingerprint(rule.skill, asset, hash);
   const saved = (exchanges || []).filter((item) => item?.request && item?.response);
   let finalStatus = status;
   if (finalStatus === "verified" && saved.length === 0) finalStatus = "unverified";
-  return {
+  const finding = {
     type: finalStatus === "verified" ? "VULNERABILITY" : "FINDING",
     status: finalStatus,
     ruleId: rule.id,
@@ -326,6 +368,57 @@ function makeFinding(rule, asset, proof, exchanges, status) {
     response: saved[0]?.response || null,
     exchanges: saved.slice(0, 4),
   };
+  if (extra.module) finding.module = extra.module;
+  if (extra.extracted && Object.keys(extra.extracted).length) finding.extracted = extra.extracted;
+  return finding;
+}
+
+function orderedRequests(rule) {
+  if (!Array.isArray(rule.flow) || rule.flow.length === 0) return rule.requests;
+  const byId = new Map(rule.requests.map((spec) => [spec.id, spec]));
+  return rule.flow.map((id) => byId.get(id)).filter(Boolean);
+}
+
+function applyExtractors(rule, responses) {
+  const extracted = {};
+  for (const extractor of rule.extractors || []) {
+    try {
+      const res = one(responses[extractor.request]);
+      if (!res) continue;
+      let value;
+      if (extractor.type === "json") value = getPath(asJson(res.body), extractor.path);
+      else if (extractor.type === "regex") {
+        const match = new RegExp(extractor.regex).exec(String(res.body));
+        value = match ? (match[1] ?? match[0]) : undefined;
+      }
+      if (value == null) continue;
+      extracted[extractor.name] = typeof value === "string" ? redactText(value) : value;
+    } catch {
+      // An extractor never turns a matcher hit into a miss.
+    }
+  }
+  return extracted;
+}
+
+function adoptRecord(record) {
+  const finding = makeFinding(
+    {
+      id: record.ruleId,
+      skill: record.skill,
+      class: record.class,
+      severity: record.severity,
+      method: record.method || null,
+      path: record.path || null,
+    },
+    record.asset,
+    record.proof,
+    record.exchanges,
+    record.status,
+    { extracted: record.extracted, module: record.module },
+  );
+  if (record.advisories) finding.advisories = record.advisories;
+  if (record.line) finding.line = record.line;
+  return finding;
 }
 
 async function listenOob() {
@@ -515,11 +608,13 @@ export async function runScan(opts = {}) {
   const pack = opts.pack || PACK;
   const rules = opts.rules ?? pack.rules ?? [];
   const hash = packHash({ name: pack.name, version: pack.version, rules });
-  const modules = moduleStatus();
+  const whichImpl = opts.whichImpl;
+  const modules = moduleStatus(whichImpl);
   const checks = [];
   const findings = [];
   let requests = 0;
   let errors = 0;
+  let moduleRuns = {};
 
   const invalid = rules.flatMap((rule) => validateRule(rule, skillsDir));
   const statsBase = () => ({
@@ -531,6 +626,7 @@ export async function runScan(opts = {}) {
     confirmed: 0,
     unverified: 0,
     modules,
+    moduleRuns,
     checks,
   });
 
@@ -596,6 +692,27 @@ export async function runScan(opts = {}) {
       }
     }
 
+    if (opts.modules === false) {
+      moduleRuns = Object.fromEntries(["nuclei", "trufflehog", "osv-scanner", "bbot"].map((name) => [
+        name,
+        { status: "skipped", findings: 0, error: null, detail: "external modules disabled for this run" },
+      ]));
+    } else {
+      const external = runExternalModules({
+        base,
+        scopeText: opts.scopeText || "",
+        allowActive: active,
+        paths: opts.paths || [],
+        packageJson: opts.packageJson || "",
+        spawnImpl: opts.spawnImpl,
+        whichImpl,
+      });
+      moduleRuns = external.moduleRuns;
+      errors += external.errors;
+      requests += external.requests;
+      findings.push(...external.records.map(adoptRecord));
+    }
+
     const ordered = [...rules].sort((a, b) => (a.order || 50) - (b.order || 50));
     for (const rule of ordered) {
       const type = rule.type || "http";
@@ -616,7 +733,7 @@ export async function runScan(opts = {}) {
           const responses = {};
           const exchanges = [];
           let stopped = false;
-          for (const spec of rule.requests) {
+          for (const spec of orderedRequests(rule)) {
             const count = spec.repeat || spec.samples || 1;
             const batch = [];
             if (spec.repeat) {
@@ -647,7 +764,7 @@ export async function runScan(opts = {}) {
           }
           const asset = new URL(rule.path, base).toString();
           const proof = `${rule.id} matched on ${asset} with saved request/response.`;
-          findings.push(makeFinding(rule, asset, proof, exchanges, "verified"));
+          findings.push(makeFinding(rule, asset, proof, exchanges, "verified", { extracted: applyExtractors(rule, responses) }));
           checks.push({ id: rule.id, result: "verified", detail: proof });
         } else if (type === "secret") {
           if (!opts.paths?.length) {
@@ -660,6 +777,10 @@ export async function runScan(opts = {}) {
         } else if (type === "sca") {
           if (!opts.packageJson) {
             checks.push({ id: rule.id, result: "skipped", detail: "no package manifest was passed" });
+            continue;
+          }
+          if (moduleRuns["osv-scanner"]?.status === "ran") {
+            checks.push({ id: rule.id, result: "skipped", detail: "osv-scanner subprocess already reported this manifest" });
             continue;
           }
           const scanned = await scanPackage(rule, opts.packageJson, opts.fetchImpl || globalThis.fetch);
@@ -794,9 +915,27 @@ export async function runScan(opts = {}) {
   return finish(stats, deduped, buildSarif(pack, hash, deduped, stats));
 }
 
+function moduleEvents(stats) {
+  const runs = stats.moduleRuns || {};
+  const mods = stats.modules || {};
+  return ["nuclei", "trufflehog", "osv-scanner", "bbot"].map((module) => {
+    const run = runs[module];
+    const status = run?.status || (mods[module] === "present" ? "skipped" : "not-installed");
+    return {
+      type: "MODULE",
+      module,
+      status,
+      findings: run?.findings || 0,
+      error: run?.error || null,
+      detail: run?.detail || null,
+    };
+  });
+}
+
 function finish(stats, findings, sarif) {
   const confirmed = findings.filter((item) => item.status === "verified");
   const lines = [
+    ...moduleEvents(stats).map((item) => JSON.stringify(item)),
     ...findings.map((item) => JSON.stringify({ type: item.type, status: item.status, ruleId: item.ruleId, skill: item.skill, asset: item.asset, fingerprint: item.fingerprint, severity: item.severity, proof: item.proof })),
     JSON.stringify({ type: "run", stats: { ...stats, checks: undefined }, verdict: stats.verdict }),
   ];

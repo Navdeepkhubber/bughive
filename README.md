@@ -19,7 +19,10 @@ Directly:
 
 ```bash
 node plugins/dsh-scan/cli.mjs --base http://127.0.0.1:8099 --scope-text 127.0.0.1 --out hunts/127.0.0.1
+node plugins/dsh-scan/cli.mjs --validate
 ```
+
+`--validate` loads the pinned pack and exits `2` when zero rules load or a rule is invalid. It does not send requests.
 
 Exit `2` means the pipeline did not scan (no rules, no live target, out of scope, invalid pack). Exit `1` means a check threw. Exit `0` means the scan finished, including a real "no results" run.
 
@@ -40,18 +43,18 @@ Written under the `--out` directory (the hunt directory for `run.sh scan`):
 | File | What it is |
 |---|---|
 | `findings.sarif` | SARIF 2.1.0. `results` is `[]` when nothing matched. The invocation still records rules, requests, and errors. |
-| `findings.jsonl` | One object per finding, then a final `{"type":"run","stats":...}` line. Present even when there are no findings. |
+| `findings.jsonl` | One `MODULE` event per external tool, then one object per finding, then a final `{"type":"run","stats":...}` line. Present even when there are no findings. |
 | `validated.json` | Confirmed findings only (`status: verified`). |
 | `findings.json` | Confirmed and unverified together. |
 | `scan-summary.json` | Verdict plus every check: `verified`, `miss`, `skipped`, `unverified`, or `error`. |
 
 `status` is `verified`, `unverified`, or `verification_skipped`. Unverified rows stay out of `validated.json`. A verified row has a saved request and response (or the verifier's own output). The fingerprint is `sha256(skill_id + asset + evidence_hash)`.
 
-`scan-summary.json` → `stats.modules` says `not-installed` when Nuclei, TruffleHog, osv-scanner, or BBOT are absent. That module did not run. The in-repo rules still did.
+`scan-summary.json` → `stats.modules` says `not-installed` when Nuclei, TruffleHog, osv-scanner, or BBOT are absent. That is a skipped module, not a clean result for it. When the binary is on PATH it is executed, and the JSONL `MODULE` line says `ran`, `error`, or `skipped`. Nuclei runs only against loopback, or anywhere in scope when `--active 1` or `BUGHIVE_ACTIVE_PROOF=1` is set. A non-zero exit with empty output is a module error. osv-scanner replaces the api.osv.dev query when it exits successfully; if it is missing or errors, the API query still runs. BBOT is reported and not started.
 
 ## Rules and canaries
 
-Rules live in `plugins/dsh-scan/pack.js` (`bughive-rules` 1.0.0). They use the Nuclei shape — id, severity, requests, matchers — and are original. Loading zero rules fails the run.
+Rules live in `plugins/dsh-scan/pack.js` (`bughive-rules` 1.1.0). They use the Nuclei shape — id, severity, requests, matchers, extractors, flow — and are original. `flow` is the request order. Extractors are recorded on a hit and cannot by themselves confirm one. Loading zero rules fails the run.
 
 ```bash
 node --test tests/scan.test.mjs tests/canaries.test.mjs
@@ -71,13 +74,13 @@ The canaries that must hit:
 
 | Source | Used |
 |---|---|
-| Nuclei | Matcher shape, negative checks, "0 templates / 0 targets is a bug", stats on every run, SARIF. |
-| TruffleHog | `verified` / `unverified` / `verification_skipped`. Unverified is never confirmed. |
-| BBOT | `FINDING` vs `VULNERABILITY`, fingerprint, module list. Missing binaries are named. |
-| OSV-Scanner | Version-to-advisory query. The binary is used when installed; otherwise the same public OSV API. |
+| Nuclei | Matcher shape, `flow` and extractors, a `--validate` step, and the unmodified `nuclei -jsonl` CLI when it is installed. No template pack is copied in. |
+| TruffleHog | `verified` / `unverified` / `verification_skipped`, via the unmodified `trufflehog filesystem --json` CLI. Unverified is never confirmed. The raw secret is not stored. |
+| BBOT | Typed `MODULE` / `FINDING` / `VULNERABILITY` events. Nuclei, TruffleHog, and osv-scanner are subprocess modules. BBOT itself is not started. |
+| OSV-Scanner | Unmodified `osv-scanner scan source --lockfile … --format json` when installed. Otherwise the public OSV API. Advisory bodies stored are id, summary, and aliases only. |
 | Gitleaks | Example-key allowlist and a report that still exists when empty. |
 | Strix / pentest-harness | A finding without a saved exchange is not confirmed. The run log is written even when the result is empty, so a step cannot vanish. No agent or UI code was copied. |
 
-Nuclei, TruffleHog, osv-scanner, and BBOT are optional unmodified subprocesses (`plugins/dsh-scan/modules.js`). TruffleHog and BBOT are AGPL-3.0 and are not vendored. Semgrep registry rules and the CodeQL CLI are not included. Staged files under `skills/staging/` stay there until they are rewritten; the new seeds are original and do not contain harvest text.
+Nuclei, TruffleHog, and osv-scanner are optional unmodified subprocesses (`plugins/dsh-scan/modules.js`). TruffleHog and BBOT are AGPL-3.0 and are not vendored or wrapped as a service. Semgrep registry rules and the CodeQL CLI are not included. Staged files under `skills/staging/` stay there until they are rewritten; the new seeds are original and do not contain harvest text.
 
 HackerOne API tokens and `TYPESAFE_API_KEY` are read from the environment. Do not commit them.

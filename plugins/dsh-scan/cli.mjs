@@ -10,7 +10,17 @@
  *         the stats line shows rules, requests, and a live target.
  */
 import { readFile } from "node:fs/promises";
-import { runScan, writeScanOutput } from "./index.js";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { PACK } from "./pack.js";
+import { runScan, validatePack, writeScanOutput } from "./index.js";
+
+if (process.argv.includes("--validate")) {
+  const skillsDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "skills");
+  const result = validatePack(PACK, skillsDir);
+  process.stdout.write(`${JSON.stringify({ ok: result.ok, name: result.name, version: result.version, rulesLoaded: result.rulesLoaded, errors: result.errors })}\n`);
+  process.exit(result.ok ? 0 : 2);
+}
 
 function arg(name) {
   const index = process.argv.indexOf(name);
@@ -34,7 +44,7 @@ const base = arg("--base");
 const out = arg("--out");
 
 if (!base && paths.length === 0 && !packageJson && tlsHosts.length === 0) {
-  process.stderr.write("usage: cli.mjs --base URL --scope-text HOSTS [--out DIR] [--path FILE] [--package-json FILE] [--tls-host HOST]\n");
+  process.stderr.write("usage: cli.mjs --base URL --scope-text HOSTS [--out DIR] [--path FILE] [--package-json FILE] [--tls-host HOST]\n       cli.mjs --validate\n");
   process.exit(2);
 }
 

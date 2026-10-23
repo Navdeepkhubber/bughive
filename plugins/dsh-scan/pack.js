@@ -1,7 +1,7 @@
 /**
- * bughive-rules 1.0.0 — original matchers in the Nuclei shape
- * {id, severity, requests, matchers}. Nothing here is copied from
- * nuclei-templates, semgrep-rules, or CodeQL queries.
+ * bughive-rules 1.1.0 — original matchers in the Nuclei shape
+ * {id, severity, requests, matchers, extractors, flow}. Nothing here is
+ * copied from nuclei-templates, semgrep-rules, or CodeQL queries.
  *
  * A rule confirms only when every matcher holds on a saved response
  * and the negative/baseline matcher does not. State-changing rules
@@ -10,7 +10,7 @@
  */
 export const PACK = {
   name: "bughive-rules",
-  version: "1.0.0",
+  version: "1.1.0",
   rules: [
     {
       id: "idor-read-object",
@@ -79,6 +79,10 @@ export const PACK = {
         { id: "base", method: "GET", path: "/api/items", query: { id: "1" }, stopIfStatus: 404 },
         { id: "yes", method: "GET", path: "/api/items", query: { id: "1' OR 1=1--" } },
         { id: "no", method: "GET", path: "/api/items", query: { id: "1' OR 1=2--" } },
+      ],
+      flow: ["base", "yes", "no"],
+      extractors: [
+        { type: "json", name: "row_count", request: "yes", path: "items.length" },
       ],
       matchers: [
         { type: "json", request: "yes", path: "items.length", compare: "gt", other: "base", otherPath: "items.length" },
