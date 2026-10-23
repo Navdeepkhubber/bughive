@@ -20,6 +20,7 @@
 import { readFile, writeFile, readdir, mkdir, copyFile, appendFile } from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { homedir } from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 // Critical vuln classes come from the coverage plugin so hunt policy and the
@@ -210,24 +211,36 @@ async function fileExists(path) {
 
 export async function loadSkills() {
   const skills = [];
-  for (const sub of ["seeds", "learned"]) {
+  const dshLearned = join(process.env.BUGHIVE_DSH_DIR || join(homedir(), ".dsh"), "skills", "learned");
+  const sources = [
+    { sub: "seeds", dir: join(SKILLS, "seeds") },
+    { sub: "learned", dir: join(SKILLS, "learned") },
+    { sub: "learned", dir: dshLearned, admittedOnly: true },
+  ];
+  const seen = new Set();
+  for (const { sub, dir, admittedOnly } of sources) {
     let names = [];
     try {
-      names = await readdir(join(SKILLS, sub));
+      names = await readdir(dir);
     } catch {
       continue;
     }
     for (const name of names) {
       if (!name.endsWith(".md") || name === "bughunter.md") continue;
+      if (admittedOnly && !/^h1-.*\.md$/.test(name)) continue;
       const id = `${sub}/${name.replace(/\.md$/, "")}`;
-      const body = await readFile(join(SKILLS, sub, name), "utf8");
+      if (seen.has(id)) continue;
+      const path = join(dir, name);
+      const body = await readFile(path, "utf8");
+      if (admittedOnly && !/^admitted:/m.test(body)) continue;
       const lines = body
         .split("\n")
         .map((l) => l.trim())
         .filter(Boolean)
         .filter((l) => !l.startsWith("```"));
       const blurb = lines.slice(0, 6).join(" ").replace(/\s+/g, " ").slice(0, 160);
-      skills.push({ id, key: id.replaceAll("/", "__"), blurb });
+      skills.push({ id, key: id.replaceAll("/", "__"), blurb, path });
+      seen.add(id);
     }
   }
   return skills;
@@ -1050,7 +1063,7 @@ export async function decide(domain, { fetchImpl } = {}) {
       const built = confirmQuestions(top, snap);
       const skillBodies = [];
       for (const s of top) {
-        const body = await readFile(join(SKILLS, `${s.id}.md`), "utf8");
+        const body = await readFile(s.path || join(SKILLS, `${s.id}.md`), "utf8");
         skillBodies.push(`--- ${s.id} ---\n${body.slice(0, 3500)}`);
       }
       confirm = await jevCall(

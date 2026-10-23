@@ -1,5 +1,6 @@
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
+import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 
 export const name = "skill-admission";
@@ -39,22 +40,36 @@ function countTokensApprox(src) {
 }
 
 export function apply(ctx, config = {}) {
-  const cfg = { skillsRoot: join(PIPELINE_ROOT, "skills"), ...config };
+  const cfg = {
+    skillsRoot: join(PIPELINE_ROOT, "skills"),
+    externalLearnedDir: join(process.env.BUGHIVE_DSH_DIR || join(homedir(), ".dsh"), "skills", "learned"),
+    ...config,
+  };
 
   async function loadAllSkills() {
     const out = [];
-    for (const sub of ["seeds", "learned"]) {
+    const seen = new Set();
+    for (const { sub, dir, admittedOnly } of [
+      { sub: "seeds", dir: join(cfg.skillsRoot, "seeds") },
+      { sub: "learned", dir: join(cfg.skillsRoot, "learned") },
+      { sub: "learned", dir: cfg.externalLearnedDir, admittedOnly: true },
+    ]) {
       let entries;
       try {
-        entries = await readdir(join(cfg.skillsRoot, sub));
+        entries = await readdir(dir);
       } catch {
         continue;
       }
       for (const f of entries) {
         if (!f.endsWith(".md")) continue;
+        if (admittedOnly && !/^h1-.*\.md$/.test(f)) continue;
+        const id = `${sub}/${f}`;
+        if (seen.has(id)) continue;
         try {
-          const body = await readFile(join(cfg.skillsRoot, sub, f), "utf-8");
+          const body = await readFile(join(dir, f), "utf-8");
+          if (admittedOnly && !/^admitted:/m.test(body)) continue;
           out.push({ sub, file: f, body });
+          seen.add(id);
         } catch {}
       }
     }

@@ -22,13 +22,23 @@ jobs:
       - name: Install deps
         run: pip install -r intelligence/requirements.txt
       - name: Fetch new reports
-        run: python intelligence/fetch-h1-reports.py
+        env:
+          H1_API_USERNAME: ${{ secrets.H1_API_USERNAME }}
+          H1_API_TOKEN: ${{ secrets.H1_API_TOKEN }}
+        run: |
+          if [ -z "$H1_API_USERNAME" ] || [ -z "$H1_API_TOKEN" ]; then
+            echo '::error::Set H1_API_USERNAME and H1_API_TOKEN repository secrets to fetch disclosed reports.'
+            exit 1
+          fi
+          python intelligence/fetch-h1-reports.py
       - name: Commit queue to repo
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           mkdir -p reports
           cp -n ~/.dsh/bounty-queue/h1-*.json reports/ 2>/dev/null || true
-          git add reports/ || true
-          git diff --staged --quiet || git commit -m "Auto-update: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push || true
+          git add -A reports/
+          if ! git diff --staged --quiet; then
+            git commit -m "Auto-update disclosed reports: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          fi

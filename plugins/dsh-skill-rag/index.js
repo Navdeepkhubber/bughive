@@ -25,7 +25,7 @@ import { join, extname, basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { tmpdir, homedir } from "node:os";
 
 export const name = "skill-rag";
 export const inject = ["tools"];
@@ -213,9 +213,10 @@ export async function embed(texts, cfg) {
   return out.some((v) => v === null) ? null : out;
 }
 
-async function loadDocs(root) {
+async function loadDocs(root, externalLearnedDir) {
   const docs = [];
-  async function walk(dir, tier) {
+  const seen = new Set();
+  async function walk(dir, tier, admittedOnly = false) {
     let entries;
     try {
       entries = await readdir(dir, { withFileTypes: true });
@@ -224,12 +225,18 @@ async function loadDocs(root) {
     }
     for (const e of entries) {
       const p = join(dir, e.name);
-      if (e.isDirectory()) await walk(p, tier);
+      if (e.isDirectory()) await walk(p, tier, admittedOnly);
       else if (extname(e.name).toLowerCase() === ".md" && e.name !== "README.md" && e.name !== "_schema.md") {
+        if (admittedOnly && !/^h1-.*\.md$/.test(e.name)) continue;
         try {
           const st = await stat(p);
           if (st.size > 400_000) continue;
-          docs.push({ id: `${tier}/${basename(e.name, ".md")}`, path: p, text: await readFile(p, "utf8") });
+          const id = `${tier}/${basename(e.name, ".md")}`;
+          if (seen.has(id)) continue;
+          const text = await readFile(p, "utf8");
+          if (admittedOnly && !/^admitted:/m.test(text)) continue;
+          docs.push({ id, path: p, text });
+          seen.add(id);
         } catch {
           /* skip unreadable */
         }
@@ -238,17 +245,23 @@ async function loadDocs(root) {
   }
   await walk(join(root, "seeds"), "seeds");
   await walk(join(root, "learned"), "learned");
+  if (externalLearnedDir) await walk(externalLearnedDir, "learned", true);
   return docs;
 }
 
 export function apply(ctx, config = {}) {
-  const cfg = { skillsRoot: join(REPO, "skills"), useEmbeddings: true, ...config };
+  const cfg = {
+    skillsRoot: join(REPO, "skills"),
+    externalLearnedDir: join(process.env.BUGHIVE_DSH_DIR || join(homedir(), ".dsh"), "skills", "learned"),
+    useEmbeddings: true,
+    ...config,
+  };
   let index = null;
   let docs = null;
 
   async function ensureIndex() {
     if (index) return index;
-    docs = await loadDocs(cfg.skillsRoot);
+    docs = await loadDocs(cfg.skillsRoot, cfg.externalLearnedDir);
     index = buildIndex(docs);
     return index;
   }

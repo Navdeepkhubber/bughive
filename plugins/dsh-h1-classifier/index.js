@@ -14,10 +14,11 @@ function expandHome(p) {
 }
 
 export function apply(ctx, config = {}) {
+  const dshDir = process.env.BUGHIVE_DSH_DIR || join(homedir(), ".dsh");
   const cfg = {
-    queueDir: join(homedir(), ".dsh", "bounty-queue"),
-    archiveDir: join(homedir(), ".dsh", "bounty-archive"),
-    skillsDir: join(homedir(), ".dsh", "skills", "learned"),
+    queueDir: join(dshDir, "bounty-queue"),
+    archiveDir: join(dshDir, "bounty-archive"),
+    skillsDir: join(dshDir, "skills", "learned"),
     pollIntervalMs: 60000,
     maxTokens: 8000,
     agentPreset: "standard",

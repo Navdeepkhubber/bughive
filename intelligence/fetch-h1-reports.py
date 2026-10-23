@@ -117,7 +117,9 @@ def fetch_via_api():
     auth = ("Basic " + __import__("base64")
             .b64encode(f"{user}:{token}".encode()).decode())
 
-    state_file = QUEUE_DIR / ".last-fetch.json"
+    # GitHub runners are disposable. Keep the cursor with the committed report
+    # corpus so the next scheduled run resumes where this one finished.
+    state_file = LOCAL_DIR / ".last-fetch.json"
     since = None
     if state_file.exists():
         try:
@@ -127,7 +129,8 @@ def fetch_via_api():
 
     written = 0
     newest = since
-    for page in range(1, 11):
+    page = 1
+    while True:
         params = {
             "filter[severity][]": ["critical", "high", "medium"],
             "filter[disclosed_at][gt]": since or "2020-01-01T00:00:00Z",
@@ -148,8 +151,7 @@ def fetch_via_api():
                              headers={"Authorization": auth, "Accept": "application/json"},
                              timeout=30)
         if not r.ok:
-            print(f"[fetcher] API {r.status_code}: {r.text[:200]}")
-            break
+            raise RuntimeError(f"HackerOne API {r.status_code}: {r.text[:200]}")
         reports = r.json().get("data", [])
         if not reports:
             break
@@ -158,7 +160,7 @@ def fetch_via_api():
             da = a.get("disclosed_at")
             if da and (not newest or da > newest):
                 newest = da
-            queue_one({
+            if queue_one({
                 "h1Id": rep.get("id"),
                 "title": a.get("title"),
                 "severity": a.get("severity_rating"),
@@ -168,13 +170,14 @@ def fetch_via_api():
                 "bountyAmount": a.get("bounty_awarded_amount"),
                 "reportUrl": f"https://hackerone.com/reports/{rep.get('id')}",
                 "vulnerabilityInformation": a.get("vulnerability_information"),
-            })
-            written += 1
+            }):
+                written += 1
         if len(reports) < 100:
             break
+        page += 1
 
     if newest:
-        QUEUE_DIR.mkdir(parents=True, exist_ok=True)
+        LOCAL_DIR.mkdir(parents=True, exist_ok=True)
         state_file.write_text(json.dumps({"lastDisclosedAt": newest}, indent=2))
     print(f"[fetcher] API done — {written} queued")
     return written

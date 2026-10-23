@@ -4,6 +4,7 @@ source "$(dirname "$0")/_common.sh"
 
 domain="$1"
 hd="$(hunt_dir "$domain")"
+dsh_learned="${BUGHIVE_DSH_DIR:-$HOME/.dsh}/skills/learned"
 
 # --- Fix: prioritized, per-phase-budgeted recon assembly -------------------
 # The old version concatenated summary.json in phase order (01..10) and cut
@@ -74,6 +75,10 @@ if [ -f "$hd/skills-selected.json" ]; then
   while IFS= read -r skill_id; do
     skill_path="$(dirname "$0")/../../skills/${skill_id}.md"
     [ -f "$skill_path" ] || skill_path="$(dirname "$0")/../../skills/${skill_id}"
+    if [ ! -f "$skill_path" ] && [[ "$skill_id" == learned/* ]]; then
+      skill_path="$dsh_learned/${skill_id#learned/}.md"
+      grep -q '^admitted:' "$skill_path" 2>/dev/null || continue
+    fi
     if [ -f "$skill_path" ]; then
       skills_dump="${skills_dump}
 --- $skill_id ---
@@ -81,10 +86,10 @@ $(cat "$skill_path")
 "
     fi
   done < <(python3 - "$hd/skills-selected.json" <<'PY'
-import json, sys
+import json, re, sys
 for row in json.load(open(sys.argv[1])):
     skill = row.get('skill', '')
-    if skill.startswith(('seeds/', 'learned/')) and '\n' not in skill:
+    if isinstance(skill, str) and re.fullmatch(r'(seeds|learned)/[A-Za-z0-9._ -]+', skill) and '..' not in skill:
         print(skill)
 PY
 )

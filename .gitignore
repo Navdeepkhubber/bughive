@@ -6,6 +6,8 @@ hunts/
 recon/output/
 observability/events.jsonl
 memory/facts.db
-reports/
+reports/*
+!reports/h1-*.json
+!reports/.last-fetch.json
 __pycache__/
 *.pyc

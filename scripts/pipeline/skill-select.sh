@@ -12,6 +12,11 @@ source "$(dirname "$0")/_common.sh"
 domain="$1"
 hd="$(hunt_dir "$domain")"
 skills_root="$(dirname "$0")/../../skills"
+dsh_learned="${BUGHIVE_DSH_DIR:-$HOME/.dsh}/skills/learned"
+# The GitHub workflow commits raw reports; the DSH classifier consumes a local
+# queue and admits generated skills. Queue new reports before scoring, then
+# include any skills the classifier has already admitted.
+python3 "$WS_ROOT/intelligence/sync-report-queue.py" >&2
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
@@ -40,8 +45,12 @@ ALWAYS_INCLUDE=(business-logic account-takeover)
 results="$work/results.txt"
 : > "$results"
 
-for skill_file in "$skills_root"/seeds/*.md "$skills_root"/learned/*.md; do
+for skill_file in "$skills_root"/seeds/*.md "$skills_root"/learned/*.md "$dsh_learned"/h1-*.md; do
   [ -f "$skill_file" ] || continue
+  if [ "$(dirname "$skill_file")" = "$dsh_learned" ]; then
+    [ ! -f "$skills_root/learned/$(basename "$skill_file")" ] || continue
+    grep -q '^admitted:' "$skill_file" || continue
+  fi
   base_id="$(basename "$skill_file" .md)"
   [ "$base_id" = "bughunter" ] && continue   # master skill, always loaded, not scored
   case "$skill_file" in
