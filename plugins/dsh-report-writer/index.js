@@ -1,3 +1,5 @@
+import { demoteToLead, reportEmissionDecision } from "../dsh-triage-gate/index.js";
+
 export const name = "report-writer";
 export const inject = ["tools", "subagents"];
 
@@ -59,6 +61,18 @@ export function apply(ctx, config = {}) {
       // network condition -- the registry surfaces it as an isError result.
       const finding = JSON.parse(args.finding);
       const chain = args.chain ? JSON.parse(args.chain) : null;
+      const emission = reportEmissionDecision(finding, chain);
+      if (!emission.emit) {
+        return JSON.stringify({
+          emitted: false,
+          kept: true,
+          disposition: "lead",
+          tag: emission.tag || null,
+          reason: emission.reason,
+          chain_hypotheses: emission.chain_hypotheses || [],
+          finding: demoteToLead(finding, emission.reason, emission.partners || []),
+        });
+      }
 
       const prompt =
         `Write a HackerOne report. Sections: Title, Severity, Summary, Steps to Reproduce, Impact, Remediation, Evidence.\n` +

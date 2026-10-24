@@ -25,6 +25,8 @@
  * treated as NOT validated, matching the existing pipeline convention.
  */
 
+import { createHash } from "node:crypto";
+
 export const name = "validators";
 export const inject = ["tools"];
 
@@ -55,6 +57,164 @@ export function summarizeSamples(samples) {
   };
 }
 
+function mean(xs) {
+  if (!xs.length) return 0;
+  return xs.reduce((a, b) => a + b, 0) / xs.length;
+}
+
+function sampleStd(xs) {
+  if (xs.length < 2) return 0;
+  const m = mean(xs);
+  return Math.sqrt(xs.reduce((a, x) => a + (x - m) ** 2, 0) / (xs.length - 1));
+}
+
+/**
+ * Timing claims need n>=10 and a probe mean at least two sample standard
+ * deviations above the control. Fewer samples can still show a median delay
+ * (`decideTiming`); they do not meet this bar.
+ */
+export function timingDiscipline(baseline, probe) {
+  const b = (baseline || []).map((s) => s.ms);
+  const p = (probe || []).map((s) => s.ms);
+  const n = Math.min(b.length, p.length);
+  const control = mean(b);
+  const probeMean = mean(p);
+  const sigma = sampleStd(b);
+  const meanDelta = probeMean - control;
+  return {
+    n,
+    control_mean: control,
+    probe_mean: probeMean,
+    control_stddev: sigma,
+    mean_delta: meanDelta,
+    disciplined: n >= 10 && meanDelta >= 2 * sigma,
+    rule: "n>=10; probe mean >= control mean + 2 sample standard deviations",
+  };
+}
+
+const WEAK_MARKER = /^(test|javascript|aaaa+)$/i;
+
+/** Reflection claims need a unique marker that is absent from the baseline. */
+export function assessMarker(marker, baselineBody = "", probeBody = "") {
+  const m = String(marker || "");
+  const weak = m.length < 8 || WEAK_MARKER.test(m);
+  const inBaseline = m.length > 0 && String(baselineBody).includes(m);
+  const reflected = m.length > 0 && String(probeBody).includes(m);
+  const usable = !weak && !inBaseline && reflected;
+  return { usable, weak, in_baseline: inBaseline, reflected, kept: true, disposition: usable ? "signal" : "lead" };
+}
+
+/** A bypass claim needs a body differential. A status change with the same body is not one. */
+export function assessBodyDiff(baseline, probe) {
+  const b = normalizeBody(baseline?.body);
+  const p = normalizeBody(probe?.body);
+  const bodyDiffers = b !== p;
+  const statusChanged = baseline?.status !== probe?.status;
+  return {
+    ok: bodyDiffers,
+    status_only: statusChanged && !bodyDiffers,
+    body_differs: bodyDiffers,
+    kept: true,
+    disposition: bodyDiffers ? "signal" : "lead",
+  };
+}
+
+export function evidenceRecord(fields = {}) {
+  const baseline = String(fields.baselineBody || "");
+  return {
+    evidence_id: fields.evidence_id || "OBS-001",
+    marker: fields.marker || null,
+    baseline_hash: createHash("sha256").update(baseline).digest("hex").slice(0, 16),
+    sample_stats: fields.samples ? summarizeSamples(fields.samples) : fields.sample_stats || null,
+  };
+}
+
+const BLIND_CLASS = /^(blind-sqli|time-based|blind-xss|blind-ssrf|ssrf|xxe|blind-rce|jndi|log4shell|cmdi|command-injection|rce)$/;
+
+/** Blind classes stay a lead until two independent signal modes agree. DNS-only never confirms. */
+export function assessSignals(bugClass, signals = []) {
+  const modes = [...new Set(signals.filter((s) => s && s.validated !== false && s.mode).map((s) => s.mode))];
+  const dnsOnly = modes.length > 0 && modes.every((m) => m === "dns");
+  if (dnsOnly) {
+    return { disposition: "lead", kept: true, tag: "standalone_invalid", modes, reason: "DNS-only callback is not confirmation" };
+  }
+  const countable = modes.filter((m) => m !== "dns");
+  const blind = BLIND_CLASS.test(String(bugClass || "").toLowerCase().replace(/[\s_]+/g, "-"));
+  if (countable.length === 0) return { disposition: "lead", kept: true, modes, reason: "no confirming signal" };
+  if (blind && countable.length < 2) {
+    return { disposition: "lead", kept: true, modes: countable, reason: "blind class needs two independent signals" };
+  }
+  return { disposition: "confirm", kept: true, modes: countable, reason: "signals agree" };
+}
+
+/**
+ * Per-class confirm and kill signals. A kill demotes to a lead (`kept: true`).
+ * Race confirms only when a balance or redemption count actually changes.
+ * IDOR confirms only when the body contains another user's data.
+ */
+export function assessClassMatrix(bugClass, evidence = {}) {
+  const c = String(bugClass || "").toLowerCase().replace(/[\s_]+/g, "-");
+  const signals = new Set((Array.isArray(evidence.signals) ? evidence.signals : []).map((s) => String(s).toLowerCase()));
+  const lead = (note, extra = {}) => ({
+    disposition: "lead",
+    matrix_result: "insufficient",
+    kept: true,
+    confirm_signals: [],
+    kill_signals: [],
+    matched_confirm: [],
+    matched_kill: [],
+    note,
+    ...extra,
+  });
+  const kill = (signal) => ({
+    disposition: "lead",
+    matrix_result: "kill",
+    kept: true,
+    confirm_signals: [],
+    kill_signals: [signal],
+    matched_confirm: [],
+    matched_kill: [signal],
+    note: `kill signal: ${signal}`,
+  });
+  const confirm = (signal) => ({
+    disposition: "confirm",
+    matrix_result: "confirm",
+    kept: true,
+    confirm_signals: [signal],
+    kill_signals: [],
+    matched_confirm: [signal],
+    matched_kill: [],
+    note: `confirm signal: ${signal}`,
+  });
+
+  if (c.startsWith("idor")) {
+    const body = String(evidence.probeBody || evidence.body || "");
+    const own = String(evidence.ownBody || "");
+    const marker = evidence.victimMarker ? String(evidence.victimMarker) : "";
+    const otherPii = evidence.otherUserPii === true || signals.has("other_user_pii") || (marker && body.includes(marker) && (!own || !own.includes(marker)));
+    const same = evidence.sameData === true || signals.has("same_body") || (own && body && normalizeBody(own) === normalizeBody(body));
+    const statuses = [evidence.statusA, evidence.statusB].filter((s) => s !== undefined);
+    const wall = statuses.length > 0 && statuses.every((s) => s === 401 || s === 403);
+    if (wall || signals.has("auth_wall")) return kill("auth_wall");
+    if (same || signals.has("same_body")) return kill("same_body");
+    if (evidence.ownDataOnly === true || signals.has("own_data_only")) return kill("own_data_only");
+    if (otherPii) return confirm("other_user_pii");
+    return lead("no other-user data in the body");
+  }
+  if (c.startsWith("race")) {
+    const before = Number(evidence.balanceBefore);
+    const after = Number(evidence.balanceAfter);
+    const applied = Number(evidence.appliedCount);
+    if (evidence.uniqueConstraint === true || signals.has("unique_constraint")) return kill("unique_constraint");
+    if (signals.has("all_rejected")) return kill("all_rejected");
+    if (Number.isFinite(before) && Number.isFinite(after) && before !== after) return confirm("balance_changed");
+    if (applied >= 2 || signals.has("applied_more_than_once")) return confirm("applied_more_than_once");
+    if (applied === 1 || signals.has("single_apply")) return kill("single_apply");
+    return lead("no balance change observed");
+  }
+  return lead("no matrix for this class");
+}
+
 /** Core timing decision, exported for offline testing. */
 export function decideTiming(baseline, probe, injectedMs, tolerance = 0.6) {
   const b = summarizeSamples(baseline);
@@ -64,10 +224,18 @@ export function decideTiming(baseline, probe, injectedMs, tolerance = 0.6) {
   const confirmed = delta >= needed;
   let confidence = "none";
   if (confirmed) confidence = p.min - b.max >= needed ? "high" : "medium";
+  const discipline = timingDiscipline(baseline, probe);
   return {
     validated: confirmed,
     confidence,
-    evidence: { baseline_ms: b, probe_ms: p, delta_ms: Math.round(delta), required_delta_ms: Math.round(needed) },
+    evidence: {
+      baseline_ms: b,
+      probe_ms: p,
+      delta_ms: Math.round(delta),
+      required_delta_ms: Math.round(needed),
+      sample_stats: { baseline: b, probe: p },
+    },
+    discipline,
     note: confirmed
       ? `Probe median exceeds baseline median by ${Math.round(delta)}ms, consistent with a ${injectedMs}ms injected delay.`
       : `Only ${Math.round(delta)}ms slower; below the ${Math.round(needed)}ms required. Consistent with jitter, not an injection.`,
@@ -158,14 +326,21 @@ function headersOf(spec) {
 }
 
 async function decideTimingCall(spec) {
-  const n = Number.isFinite(spec.samples) ? Math.max(2, Math.min(6, spec.samples)) : 3;
+  const n = Number.isFinite(spec.samples) ? Math.max(2, Math.min(30, spec.samples)) : 3;
   const method = (spec.method || "GET").toUpperCase();
   const headers = headersOf(spec);
   const baseline = [];
   const probe = [];
-  for (let i = 0; i < n; i += 1) baseline.push(await urlFetch(spec.baselineUrl, method, headers));
-  for (let i = 0; i < n; i += 1) probe.push(await urlFetch(spec.probeUrl, method, headers));
-  return decideTiming(baseline, probe, Number(spec.injectedMs));
+  if (n >= 10) {
+    for (let i = 0; i < n; i += 1) {
+      baseline.push(await urlFetch(spec.baselineUrl, method, headers));
+      probe.push(await urlFetch(spec.probeUrl, method, headers));
+    }
+  } else {
+    for (let i = 0; i < n; i += 1) baseline.push(await urlFetch(spec.baselineUrl, method, headers));
+    for (let i = 0; i < n; i += 1) probe.push(await urlFetch(spec.probeUrl, method, headers));
+  }
+  return { ...decideTiming(baseline, probe, Number(spec.injectedMs)), samples_per_side: n, interleaved: n >= 10 };
 }
 
 async function booleanCall(spec) {
@@ -211,6 +386,14 @@ function oobDecision(token, interactions) {
   };
 }
 
+function attachDisposition(bugClass, proof, signals) {
+  const judged = assessSignals(bugClass, proof.validated ? signals : []);
+  const usesTiming = signals.some((s) => s && s.mode === "timing" && s.validated !== false);
+  const timingOk = !usesTiming || proof.discipline?.disciplined === true;
+  const disposition = proof.validated && judged.disposition === "confirm" && timingOk ? "confirm" : "lead";
+  return { ...proof, disposition, kept: true, signal_gate: judged };
+}
+
 export function apply(ctx) {
   ctx.tools.register({
     name: "validate_timing",
@@ -230,8 +413,6 @@ export function apply(ctx) {
     },
     output: { schema: { type: "string" }, render: (_a, v) => [{ type: "text", text: v }] },
     async execute(args) {
-      const n = Number.isFinite(args.samples) ? Math.max(2, Math.min(6, args.samples)) : 3;
-      const method = (args.method || "GET").toUpperCase();
       let headers = {};
       if (args.headers) {
         try {
@@ -240,11 +421,8 @@ export function apply(ctx) {
           return JSON.stringify({ validated: false, error: "headers must be JSON" });
         }
       }
-      const baseline = [];
-      const probe = [];
-      for (let i = 0; i < n; i += 1) baseline.push(await fetchSample(args.baselineUrl, { method, headers }));
-      for (let i = 0; i < n; i += 1) probe.push(await fetchSample(args.probeUrl, { method, headers }));
-      return JSON.stringify({ ...decideTiming(baseline, probe, Number(args.injectedMs)), samples_per_side: n });
+      const res = await decideTimingCall({ ...args, headers });
+      return JSON.stringify(res);
     },
   });
 
@@ -385,11 +563,15 @@ export function apply(ctx) {
       if (/^(sqli|sql-injection|blind-sqli|time-based|cmdi|command-injection|rce)$/.test(c)) {
         if (spec.baselineUrl && spec.probeUrl && Number.isFinite(spec.injectedMs)) {
           const res = await decideTimingCall(spec);
-          return JSON.stringify({ route: "validate_timing", class: c, ...res });
+          const signals = [{ mode: "timing", validated: res.validated }];
+          if (spec.secondSignal?.mode) signals.push({ mode: spec.secondSignal.mode, validated: spec.secondSignal.validated !== false });
+          return JSON.stringify({ route: "validate_timing", class: c, ...attachDisposition(c, res, signals) });
         }
         if (spec.baselineUrl && spec.trueUrl && spec.falseUrl) {
           const res = await booleanCall(spec);
-          return JSON.stringify({ route: "validate_boolean", class: c, ...res });
+          const signals = [{ mode: "boolean", validated: res.validated }];
+          if (spec.secondSignal?.mode) signals.push({ mode: spec.secondSignal.mode, validated: spec.secondSignal.validated !== false });
+          return JSON.stringify({ route: "validate_boolean", class: c, ...attachDisposition(c, res, signals) });
         }
         return JSON.stringify({
           validated: false,
@@ -402,13 +584,25 @@ export function apply(ctx) {
           return JSON.stringify({ validated: false, class: c, error: "need {url,allowedHosts}" });
         }
         const res = await redirectCall(spec);
-        return JSON.stringify({ route: "validate_redirect", class: c, ...res });
+        return JSON.stringify({
+          route: "validate_redirect",
+          class: c,
+          ...res,
+          kept: true,
+          disposition: res.validated ? "confirm" : "lead",
+          tag: res.validated ? "needs_chain" : null,
+        });
       }
       if (/^(ssrf|xxe|blind-xss|log4shell|jndi|blind-rce)$/.test(c)) {
         if (!spec.token || spec.interactions === undefined) {
           return JSON.stringify({ validated: false, class: c, error: "need {token,interactions} from oob_wait/oob_poll" });
         }
-        return JSON.stringify({ route: "validate_oob", class: c, ...oobDecision(spec.token, spec.interactions) });
+        const proof = oobDecision(spec.token, spec.interactions);
+        const kinds = proof.evidence?.kinds || [];
+        const signals = kinds.map((k) => ({ mode: k === "dns" ? "dns" : "http-oob", validated: true }));
+        if (spec.secondSignal?.mode) signals.push({ mode: spec.secondSignal.mode, validated: spec.secondSignal.validated !== false });
+        if (!signals.length) signals.push({ mode: "oob", validated: proof.validated });
+        return JSON.stringify({ route: "validate_oob", class: c, ...attachDisposition(c, proof, signals) });
       }
       if (/^(xss|reflected-xss|stored-xss|dom-xss)$/.test(c)) {
         if (!spec.url) {
@@ -422,7 +616,15 @@ export function apply(ctx) {
           const tool = reg.get("validate_xss_browser");
           if (!tool) throw new Error("browser validator not registered");
           const out = JSON.parse(await tool.execute(spec));
-          return JSON.stringify({ route: "validate_xss_browser", class: c, ...out });
+          const marker = spec.marker ? assessMarker(spec.marker, spec.baselineBody || "", spec.probeBody || "") : null;
+          return JSON.stringify({
+            route: "validate_xss_browser",
+            class: c,
+            ...out,
+            kept: true,
+            disposition: out.executed === true ? "confirm" : "lead",
+            marker,
+          });
         } catch (e) {
           return JSON.stringify({
             validated: false,
@@ -431,6 +633,37 @@ export function apply(ctx) {
             note: "XSS cannot be confirmed without the browser validator.",
           });
         }
+      }
+
+      if (/^idor/.test(c)) {
+        const hasEvidence =
+          spec.otherUserPii !== undefined ||
+          spec.probeBody ||
+          spec.body ||
+          spec.victimMarker ||
+          spec.ownBody ||
+          spec.sameData !== undefined ||
+          spec.statusA !== undefined ||
+          spec.statusB !== undefined ||
+          (Array.isArray(spec.signals) && spec.signals.length > 0);
+        if (hasEvidence) {
+          const matrix = assessClassMatrix("idor", spec);
+          return JSON.stringify({
+            validated: matrix.matrix_result === "confirm",
+            class: c,
+            route: "idor-identity",
+            ...matrix,
+          });
+        }
+      }
+      if (/^race/.test(c)) {
+        const matrix = assessClassMatrix("race", spec);
+        return JSON.stringify({
+          validated: matrix.matrix_result === "confirm",
+          class: c,
+          route: "race-balance",
+          ...matrix,
+        });
       }
 
       // Classes that a payload string cannot prove. Saying so is the honest answer.
@@ -455,7 +688,7 @@ export function apply(ctx) {
         validated: false,
         class: c,
         error: `no validator mapped for class "${args.bugClass}"`,
-        known: ["sqli", "blind-sqli", "cmdi", "open-redirect", "ssrf", "xxe", "blind-xss", "xss", "idor", "csrf"],
+        known: ["sqli", "blind-sqli", "cmdi", "open-redirect", "ssrf", "xxe", "blind-xss", "xss", "idor", "csrf", "race"],
       });
     },
   });

@@ -26,6 +26,7 @@
 
 import { readFile, readdir, stat } from "node:fs/promises";
 import { join, extname } from "node:path";
+import { idorIdentityRecord } from "../dsh-triage-gate/index.js";
 
 export const name = "claim-audit";
 export const inject = ["tools"];
@@ -183,7 +184,42 @@ export function auditClaims(report, evidenceText) {
       }
       const related = linesByRequest.get(endpoint) || [];
       let flagged = false;
+      let handledIdentity = false;
       for (const t of techniques) {
+        if (t.name === "idor") {
+          handledIdentity = true;
+          const records = [];
+          for (const l of related) {
+            try {
+              records.push(JSON.parse(l));
+            } catch {
+              /* plain log line */
+            }
+          }
+          const judged = records.map((ev) => idorIdentityRecord(ev)).filter(Boolean);
+          const id = judged.find((r) => r.ok) || judged[0];
+          if (id?.ok) {
+            claims.push({
+              assertion: s.slice(0, 240),
+              endpoint,
+              status: "supported",
+              technique: "idor",
+              reason: "dual-session record shows another account's data (distinct digests)",
+            });
+          } else {
+            claims.push({
+              assertion: s.slice(0, 240),
+              endpoint,
+              status: "unverifiable",
+              technique: "idor",
+              classification: id?.classification || "unverifiable",
+              reason: id
+                ? `identity record is ${id.classification}; IDOR needs two sessions and another user's data`
+                : `endpoint was requested, but ${t.name} cannot be verified from payload strings (${t.unverifiable})`,
+            });
+          }
+          continue;
+        }
         if (t.markers.length === 0) {
           claims.push({
             assertion: s.slice(0, 240),
@@ -206,7 +242,7 @@ export function auditClaims(report, evidenceText) {
           });
         }
       }
-      if (!flagged) {
+      if (!flagged && !handledIdentity) {
         const positiveFinding = /\b(confirmed|vulnerable|exploitable|injectable)\b/i.test(s);
         claims.push({
           assertion: s.slice(0, 240),

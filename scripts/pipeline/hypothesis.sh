@@ -112,6 +112,9 @@ If next_action is anything other than select_and_test, write hypotheses.json
 as [] and stop. Prioritize the chosen "skill" / "vuln", "test_method", and
 "focus_url", then inspect the other selected skills and tool hits for
 independent concrete matches. Do not turn an endpoint name alone into a bug.
+If chain_hypotheses is present, emit one hypothesis per entry. Cite the
+standalone primitive and the partner it still needs. Keep the primitive;
+it stays a lead until that partner is shown.
 $jev_decision_json
 
 METHOD (do this explicitly, don't skip steps):
