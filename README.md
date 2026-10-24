@@ -2,20 +2,106 @@
 
 Bug-bounty research pipeline. It records what it tested and emits a finding only when a pinned rule matches live evidence.
 
-A run with no findings is a clean result only when the stats line shows rules loaded, a live target, and requests made. `0 rules` or `0 live targets` is a broken pipeline. `decide` still needs `TYPESAFE_API_KEY` for the planner. Confirmed findings do not.
+A run with no findings is a clean result only when the stats line shows rules loaded, a live target, and requests made. `0 rules` or `0 live targets` is a broken pipeline. `scan` and confirmed findings run with no `TYPESAFE_API_KEY`. With no key and no `BUGHIVE_PLANNER` override, `decide` uses the local heuristic planner.
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 20 or newer (`engines` in `package.json`).
+- `python3` for `fetch` and `harvest`. The local scan is Node only. `harvest` also needs `git`.
+
+### Install
+
+```bash
+npm install
+npx playwright install chromium   # optional; recon phase 11 (flow mapping)
+```
+
+`npm install` installs `playwright` and `yaml`. The fixture scan uses Node built-ins. Chromium is a separate download. Without it, recon phase 11 records `degraded: true` and skips flow execution. `postinstall` prints the same `npx` command.
+
+### Environment
+
+Every variable in `.env.example` is optional. The fixture scan below runs with none of them set.
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Required? | Used by |
+|---|---|---|
+| `H1_API_USERNAME` | Optional. Both this and `H1_API_TOKEN` must be set to call the HackerOne API. | `fetch` |
+| `H1_API_TOKEN` | Same pair. Create one at https://hackerone.com/settings/api_token/edit | `fetch` |
+| `BOUNTY_ALERT_WEBHOOK` | Optional. | Bounty-budget alert webhook (`plugins/dsh-bounty-budget/cordis.patch.yml`) |
+
+`fetch` reads `H1_API_USERNAME` and `H1_API_TOKEN` from the process environment. A copied `.env` is not loaded by `run.sh fetch`. Export them, or source the file the way the off-peak cron does:
+
+```bash
+set -a
+source .env
+set +a
+```
+
+Planner variables are optional. They are not listed in `.env.example`.
+
+- No `TYPESAFE_API_KEY` selects the local heuristic. That is the default for `decide` and `loop`.
+- `BUGHIVE_PLANNER=heuristic` keeps the local planner when a key is set. `local` and `policy` select the same mode.
+- `BUGHIVE_PLANNER=jev` selects the remote TypeSafe planner and requires `TYPESAFE_API_KEY`. `typesafe` selects the same mode.
+- With `BUGHIVE_PLANNER` unset and `TYPESAFE_API_KEY` set, `decide` uses the remote planner.
+- `decide` reads `TYPESAFE_API_KEY` from the environment. When that variable is unset, it reads a `TYPESAFE_API_KEY=` line from `.env`. It leaves every other line in that file alone.
+- `TYPESAFE_MODEL` defaults to `jev-latest`. `TYPESAFE_API_BASE` overrides the API URL.
+
+`scan` and confirmed findings ignore the planner. `BUGHIVE_ACTIVE_PROOF=1` allows state-changing proofs off loopback. Leave it unset for the fixture.
+
+### First run
+
+The fixture app is the intentionally vulnerable local stand-in. It binds `127.0.0.1` only. The default port is `8099`.
+
+```bash
+bash scripts/pipeline/run.sh init 127.0.0.1 "127.0.0.1"
+node plugins/dsh-eval/fixture-app.mjs --port 8099
+```
+
+Leave the fixture in that terminal. In another shell:
+
+```bash
+bash scripts/pipeline/run.sh scan 127.0.0.1 http://127.0.0.1:8099
+```
+
+`init` writes `hunts/127.0.0.1/scope.txt`. `scan` exits if that file is missing. Results are written under `hunts/127.0.0.1/`.
+
+### DSH host
+
+`scripts/install.sh` registers this repo's plugins into a DSH profile. This repository does not install the `dsh` binary. The script expects `dsh` already on `PATH`, then prints `Restart DSH: dsh --profile $PROFILE`.
+
+```bash
+bash scripts/install.sh
+dsh --profile web
+```
+
+`DSH_PROFILE` defaults to `web`, so plugins land in `~/.dsh/profiles/web` (`DSH_PROFILE_DIR` overrides that directory). With another profile name, start the host with `dsh --profile "$DSH_PROFILE"`.
+
+### Other entry points
+
+```bash
+bash scripts/pipeline/run.sh fetch             # disclosed HackerOne reports
+bash scripts/pipeline/run.sh fetch --dry-run   # prints a line; does not call the API
+bash scripts/pipeline/run.sh harvest           # clone skills/sources.txt into skills/staging/
+bash scripts/pipeline/run.sh harvest --dry-run
+bash scripts/pipeline/run.sh ingest-skills     # promote staging into skills/learned/ and missing seeds
+bash scripts/pipeline/run.sh ingest-skills --dry-run
+npm test                   # tests/*.test.mjs, then the fetch/harvest unittest modules
+npm run test:accuracy     # node --test tests/*.test.mjs
+npm run test:fetch        # python3 -m unittest tests/test_report_fetch.py tests/test_harvest.py
+```
+
+`npm run fetch` is the same Python script as `run.sh fetch`. Install its dependency with `pip install -r intelligence/requirements.txt` (`requests`). `--dry-run` still imports that package. Without `H1_API_USERNAME` and `H1_API_TOKEN`, API mode is skipped. `--dry-run` on `harvest` and `ingest-skills` writes nothing. A public HTTP or GraphQL error raises instead of returning zero. `fetch` exits 1 when every mode fails, and it prints those errors.
 
 ## Run a scan
 
 Scope comes from `hunts/<domain>/scope.txt`. Active checks run only against those hosts. State-changing proofs run on loopback unless `BUGHIVE_ACTIVE_PROOF=1`.
 
-```bash
-bash scripts/pipeline/run.sh init 127.0.0.1 "127.0.0.1"
-# start the local benchmark (loopback only)
-node plugins/dsh-eval/fixture-app.mjs --port 8099
-bash scripts/pipeline/run.sh scan 127.0.0.1 http://127.0.0.1:8099
-```
-
-Directly:
+The same scan, without `init`:
 
 ```bash
 node plugins/dsh-scan/cli.mjs --base http://127.0.0.1:8099 --scope-text 127.0.0.1 --out hunts/127.0.0.1
@@ -25,16 +111,6 @@ node plugins/dsh-scan/cli.mjs --validate
 `--validate` loads the pinned pack and exits `2` when zero rules load or a rule is invalid. It does not send requests.
 
 Exit `2` means the pipeline did not scan (no rules, no live target, out of scope, invalid pack). Exit `1` means a check threw. Exit `0` means the scan finished, including a real "no results" run.
-
-Other useful entry points:
-
-```bash
-npm run test:accuracy          # fixture scan, accuracy gates, report fetcher is separate
-python3 -m unittest tests/test_report_fetch.py
-npm run fetch                  # disclosed HackerOne reports; needs H1_API_USERNAME and H1_API_TOKEN
-```
-
-The public HackerOne scrape is best-effort. An HTTP or GraphQL error fails the process instead of looking like an empty feed. Without an API token, nothing new is downloaded.
 
 ## Read the output
 
@@ -110,4 +186,4 @@ These were read as structure, not as code to paste. Proof rules did not change: 
 | [Barcha](https://github.com/S1N6H/Barcha) (MIT) | Append-only scan history, and the existing rule that a TLS error means the host is up. | Shodan wildcard enumeration and `ghauri --dump` against discovered hosts. That is exploitation without a per-host scope decision. |
 | [Pentest-AI-BurpSuite](https://github.com/S1N6H/Pentest-AI-BurpSuite) (MIT) | Claims cite a saved exchange. The scan history line does not invent findings. | The Burp agent, the jar, and a tool loop that sends arbitrary requests from model output. |
 
-HackerOne API tokens and `TYPESAFE_API_KEY` are read from the environment. Do not commit them.
+HackerOne API tokens and `TYPESAFE_API_KEY` are optional. `fetch` reads the HackerOne pair from the environment. `decide` reads `TYPESAFE_API_KEY` from the environment, or from a `.env` line when that variable is unset. `.env` is gitignored. Do not commit either secret.
