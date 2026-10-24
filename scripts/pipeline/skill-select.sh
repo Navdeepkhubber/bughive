@@ -16,7 +16,12 @@ dsh_learned="${BUGHIVE_DSH_DIR:-$HOME/.dsh}/skills/learned"
 # The GitHub workflow commits raw reports; the DSH classifier consumes a local
 # queue and admits generated skills. Queue new reports before scoring, then
 # include any skills the classifier has already admitted.
-python3 "$WS_ROOT/intelligence/sync-report-queue.py" >&2
+# The queue lives under $HOME/.dsh, which a workspace-write sandbox cannot
+# write to. That bridge only feeds the classifier; it is not evidence for the
+# hunt, so a refusal there must degrade the run rather than abort skill scoring.
+if ! python3 "$WS_ROOT/intelligence/sync-report-queue.py" >/dev/null; then
+  log "WARN report-queue sync skipped (cannot write ${BUGHIVE_DSH_DIR:-$HOME/.dsh}); scoring local skills only"
+fi
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 

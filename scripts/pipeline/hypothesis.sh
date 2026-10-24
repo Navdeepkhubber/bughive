@@ -14,8 +14,8 @@ dsh_learned="${BUGHIVE_DSH_DIR:-$HOME/.dsh}/skills/learned"
 # were silently the first thing dropped, because they sort/concatenate last.
 # Fix: give every phase its own budget (so no phase can be starved to zero
 # by an earlier one), and order high-signal phases first.
-PER_PHASE_BUDGET=12000   # bytes per phase before global cap
-GLOBAL_BUDGET=140000     # generous, but still bounded
+PER_PHASE_BUDGET=6000
+GLOBAL_BUDGET=36000
 
 # High-signal first (attack-surface-revealing), low-signal last
 # (asset-discovery-only).
@@ -42,6 +42,26 @@ PHASE_ORDER=(
 recon_json=""
 total_bytes=0
 skipped_phases=()
+
+frontier_brief=""
+if [ -f "$hd/evidence-frontier.json" ]; then
+  frontier_brief="$(python3 - "$hd/evidence-frontier.json" <<'PY'
+import json,sys
+d=json.load(open(sys.argv[1]))
+print(json.dumps({
+  'routes':[{'key':r['key'],'url':r['url'],'score':r['score'],'signals':r['signals'],
+             'evidence':r['evidence'][:3],'next_experiment':r['next_experiment']}
+            for r in [r for r in d.get('routes',[]) if r.get('eligible')][:24]],
+  'changes':d.get('changes',[])[:20],
+  'parameter_candidates':d.get('parameter_candidates',[])[:20],
+  'auth_replay_plans':d.get('auth_replay_plans',[])[:12],
+  'technology_matches':d.get('technology_matches',[])[:12]
+  ,'source_leads':d.get('source_leads',[])[:16],
+  'js_parameter_candidates':d.get('js_parameter_candidates',[])[:30]
+},separators=(',',':')))
+PY
+)"
+fi
 
 for phase_dir in "${PHASE_ORDER[@]}"; do
   f="$hd/recon/$phase_dir/summary.json"
@@ -115,6 +135,10 @@ independent concrete matches. Do not turn an endpoint name alone into a bug.
 If chain_hypotheses is present, emit one hypothesis per entry. Cite the
 standalone primitive and the partner it still needs. Keep the primitive;
 it stays a lead until that partner is shown.
+An unprobed host, truncated phase, or missing account is a coverage gap,
+not a vulnerability hypothesis. Archive-only URLs and generic fuzzed paths
+must first have current reachability and a differential control; do not
+promote their path names or an undifferentiated 403/200 to priority 9-10.
 $jev_decision_json
 
 METHOD (do this explicitly, don't skip steps):
@@ -168,6 +192,15 @@ $skills_selected_json
 SKILL CHECKLISTS (full text of each selected skill):
 $skills_dump
 
+EVIDENCE FRONTIER (ranked route leads with source files; the score is a
+search priority, never proof of a vulnerability):
+$frontier_brief
+
+Use the exact source file cited by a frontier item when raw evidence is
+needed. Change and replay plans are leads only. Do not claim an auth bug from
+response similarity, a CVE from product name alone, or XSS from reflection;
+use the class-specific proof validator before any finding is validated.
+
 RECON SUMMARIES (high-signal phases prioritized; some may be partial if a
 phase's own summary exceeded its ${PER_PHASE_BUDGET}-byte slice -- check
 $hd/recon/<phase>/ for full raw output if a hypothesis needs more detail):
@@ -181,4 +214,5 @@ if [ "${#skipped_phases[@]}" -gt 0 ]; then
 fi
 
 echo '{"phase":"hypothesis","prompt_file":"'"$hd"'/hypothesis-prompt.txt","bytes_used":'"$total_bytes"',"phases_skipped_for_budget":'"$skipped_note"',"next":"agent reads the prompt and writes hypotheses.json"}'
-mark_done "$domain" "hypothesis"
+# The hypothesis subagent has not written hypotheses.json yet. The parent
+# records completion with run.sh mark after that artifact exists.

@@ -116,7 +116,7 @@ if command -v httpx >/dev/null 2>&1; then
   set +e
   timeout "$wall" httpx -l "$out/hosts.txt" -p "80,443,$ALT_PORTS" \
     -timeout 8 -retries 1 -t "$httpx_threads" -rl "$httpx_rate" \
-    "${tech_args[@]}" \
+    ${tech_args[@]+"${tech_args[@]}"} \
     -silent -json -o "$out/httpx.jsonl" 2>/dev/null
   httpx_rc=$?
   set -e

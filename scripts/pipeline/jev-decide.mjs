@@ -34,6 +34,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { CRITICAL_CLASSES } from "../../plugins/dsh-coverage/index.js";
 import { chainHypothesesFor } from "../../plugins/dsh-triage-gate/index.js";
 import { batchRequiredFromScope, loadBatchConfig } from "./tranche.mjs";
+import { refreshFrontier } from "./evidence-frontier.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..");
@@ -435,14 +436,19 @@ export async function huntSnapshot(domain) {
   let coverage = { present: false, critical_completion_pct: 0, blocking_count: 0 };
   const covRaw = await readJson(join(hd, "coverage.json"));
   if (covRaw && covRaw.cells && Array.isArray(covRaw.classes) && Array.isArray(covRaw.assets)) {
-    const RESOLVED = new Set(["tested", "lead", "finding", "n/a", "blocked"]);
+    const CLEAN = new Set(["tested", "lead", "finding", "n/a"]);
+    const TESTED = new Set(["tested", "lead", "finding"]);
     const crit = covRaw.classes.filter((c) => CRITICAL_CLASSES.includes(c));
     const total = covRaw.assets.length * crit.length;
     let resolved = 0;
+    let tested = 0;
+    let blocked = 0;
     for (const a of covRaw.assets) {
       for (const c of crit) {
         const cell = covRaw.cells[`${c}|${a}`];
-        if (cell && RESOLVED.has(cell.status)) resolved += 1;
+        if (cell && CLEAN.has(cell.status)) resolved += 1;
+        if (cell && TESTED.has(cell.status)) tested += 1;
+        if (cell?.status === "blocked") blocked += 1;
       }
     }
     coverage = {
@@ -450,6 +456,9 @@ export async function huntSnapshot(domain) {
       critical_classes: crit.length,
       assets: covRaw.assets.length,
       critical_completion_pct: total ? Math.round((resolved / total) * 100) : 100,
+      critical_tested_pct: total ? Math.round((tested / total) * 100) : 100,
+      critical_tested_count: tested,
+      critical_blocked_count: blocked,
       blocking_count: total - resolved,
     };
   }
@@ -482,9 +491,10 @@ function buildState(snap, skills) {
     .join("\n");
 
   let reconText = "";
+  const reconBudget = snap.frontier ? 8000 : STATE_BUDGET;
   for (const phase of Object.keys(snap.recon)) {
     const chunk = `## ${phase}\n${JSON.stringify(snap.recon[phase])}\n`;
-    if (reconText.length + chunk.length > STATE_BUDGET) {
+    if (reconText.length + chunk.length > reconBudget) {
       reconText += `## ${phase}\n(omitted, state budget)\n`;
       continue;
     }
@@ -500,7 +510,7 @@ function buildState(snap, skills) {
     `artifact_counts: hypotheses=${snap.counts.hypotheses} pass=${snap.counts.hypotheses_pass} real=${snap.counts.hypotheses_real} validated=${snap.counts.validated} reports=${snap.counts.reports || 0} approved=${snap.counts.approved || 0}`,
     `coverage: ${
       snap.coverage && snap.coverage.present
-        ? `critical ${snap.coverage.critical_completion_pct}% complete, ${snap.coverage.blocking_count} unresolved critical cells. A "no findings" conclusion is NOT defensible below 100%.`
+        ? `critical ${snap.coverage.critical_tested_pct}% tested; ${snap.coverage.critical_blocked_count} blocked; ${snap.coverage.blocking_count} incomplete. A "no findings" conclusion is NOT defensible below 100% clean completion.`
         : "no coverage matrix yet (run coverage_init)"
     }`,
     "Keyword overlap shortlist (evidence, not a decision):",
@@ -516,6 +526,13 @@ function buildState(snap, skills) {
       reconWallExceeded(snap) ? " — RECON BUDGET EXCEEDED. Do not pick deepen_recon." : ""
     }`,
     "Recon summaries:",
+    snap.frontier ? `Evidence frontier (leads, not findings; full provenance in evidence-frontier.json):\n${JSON.stringify({
+      routes: snap.frontier.routes.filter(r => r.eligible).slice(0, 18).map(({ key, score, signals, technologies, evidence, next_experiment }) => ({ key, score, signals, technologies, evidence, next_experiment })),
+      unconfirmed_routes: snap.frontier.routes.filter(r => !r.eligible).length,
+      changes: snap.frontier.changes.slice(0, 12),
+      replay_plans: snap.frontier.auth_replay_plans.length,
+      phase_counts: snap.frontier.phase_counts,
+    })}` : "",
     reconText || "(no recon yet)",
   ].join("\n");
 }
@@ -535,8 +552,11 @@ function focusOptions(snap) {
       for (const v of Object.values(node)) walk(v, depth + 1);
     }
   };
-  for (const phase of ["17-interesting-endpoints", "14-nuclei-scan", "15-mass-oneliners", "06-param-discovery", "07-js-analysis", "05-content-discovery", "04-http-probe"]) {
-    if (snap.recon[phase]) walk(snap.recon[phase]);
+  for (const route of (snap.frontier?.routes || []).filter(r => r.eligible).slice(0, 12)) push(route.url);
+  if (!snap.frontier) {
+    for (const phase of ["17-interesting-endpoints", "14-nuclei-scan", "15-mass-oneliners", "06-param-discovery", "07-js-analysis", "05-content-discovery", "04-http-probe"]) {
+      if (snap.recon[phase]) walk(snap.recon[phase]);
+    }
   }
   const criteria = { none: "No single URL. Test the class against the cited recon item." };
   urls.slice(0, 12).forEach((url, i) => {
@@ -809,7 +829,7 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   const toolHit = hasToolHit(snap);
   if (toolHit && action === "stop") clamp("select_and_test");
 
-  if (action === "deepen_recon" && !reconPhase) {
+  if (action === "deepen_recon" && !reconPhase && !(snap.batch?.required && !snap.batch?.complete)) {
     clamp(hasKeyword ? "select_and_test" : reconCount ? "score_skills" : "stop");
   }
   if (action === "select_and_test" && !hasKeyword && reconCount > 0) clamp("score_skills");
@@ -855,6 +875,14 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   // still has to leave recon. Coverage and proof gates below are unchanged.
   if (reconOverBudget && reconCount > 0 && action === "deepen_recon") {
     clamp(hasKeyword ? "select_and_test" : "score_skills");
+  }
+  // A batch has its own passive/active/tranche cursor. Global phase markers can
+  // say recon is complete while seven tranches remain. Advance that cursor before
+  // generating more hypotheses, provided its recon budget has not expired.
+  if (snap.batch?.required && !snap.batch?.complete && !reconOverBudget &&
+      ["score_skills", "select_and_test", "deliver", "stop"].includes(action) &&
+      next.confidence >= CONFIDENCE_FLOOR) {
+    clamp("deepen_recon");
   }
 
   let kept = [];
@@ -938,7 +966,8 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   // coverage matrix exists, so pre-existing hunts keep working.
   if (action === "deliver" || action === "stop") {
     const cov = snap.coverage;
-    if (cov && cov.present && cov.critical_completion_pct < 100) {
+    if ((cov && cov.present && cov.critical_completion_pct < 100) ||
+        (snap.batch?.required && !snap.batch?.complete)) {
       clamp("human_gate");
     }
   }
@@ -1240,7 +1269,7 @@ export function heuristicPlan(snap, skills) {
   if (toolHit) method = "tool_hit_falsify";
   else if (snap.recon?.["11-flow-mapping"]) method = "flow_step_skip";
   else if (/idor|auth/.test(best?.id || "")) method = "auth_swap";
-  else if (snap.recon?.["08-tech-fingerprint"]) method = "version_match";
+  else if (snap.frontier?.technology_matches?.some(m => m.technologies?.some(t => /\b\d+\.\d+(?:\.\d+)?\b/.test(t)))) method = "version_match";
 
   const ranked = rankedSkills(probs, skills, keyword);
   const top = candidateSkills(ranked);
@@ -1278,6 +1307,7 @@ export async function decide(domain, { fetchImpl, planner } = {}) {
   if (!existsSync(snap.hd)) {
     throw new Error(`Hunt directory does not exist: ${snap.hd}. Run init first.`);
   }
+  if (existsSync(join(snap.hd, "scope.txt"))) snap.frontier = await refreshFrontier(snap.hd);
   const skills = await loadSkills();
   if (skills.length === 0) throw new Error("No skills found under skills/seeds or skills/learned");
 

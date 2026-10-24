@@ -46,6 +46,8 @@ export const CRITICAL_CLASSES = [
 
 const STATUSES = ["untested", "tested", "lead", "finding", "n/a", "blocked"];
 const RESOLVED = new Set(["tested", "lead", "finding", "n/a", "blocked"]);
+const CLEAN = new Set(["tested", "lead", "finding", "n/a"]);
+const TESTED = new Set(["tested", "lead", "finding"]);
 const NEEDS_REASON = new Set(["n/a", "blocked"]);
 
 /**
@@ -275,7 +277,7 @@ export function apply(ctx, config = {}) {
       for (const a of matrix.assets) {
         for (const c of relevant) {
           const cell = matrix.cells[cellId(c, a)];
-          if (!cell || !RESOLVED.has(cell.status)) {
+          if (!cell || !CLEAN.has(cell.status)) {
             (byAsset[a] ||= []).push(c);
             total += 1;
           }
@@ -321,12 +323,22 @@ export function apply(ctx, config = {}) {
           ).length,
         0
       );
+      const critical = matrix.assets.flatMap((a) => matrix.classes
+        .filter((c) => CRITICAL_CLASSES.includes(c))
+        .map((c) => matrix.cells[cellId(c, a)] || { status: "untested" }));
+      const criticalByStatus = {};
+      for (const cell of critical) criticalByStatus[cell.status] = (criticalByStatus[cell.status] || 0) + 1;
+      const testedCritical = critical.filter((cell) => TESTED.has(cell.status)).length;
+      const cleanCritical = critical.filter((cell) => CLEAN.has(cell.status)).length;
       return JSON.stringify({
         domain: matrix.domain,
         cells_total: Object.keys(matrix.cells).length,
         by_status: byStatus,
         completion_pct: Math.round((resolved / total) * 100),
-        critical_completion_pct: Math.round((critResolved / critTotal) * 100),
+        critical_disposition_pct: Math.round((critResolved / critTotal) * 100),
+        critical_completion_pct: Math.round((cleanCritical / critTotal) * 100),
+        critical_tested_pct: Math.round((testedCritical / critTotal) * 100),
+        critical_by_status: criticalByStatus,
         blocked: Object.entries(matrix.cells)
           .filter(([, v]) => v.status === "blocked")
           .map(([k, v]) => ({ cell: k, reason: v.reason })),
@@ -358,26 +370,33 @@ export function apply(ctx, config = {}) {
       const threshold = Number.isFinite(args.threshold) ? args.threshold : 100;
       const critClasses = matrix.classes.filter((c) => CRITICAL_CLASSES.includes(c));
       const blocking = [];
+      const counts = { tested: 0, lead: 0, finding: 0, "n/a": 0, blocked: 0, untested: 0 };
       for (const a of matrix.assets) {
         for (const c of critClasses) {
           const cell = matrix.cells[cellId(c, a)];
-          if (!cell || !RESOLVED.has(cell.status)) {
+          const status = cell?.status || "untested";
+          counts[status] = (counts[status] || 0) + 1;
+          if (!CLEAN.has(status)) {
             blocking.push({ asset: a, vuln_class: c, status: cell ? cell.status : "untested" });
           }
         }
       }
       const total = matrix.assets.length * critClasses.length || 1;
       const pct = Math.round(((total - blocking.length) / total) * 100);
+      const tested = counts.tested + counts.lead + counts.finding;
       return JSON.stringify({
         pass: pct >= threshold,
         critical_completion_pct: pct,
+        critical_disposition_pct: Math.round(((total - counts.untested) / total) * 100),
+        critical_tested_pct: Math.round((tested / total) * 100),
+        critical_by_status: counts,
         threshold,
         blocking_count: blocking.length,
         blocking: blocking.slice(0, 200),
         note:
           pct >= threshold
-            ? "All critical cells resolved. A 'no findings' conclusion is now defensible."
-            : "Unresolved critical cells remain. Do NOT report a clean result; resolve or explicitly mark each one n/a/blocked with a reason.",
+            ? "All critical cells tested or not applicable. Report tested coverage separately."
+            : "Critical cells remain untested or blocked. Do NOT report a clean result; blocked cells require the missing access, scope, or a qualified incomplete conclusion.",
       });
     },
   });

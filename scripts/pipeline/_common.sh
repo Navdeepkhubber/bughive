@@ -179,6 +179,18 @@ cmd_status() {
 
 cmd_mark() {
   local domain="$1" stage="$2"
+  local hd guard
+  hd="$(hunt_dir "$domain")"
+  guard="$(node "$WS_ROOT/scripts/pipeline/stage-ledger.mjs" "$hd" "$stage")" || {
+    log "stage mark refused: $guard"
+    return 1
+  }
+  if [ "$stage" = "deliver" ]; then
+    bash "$WS_ROOT/scripts/pipeline/run.sh" audit "$domain" "$hd/SUMMARY.md" >/dev/null || {
+      log "stage mark refused: SUMMARY.md claim audit failed"
+      return 1
+    }
+  fi
   mark_done "$domain" "$stage"
   echo "{\"marked\":\"$stage\"}"
 }
