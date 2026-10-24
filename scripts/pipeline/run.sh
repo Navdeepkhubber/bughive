@@ -49,6 +49,7 @@ case "$stage" in
   decide)     bash "$(dirname "$0")/jev-decide.sh" "$@" ;;
   loop)       node "$(dirname "$0")/jev-loop.mjs" "$@" ;;
   scan)       cmd_scan "$@" ;;
+  batch)      node "$(dirname "$0")/batch-run.mjs" "$@" ;;
   fetch)      python3 "$WS_ROOT/intelligence/fetch-h1-reports.py" "$@" ;;
   harvest)    python3 "$WS_ROOT/scripts/harvest-bb-skills.py" "$@" ;;
   ingest-skills) node "$WS_ROOT/scripts/ingest-staging.mjs" "$@" ;;

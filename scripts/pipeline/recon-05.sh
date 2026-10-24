@@ -26,16 +26,29 @@ from html.parser import HTMLParser
 sys.path.insert(0, sys.argv[3])
 from _scope import scope_allows
 from _recon_io import live_urls, merge_endpoints, url_in_scope, cap_items, write_json, host_of
+from _batch import apply_bounds, knob_int, tranche_host_set
 
 out, hd, script_dir = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
 wordlist = Path(sys.argv[4])
 scope_text = (hd / "scope.txt").read_text()
 seeds = live_urls(hd)
+allowed_hosts = tranche_host_set()
+if allowed_hosts is not None:
+    seeds = [u for u in seeds if host_of(u) in allowed_hosts]
 (out / "seeds.txt").write_text("".join(f"{u}\n" for u in seeds))
 
 tools_run, tools_skipped = [], []
 found: list[dict] = []
 seen = set()
+truncated = False
+notes = [
+    "GET-only, rate-limited. 2xx/3xx/auth-wall paths are attack-surface, not findings.",
+    "URLs also merged into recon/all_endpoints for phases 06/12/15/17.",
+]
+katana_budget = knob_int("BUGHIVE_KATANA_BUDGET_SECONDS", 900, lo=1)
+katana_per_host = knob_int("BUGHIVE_KATANA_PER_HOST_SECONDS", 90, lo=1)
+result_cap = knob_int("BUGHIVE_KATANA_RESULT_CAP", 2000, lo=1)
+deadline = time.monotonic() + katana_budget
 
 
 def add(url: str, source: str, status=None):
@@ -65,19 +78,49 @@ class HrefParser(HTMLParser):
                 self.hrefs.append(ad[k])
 
 
+def katana_supports(flag: str) -> bool:
+    try:
+        help_run = subprocess.run(["katana", "-h"], capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return flag in ((help_run.stdout or "") + (help_run.stderr or ""))
+
+
 # --- katana ---
+# Depth 2 and a per-host rate keep a wide registrable domain from crawling forever.
+# The stage wall clock still wins: on expiry the partial URL list is kept.
 if shutil.which("katana") and seeds:
     tools_run.append("katana")
     kout = out / "katana.txt"
+    cmd = [
+        "katana", "-list", str(out / "seeds.txt"), "-silent", "-jc",
+        "-d", str(knob_int("BUGHIVE_KATANA_DEPTH", 2, lo=1)),
+        "-c", str(knob_int("BUGHIVE_KATANA_CONCURRENCY", 10, lo=1)),
+        "-p", str(knob_int("BUGHIVE_KATANA_PARALLELISM", 5, lo=1)),
+        "-rl", str(knob_int("BUGHIVE_KATANA_RATE", 100, lo=1)),
+        "-timeout", "8", "-o", str(kout),
+    ]
+    if katana_supports("-hrl"):
+        cmd[1:1] = ["-hrl", str(knob_int("BUGHIVE_KATANA_HOST_RATE", 20, lo=1))]
+    else:
+        notes.append("katana has no -hrl flag; per-host rate left to -rl plus the stage budget")
+    crawl_for = min(katana_budget, max(katana_per_host, katana_per_host * len(seeds)))
+    if katana_supports("-crawl-duration"):
+        cmd.extend(["-crawl-duration", str(crawl_for)])
+    elif katana_supports("-ct"):
+        cmd.extend(["-ct", str(crawl_for)])
     try:
         subprocess.run(
-            ["katana", "-list", str(out / "seeds.txt"), "-silent", "-d", "2", "-jc", "-timeout", "8", "-o", str(kout)],
-            timeout=180,
+            cmd,
+            timeout=katana_budget,
             check=False,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-    except (subprocess.TimeoutExpired, FileNotFoundError):
+    except subprocess.TimeoutExpired:
+        truncated = True
+        notes.append(f"katana hit the {katana_budget}s wall-clock budget; partial URLs kept")
+    except FileNotFoundError:
         pass
     if kout.is_file():
         for line in kout.read_text().splitlines():
@@ -88,6 +131,10 @@ else:
 # --- same-origin homepage extract (always) ---
 tools_run.append("curl-extract")
 for seed in seeds[:25]:
+    if time.monotonic() >= deadline:
+        truncated = True
+        notes.append("content-discovery wall-clock budget hit during HTML extract; partial URLs kept")
+        break
     try:
         r = subprocess.run(
             ["curl", "-sS", "-L", "-m", "12", "-A", "bh-recon/0.1 (authorized; non-destructive)", seed],
@@ -115,6 +162,10 @@ paths = [l.strip() for l in wordlist.read_text().splitlines() if l.strip() and n
 tools_run.append("sensitive-paths")
 hosts_done = 0
 for seed in seeds[:20]:
+    if time.monotonic() >= deadline:
+        truncated = True
+        notes.append("content-discovery wall-clock budget hit during sensitive-path probe; partial URLs kept")
+        break
     parsed = urlparse(seed)
     origin = f"{parsed.scheme}://{parsed.netloc}"
     hosts_done += 1
@@ -135,7 +186,10 @@ for seed in seeds[:20]:
         time.sleep(0.12)
 
 # --- ffuf optional ---
-if shutil.which("ffuf") and seeds:
+if time.monotonic() >= deadline:
+    truncated = True
+    tools_skipped.append({"tool": "ffuf", "reason": "stage budget exhausted"})
+elif shutil.which("ffuf") and seeds:
     tools_run.append("ffuf")
     ffuf_out = out / "ffuf.json"
     seed = seeds[0].rstrip("/")
@@ -163,23 +217,37 @@ if shutil.which("ffuf") and seeds:
 else:
     tools_skipped.append({"tool": "ffuf", "reason": "not installed; curated path probe used instead"})
 
-items = cap_items(found)
-merge_endpoints(hd, [i["url"] for i in found], scope_text)
+bounded = apply_bounds(found, result_cap=result_cap)
+if bounded["truncated"]:
+    truncated = True
+    notes.extend(bounded["reasons"])
+kept = bounded["results"]
+items = cap_items(kept)
+merge_endpoints(hd, [i["url"] for i in kept], scope_text)
 summary = {
     "phase": "05-content-discovery",
     "domain": hd.name,
     "tools_run": tools_run,
     "tools_skipped": tools_skipped,
-    "count": len(found),
+    "count": len(kept),
+    "count_total": len(found),
+    "degraded": bool(truncated),
+    "truncated": bool(truncated),
+    "tranche_hosts": sorted(allowed_hosts) if allowed_hosts is not None else None,
+    "katana_budget_seconds": katana_budget,
+    "katana_per_host_seconds": katana_per_host,
     "items": items,
-    "notes": [
-        "GET-only, rate-limited. 2xx/3xx/auth-wall paths are attack-surface, not findings.",
-        "URLs also merged into recon/all_endpoints for phases 06/12/15/17.",
-    ],
+    "notes": notes,
     "output_files": [str(out / "seeds.txt")],
 }
 write_json(out / "summary.json", summary)
-print(json.dumps({"phase": "05", "count": len(found), "items_in_summary": len(items)}))
+print(json.dumps({
+    "phase": "05",
+    "count": len(kept),
+    "items_in_summary": len(items),
+    "degraded": bool(truncated),
+    "truncated": bool(truncated),
+}))
 PY
 
 mark_done "$domain" "recon-05"

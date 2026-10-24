@@ -19,8 +19,9 @@ from pathlib import Path
 
 sys.path.insert(0, sys.argv[3])
 from _scope import enum_roots
-from _recon_io import merge_endpoints, url_in_scope, cap_items, write_json, param_urls_from
+from _recon_io import merge_endpoints, url_in_scope, cap_items, write_json, param_urls_from, host_of
 from _recon_safety import unique_registrable_roots
+from _batch import knob, knob_int
 
 out, hd = Path(sys.argv[1]), Path(sys.argv[2])
 scope_text = (hd / "scope.txt").read_text() if (hd / "scope.txt").is_file() else ""
@@ -32,8 +33,21 @@ def clamp_int(raw, default, lo, hi):
         value = default
     return max(lo, min(hi, value))
 
-budget = clamp_int(os.environ.get("BUGHIVE_RECON09_BUDGET"), 150, 30, 180)
-root_limit = clamp_int(os.environ.get("BUGHIVE_GAU_MAX_ROOTS"), 4, 1, 6)
+# Standalone hunts keep the short root cap from the termination fix.
+# BUGHIVE_PASSIVE_WIDE=1 (the tranche runner) lifts that cap and relies on the
+# per-host URL cap plus this wall clock instead.
+budget = knob_int("BUGHIVE_GAU_BUDGET_SECONDS", 300, lo=30)
+if os.environ.get("BUGHIVE_RECON09_BUDGET"):
+    budget = clamp_int(os.environ.get("BUGHIVE_RECON09_BUDGET"), budget, 30, max(budget, 180))
+wide = str(os.environ.get("BUGHIVE_PASSIVE_WIDE") or "").strip().lower() in {"1", "true", "yes", "on"}
+if wide:
+    root_limit = knob_int("BUGHIVE_GAU_MAX_ROOTS", 1000000, lo=1)
+else:
+    root_limit = clamp_int(os.environ.get("BUGHIVE_GAU_MAX_ROOTS"), 4, 1, 6)
+gau_threads = knob_int("BUGHIVE_GAU_THREADS", 5, lo=1)
+gau_providers = str(knob("BUGHIVE_GAU_PROVIDERS", "wayback") or "wayback")
+gau_blacklist = str(knob("BUGHIVE_GAU_BLACKLIST", "") or "")
+url_cap = knob_int("BUGHIVE_PASSIVE_URL_CAP", 1500, lo=1)
 deadline = time.monotonic() + budget
 
 tools_run, tools_skipped = [], []
@@ -98,7 +112,12 @@ try:
             raw_urls.extend(dest.read_text(errors="ignore").splitlines())
 
     # gau reads domains on stdin. One process, not one per host.
-    run_stdin("gau", ["gau", "--subs", "--threads", "5", "--timeout", "20"])
+    # --blacklist drops static assets; --providers keeps the pull on wayback
+    # unless the operator overrides BUGHIVE_GAU_PROVIDERS.
+    gau_args = ["gau", "--subs", "--threads", str(gau_threads), "--providers", gau_providers, "--timeout", "20"]
+    if gau_blacklist:
+        gau_args.extend(["--blacklist", gau_blacklist])
+    run_stdin("gau", gau_args)
     run_stdin("waybackurls", ["waybackurls"])
 
     if "gau" not in tools_run and "waybackurls" not in tools_run and roots and remain() >= 8:
@@ -141,6 +160,23 @@ for u in raw_urls:
     seen.add(u)
     in_scope.append(u)
 
+per_host: dict[str, int] = {}
+capped_urls = []
+dropped_urls = 0
+for u in in_scope:
+    host = host_of(u) or ""
+    per_host[host] = per_host.get(host, 0) + 1
+    if per_host[host] <= url_cap:
+        capped_urls.append(u)
+    else:
+        dropped_urls += 1
+if dropped_urls:
+    degraded = True
+    notes.append(
+        f"per-host passive URL cap {url_cap} truncated {dropped_urls} url(s); partial list kept"
+    )
+in_scope = capped_urls
+truncated = bool(degraded and (dropped_urls or any("timed out" in n or "budget" in n for n in notes)))
 (out / "urls.txt").write_text("".join(f"{u}\n" for u in in_scope))
 params = param_urls_from(in_scope)
 (out / "param_urls.txt").write_text("".join(f"{u}\n" for u in params))
@@ -155,6 +191,8 @@ summary = {
     "phase": "09-historical-data",
     "domain": hd.name,
     "degraded": bool(degraded),
+    "truncated": bool(truncated),
+    "passive_url_cap": url_cap,
     "roots": roots,
     "tools_run": tools_run,
     "tools_skipped": tools_skipped,
@@ -170,6 +208,7 @@ print(json.dumps({
     "count": len(in_scope),
     "param_urls": len(params),
     "degraded": bool(degraded),
+    "truncated": bool(truncated),
     "roots": len(roots),
 }))
 PY
