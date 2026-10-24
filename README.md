@@ -70,6 +70,17 @@ bash scripts/pipeline/run.sh scan 127.0.0.1 http://127.0.0.1:8099
 
 `init` writes `hunts/127.0.0.1/scope.txt`. `scan` exits if that file is missing. Results are written under `hunts/127.0.0.1/`.
 
+### DSH host
+
+`scripts/install.sh` registers this repo's plugins into a DSH profile. This repository does not install the `dsh` binary. The script expects `dsh` already on `PATH`, then prints `Restart DSH: dsh --profile $PROFILE`.
+
+```bash
+bash scripts/install.sh
+dsh --profile web
+```
+
+`DSH_PROFILE` defaults to `web`, so plugins land in `~/.dsh/profiles/web` (`DSH_PROFILE_DIR` overrides that directory). With another profile name, start the host with `dsh --profile "$DSH_PROFILE"`.
+
 ### Other entry points
 
 ```bash
