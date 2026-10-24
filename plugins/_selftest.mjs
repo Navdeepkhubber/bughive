@@ -735,9 +735,17 @@ async function main() {
     const ok = await run({
       title: "IDOR in /api/v1/users/{id} allows any tenant to read another tenant's credentials",
       impact: "cross-tenant read of cleartext credential passwords",
-      answers: JSON.stringify(yes),
+      answers: JSON.stringify({ ...yes, q8Identity: true }),
+      identity: JSON.stringify({
+        session: "tenant-a",
+        anonymous: false,
+        crossAccount: true,
+        staleCredential: false,
+        otherUserPii: true,
+      }),
     });
     assert.equal(ok.passed, true, "clean finding passes");
+    assert.equal(ok.identity.classification, "idor");
     assert.equal(ok.cvss.severity, "Medium", "conservative CVSS hint");
 
     // A single NO kills it.

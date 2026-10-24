@@ -230,15 +230,17 @@ step, then `decide` again. Exit 0 with `human_gate` means stop.
 Then `hunt_mark` the stage, then `decide` again unless kind was `halt`
 or `write`.
 
-JEV (TypeSafe System One, `https://api.typesafe.ai/v1/systemone`) does not
-write text. `scripts/pipeline/jev-decide.mjs` asks it: what next, which
-recon phase, which skill, which vuln, how to test. Hunt policy then
-clamps illegal jumps (no recon → phase 01; test without keyword scores →
-score_skills; chain without validated findings → earlier stage;
-confidence < 0.45 or human_review > 0.7 → human_gate; critical/high
-nuclei or any phase-15 hit → human_gate). Requires `TYPESAFE_API_KEY`
-(`.env` in the repo root is read if unset). Optional `TYPESAFE_MODEL`
-(default `jev-latest`).
+The planner does not write text. `scripts/pipeline/jev-decide.mjs` chooses
+what next, which recon phase, which skill, which vuln, and how to test.
+Hunt policy (`applyPolicy`) then clamps illegal jumps (no recon → phase 01;
+test without keyword scores → score_skills; chain without validated
+findings → earlier stage; confidence < 0.45 or human_review > 0.7 →
+human_gate; critical/high nuclei or any phase-15 hit → human_gate). The
+remote TypeSafe call (`TYPESAFE_API_KEY`, optional `TYPESAFE_MODEL`,
+default `jev-latest`) is opt-in: set `BUGHIVE_PLANNER=jev` or export a key
+with the flag unset. With no key, `decide` / `loop` use the local
+heuristic and the same policy and executor. `BUGHIVE_PLANNER=heuristic`
+forces the local planner even when a key is present.
 
 `next_action` values: `deepen_recon`, `score_skills`, `select_and_test`,
 `prefilter`, `falsify`, `prove`, `chain`, `report`, `quality`, `deliver`,
@@ -410,6 +412,8 @@ stay `high`, since matching evidence against skill checklists and
 proposing exploit chains is exactly the kind of reasoning that budget is
 for.
 
-JEV is the planner. The LLM is the executor. JEV chooses the next
-stage, the skill, the vulnerability, and the test method. DeepSeek
-writes hypotheses, chains, and reports only inside that choice.
+The planner chooses the next stage, the skill, the vulnerability, and
+the test method. The LLM is the executor. DeepSeek writes hypotheses,
+chains, and reports only inside that choice. With no TypeSafe key the
+planner is the local heuristic; `BUGHIVE_PLANNER=jev` uses TypeSafe
+System One. `applyPolicy` clamps either source.

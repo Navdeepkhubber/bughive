@@ -10,8 +10,14 @@
  * must run verbatim. The LLM does not choose stages. It asks JEV, runs
  * the executor, then asks JEV again.
  *
- * Auth: TYPESAFE_API_KEY (Bearer). Optional TYPESAFE_MODEL (default
- * jev-latest). Optional TYPESAFE_API_BASE for tests.
+ * The remote TypeSafe call is optional. With no TYPESAFE_API_KEY, or with
+ * BUGHIVE_PLANNER=heuristic, decide() uses a local heuristic and then the
+ * same applyPolicy / buildExecutor path. BUGHIVE_PLANNER=jev forces the
+ * remote call (and still requires TYPESAFE_API_KEY). When the flag is unset
+ * and a key is present, the remote planner stays in use.
+ *
+ * Auth (remote only): TYPESAFE_API_KEY (Bearer). Optional TYPESAFE_MODEL
+ * (default jev-latest). Optional TYPESAFE_API_BASE for tests.
  *
  *   node scripts/pipeline/jev-decide.mjs <domain>
  *   node scripts/pipeline/jev-decide.mjs --selftest
@@ -26,6 +32,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 // Critical vuln classes come from the coverage plugin so hunt policy and the
 // coverage tooling can never drift apart.
 import { CRITICAL_CLASSES } from "../../plugins/dsh-coverage/index.js";
+import { chainHypothesesFor } from "../../plugins/dsh-triage-gate/index.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..");
@@ -35,6 +42,14 @@ const SKILLS = join(ROOT, "skills");
 const API_URL =
   process.env.TYPESAFE_API_BASE || "https://api.typesafe.ai/v1/systemone";
 const MODEL = process.env.TYPESAFE_MODEL || "jev-latest";
+
+/** Remote JEV is opt-in. No key → local heuristic, so decide/loop run offline. */
+export function plannerMode(env = process.env) {
+  const flag = String(env.BUGHIVE_PLANNER || "").trim().toLowerCase();
+  if (flag === "jev" || flag === "typesafe") return "jev";
+  if (flag === "heuristic" || flag === "local" || flag === "policy") return "heuristic";
+  return env.TYPESAFE_API_KEY ? "jev" : "heuristic";
+}
 
 const CONFIDENCE_FLOOR = 0.45;
 const HUMAN_REVIEW_CEILING = 0.7;
@@ -295,6 +310,17 @@ async function huntSnapshot(domain) {
     const data = await readJson(join(hd, file));
     counts[label] = Array.isArray(data) ? data.length : 0;
   }
+  const validatedRaw = await readJson(join(hd, "validated.json"));
+  const validatedItems = Array.isArray(validatedRaw)
+    ? validatedRaw.slice(0, 40).map((f) => ({
+        id: f?.id || null,
+        class: f?.class || f?.bugClass || "",
+        title: typeof f?.title === "string" ? f.title.slice(0, 180) : "",
+        impact: typeof f?.impact === "string" ? f.impact.slice(0, 180) : "",
+        disposition: f?.disposition || null,
+        hasChain: f?.hasChain === true,
+      }))
+    : [];
   counts.reports = 0;
   counts.approved = 0;
   try {
@@ -358,6 +384,7 @@ async function huntSnapshot(domain) {
     hasKeyword,
     hasSelected,
     counts,
+    validatedItems,
     coverage,
     decides,
     stalled,
@@ -520,7 +547,7 @@ export async function jevCall(state, questions, fetchImpl = globalThis.fetch) {
   const key = process.env.TYPESAFE_API_KEY;
   if (!key) {
     const err = new Error(
-      "TYPESAFE_API_KEY is not set. JEV decisions require a TypeSafe API key. Confirmed findings do not require it: bash scripts/pipeline/run.sh scan <domain> <baseUrl> after init.",
+      "TYPESAFE_API_KEY is not set. BUGHIVE_PLANNER=jev needs a TypeSafe key. Use BUGHIVE_PLANNER=heuristic (the default when no key is set) to plan locally. Confirmed findings do not require it: bash scripts/pipeline/run.sh scan <domain> <baseUrl> after init.",
     );
     err.code = "NO_KEY";
     throw err;
@@ -833,7 +860,7 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
 
   return {
     model: confirm?.model || routing.model,
-    source: "jev",
+    source: routing.model === "heuristic" ? "heuristic" : "jev",
     next_action: action,
     clamped_from: clampedFrom,
     confidence: next.confidence,
@@ -943,6 +970,7 @@ export function buildExecutor(decision, domain) {
       plugin: "build_chain",
       input: `hunts/${d}/validated.json`,
       write: `hunts/${d}/chains.json`,
+      chain_hypotheses: decision.chain_hypotheses || [],
       after,
       llm,
     };
@@ -1039,8 +1067,93 @@ async function writeDecision(snap, decision, domain) {
   return out;
 }
 
-export async function decide(domain, { fetchImpl } = {}) {
+/**
+ * Local planner. Same answer shape as the remote call so applyPolicy is unchanged.
+ * Order: prove-path artifacts, then a legal high-signal recon phase, then keyword
+ * scoring, then select_and_test on the top keyword skill.
+ */
+export function heuristicPlan(snap, skills) {
+  const legal = Array.isArray(snap.legal) ? snap.legal : [];
+  const reconPhase = pickReconPhase(null, legal);
+  const counts = snap.counts || {};
+  const reconCount = Object.keys(snap.recon || {}).length;
+  const keyword = Array.isArray(snap.keyword) ? snap.keyword : [];
+  const toolHit = hasToolHit(snap);
+  const chain_hypotheses = chainHypothesesFor(snap.validatedItems || []);
+  const needsChain = chain_hypotheses.length > 0 && !(counts.chains > 0);
+
+  let action = "deepen_recon";
+  if ((counts.approved || 0) > 0) action = "deliver";
+  else if ((counts.reports || 0) > 0) action = "quality";
+  else if ((counts.validated || 0) > 0 && needsChain) action = "chain";
+  else if ((counts.validated || 0) > 0) action = "report";
+  else if ((counts.hypotheses_real || 0) > 0) action = "prove";
+  else if ((counts.hypotheses_pass || 0) > 0) action = "falsify";
+  else if ((counts.hypotheses || 0) > 0) action = "prefilter";
+  else if (reconCount === 0) action = "deepen_recon";
+  else if (!snap.hasKeyword) action = "score_skills";
+  else if (legal.some((p) => HIGH_SIGNAL.includes(p))) action = "deepen_recon";
+  else action = "select_and_test";
+
+  const probs = {};
+  let best = null;
+  let bestScore = -Infinity;
+  for (const row of keyword) {
+    const skill = skills.find((s) => s.id === row.skill);
+    if (!skill) continue;
+    const score = num(row.score);
+    probs[skill.key] = Math.min(0.95, Math.max(SKILL_PROB_FLOOR, score > 0 ? score / 10 : SKILL_PROB_FLOOR));
+    if (score >= bestScore) {
+      bestScore = score;
+      best = skill;
+    }
+  }
+  if (!best && skills[0]) {
+    best = skills[0];
+    probs[best.key] = SKILL_PROB_FLOOR;
+  }
+
+  const focus = focusOptions(snap);
+  const worth = toolHit || snap.hasKeyword || focus.urls.length ? 0.82 : reconCount ? 0.5 : 0.2;
+  const signal = toolHit ? 3 : focus.urls.length ? 2 : reconCount ? 1 : 0;
+  let method = "checklist_walk";
+  if (toolHit) method = "tool_hit_falsify";
+  else if (snap.recon?.["11-flow-mapping"]) method = "flow_step_skip";
+  else if (/idor|auth/.test(best?.id || "")) method = "auth_swap";
+  else if (snap.recon?.["08-tech-fingerprint"]) method = "version_match";
+
+  const ranked = rankedSkills(probs, skills, keyword);
+  const top = candidateSkills(ranked);
+  const confirmAnswers = {
+    vuln: { choice: best?.key || null, confidence: 0.72, probabilities: {} },
+    test_method: { choice: method, confidence: 0.7, probabilities: {} },
+    focus: { choice: focus.urls.length ? "u0" : "none", confidence: 0.66, probabilities: {} },
+  };
+  top.forEach((s, i) => {
+    confirmAnswers[`load_${i}`] = { noul: s.id === best?.id ? 0.8 : 0.15 };
+  });
+
+  return {
+    chain_hypotheses,
+    routing: {
+      model: "heuristic",
+      usage: null,
+      answers: {
+        next_action: { choice: action, confidence: 0.86, probabilities: {} },
+        recon_phase: { choice: (reconPhase || "none").replaceAll("-", "_"), confidence: 0.8, probabilities: {} },
+        signal: { score: signal },
+        worth_testing: { noul: worth },
+        human_review: { noul: 0.15 },
+        skill: { choice: best?.key || null, confidence: 0.7, probabilities: probs },
+      },
+    },
+    confirm: { model: "heuristic", usage: null, focus, answers: confirmAnswers },
+  };
+}
+
+export async function decide(domain, { fetchImpl, planner } = {}) {
   loadDotEnv();
+  const mode = planner || plannerMode();
   const snap = await huntSnapshot(domain);
   if (!existsSync(snap.hd)) {
     throw new Error(`Hunt directory does not exist: ${snap.hd}. Run init first.`);
@@ -1048,34 +1161,45 @@ export async function decide(domain, { fetchImpl } = {}) {
   const skills = await loadSkills();
   if (skills.length === 0) throw new Error("No skills found under skills/seeds or skills/learned");
 
-  const state = buildState(snap, skills);
-  const routing = await jevCall(
-    state,
-    { ...routingQuestions(snap), ...skillQuestion(skills) },
-    fetchImpl,
-  );
-
-  const probe = applyPolicy({ snap, skills, routing, confirm: null }, { routingOnly: true });
+  let routing;
   let confirm = null;
-  if (probe.next_action === "select_and_test" || probe.next_action === "deepen_recon") {
-    const top = candidateSkills(rankedSkills(choiceOf(routing.answers.skill).probabilities, skills, snap.keyword));
-    if (top.length > 0 && probe.next_action === "select_and_test") {
-      const built = confirmQuestions(top, snap);
-      const skillBodies = [];
-      for (const s of top) {
-        const body = await readFile(s.path || join(SKILLS, `${s.id}.md`), "utf8");
-        skillBodies.push(`--- ${s.id} ---\n${body.slice(0, 3500)}`);
+  let chain_hypotheses = chainHypothesesFor(snap.validatedItems || []);
+  if (mode === "heuristic") {
+    const planned = heuristicPlan(snap, skills);
+    routing = planned.routing;
+    confirm = planned.confirm;
+    chain_hypotheses = planned.chain_hypotheses;
+  } else {
+    const state = buildState(snap, skills);
+    routing = await jevCall(
+      state,
+      { ...routingQuestions(snap), ...skillQuestion(skills) },
+      fetchImpl,
+    );
+
+    const probe = applyPolicy({ snap, skills, routing, confirm: null }, { routingOnly: true });
+    if (probe.next_action === "select_and_test" || probe.next_action === "deepen_recon") {
+      const top = candidateSkills(rankedSkills(choiceOf(routing.answers.skill).probabilities, skills, snap.keyword));
+      if (top.length > 0 && probe.next_action === "select_and_test") {
+        const built = confirmQuestions(top, snap);
+        const skillBodies = [];
+        for (const s of top) {
+          const body = await readFile(s.path || join(SKILLS, `${s.id}.md`), "utf8");
+          skillBodies.push(`--- ${s.id} ---\n${body.slice(0, 3500)}`);
+        }
+        confirm = await jevCall(
+          `${state}\n\nTop skill texts:\n${skillBodies.join("\n")}`,
+          built.questions,
+          fetchImpl,
+        );
+        confirm.focus = built.focus;
       }
-      confirm = await jevCall(
-        `${state}\n\nTop skill texts:\n${skillBodies.join("\n")}`,
-        built.questions,
-        fetchImpl,
-      );
-      confirm.focus = built.focus;
     }
   }
 
   const decision = applyPolicy({ snap, skills, routing, confirm });
+  decision.planner = mode;
+  decision.chain_hypotheses = chain_hypotheses;
   return writeDecision(snap, decision, domain);
 }
 
@@ -1445,7 +1569,38 @@ export async function selftest() {
   const after01 = legalPhases(["01-subdomain-enum"]);
   assert(after01.includes("02-dns-resolution") && after01.includes("16-github-dorking"), "01 unlocks 02 and 16");
 
-  console.log(JSON.stringify({ selftest: "ok", cases: 12 }));
+  assert(plannerMode({ BUGHIVE_PLANNER: "", TYPESAFE_API_KEY: "" }) === "heuristic", "no key defaults to heuristic");
+  assert(plannerMode({ BUGHIVE_PLANNER: "jev", TYPESAFE_API_KEY: "" }) === "jev", "flag forces remote planner");
+  assert(plannerMode({ BUGHIVE_PLANNER: "heuristic", TYPESAFE_API_KEY: "present" }) === "heuristic", "flag forces local planner");
+
+  const localCold = applyPolicy({
+    snap: { ...coldSnap, counts: baseSnap.counts },
+    skills,
+    ...heuristicPlan({ ...coldSnap, counts: baseSnap.counts, validatedItems: [] }, skills),
+  });
+  assert(localCold.next_action === "deepen_recon", "heuristic cold start deepens recon");
+  assert(localCold.recon_phase === "01-subdomain-enum", "heuristic cold start picks phase 01");
+  assert(localCold.planner === undefined || localCold.source === "heuristic", "heuristic source");
+  assert(buildExecutor(localCold, "example.com").command.includes("recon-01"), "heuristic executor is recon-01");
+
+  const localSelect = applyPolicy({
+    snap: { ...baseSnap, legal: [], missing: [] },
+    skills,
+    ...heuristicPlan({ ...baseSnap, legal: [], missing: [], validatedItems: [] }, skills),
+  });
+  assert(localSelect.next_action === "select_and_test", "heuristic uses keyword skill when recon has no high-signal phase left");
+  assert(localSelect.skill === "seeds/idor", "heuristic picks the top keyword skill");
+
+  const chained = heuristicPlan({
+    ...baseSnap,
+    legal: [],
+    counts: { ...baseSnap.counts, validated: 1, chains: 0 },
+    validatedItems: [{ id: "r1", class: "open-redirect", title: "Open redirect in /go", hasChain: false }],
+  }, skills);
+  assert(chained.routing.answers.next_action.choice === "chain", "heuristic spawns chain before report");
+  assert(chained.chain_hypotheses.length === 1, "open redirect produces a chain hypothesis");
+
+  console.log(JSON.stringify({ selftest: "ok", cases: 15 }));
 }
 
 const invokedDirectly =
