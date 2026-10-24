@@ -1322,6 +1322,28 @@ async function main() {
     assert.ok(killed.failures.some((f) => f.includes("policy excludes")));
   });
 
+  await test("scope intake encodes host subdomains without public-suffix roots", async () => {
+    const { parseProgramText, encodeScopedHost } = plugins["scope-intake"];
+    const text = [
+      "In scope",
+      "www.airnewzealand.co.jp and their subdomains",
+      "www.airnewzealand.com.au and their subdomains",
+      "www.example.com",
+    ].join("\n");
+    const p = parseProgramText(text);
+    assert.ok(p.in_scope.includes("www.airnewzealand.co.jp"));
+    assert.ok(p.in_scope.includes("*.www.airnewzealand.co.jp"));
+    assert.ok(!p.in_scope.some((h) => h === "co.jp" || h === "com.au" || h.startsWith("**.www.")));
+    assert.ok(!p.in_scope.includes("airnewzealand.co.jp"), "bare registrable domain is not invented");
+    assert.ok(p.in_scope.includes("www.example.com"));
+    assert.ok(!p.in_scope.includes("*.www.example.com"), "no subdomain phrase, no wildcard");
+    assert.deepEqual(encodeScopedHost("**.www.airnewzealand.co.nz"), [
+      "www.airnewzealand.co.nz",
+      "*.www.airnewzealand.co.nz",
+    ]);
+    assert.deepEqual(encodeScopedHost("co.uk"), []);
+  });
+
   // ------------------------------------------------- coverage: 2 identities
   await test("coverage refuses to mark a cross-identity class tested from one account", async () => {
     const huntsRoot = await mkdtemp(join(tmpdir(), "bh-cov2-"));

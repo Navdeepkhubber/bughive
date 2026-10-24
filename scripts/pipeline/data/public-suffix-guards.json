@@ -1,0 +1,11 @@
+{
+  "note": "Structural public-suffix guard shared by _scope.py and dsh-scope-intake. Not the full Public Suffix List: two-letter TLDs plus a second-level token (co.jp, com.au, co.nz) and a few explicit multi-label suffixes. A name is a public suffix when it has no private label left.",
+  "sld_tokens": [
+    "ac", "ad", "asn", "co", "com", "ed", "edu", "geek", "gen", "go", "gob",
+    "gov", "govt", "gr", "id", "kiwi", "lg", "ltd", "me", "mil", "ne", "net",
+    "nic", "or", "org", "plc", "priv", "sch", "school", "web"
+  ],
+  "au_slds": ["edu", "gov"],
+  "au_states": ["act", "nsw", "nt", "qld", "sa", "tas", "vic", "wa"],
+  "extra_suffixes": ["eu.com", "gb.net", "uk.com", "us.com"]
+}

@@ -32,8 +32,10 @@ Usable as a library (``from _scope import scope_allows``) or as a CLI:
 
 from __future__ import annotations
 
+import json
 import re
 import sys
+from pathlib import Path
 
 __all__ = [
     "parse_scope",
@@ -43,7 +45,89 @@ __all__ = [
     "filter_hosts",
     "literal_roots",
     "enum_roots",
+    "is_public_suffix",
+    "registrable_domain",
 ]
+
+# Fallback if the shared guard file cannot be read. Kept in sync with
+# scripts/pipeline/data/public-suffix-guards.json; the file is the source of truth.
+_FALLBACK_RULES = {
+    "sld_tokens": ["ac", "co", "com", "edu", "go", "gob", "gov", "govt", "ne", "net", "or", "org"],
+    "au_slds": ["edu", "gov"],
+    "au_states": ["act", "nsw", "nt", "qld", "sa", "tas", "vic", "wa"],
+    "extra_suffixes": ["uk.com", "eu.com"],
+}
+
+
+def _suffix_rules() -> dict:
+    path = Path(__file__).with_name("data") / "public-suffix-guards.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        data = _FALLBACK_RULES
+    return {
+        "sld_tokens": frozenset(str(t).lower() for t in data.get("sld_tokens") or _FALLBACK_RULES["sld_tokens"]),
+        "au_slds": frozenset(str(t).lower() for t in data.get("au_slds") or []),
+        "au_states": frozenset(str(t).lower() for t in data.get("au_states") or []),
+        "extra_suffixes": tuple(
+            sorted((str(s).lower().strip(".") for s in data.get("extra_suffixes") or []), key=len, reverse=True)
+        ),
+    }
+
+
+_RULES = _suffix_rules()
+
+
+def _labels(host: str) -> list[str]:
+    return [part for part in str(host or "").strip().lower().rstrip(".").split(".") if part]
+
+
+def suffix_length(labels: list[str]) -> int:
+    """How many trailing labels are the public suffix (at least 1 when non-empty)."""
+    n = len(labels)
+    if n == 0:
+        return 0
+    joined = ".".join(labels)
+    best = 1
+    for suf in _RULES["extra_suffixes"]:
+        if joined == suf or joined.endswith("." + suf):
+            best = max(best, suf.count(".") + 1)
+            break
+    if (
+        n >= 3
+        and labels[-1] == "au"
+        and labels[-2] in _RULES["au_slds"]
+        and labels[-3] in _RULES["au_states"]
+    ):
+        best = max(best, 3)
+    if n >= 2 and len(labels[-1]) == 2 and labels[-2] in _RULES["sld_tokens"]:
+        best = max(best, 2)
+    return best
+
+
+def is_public_suffix(host: str) -> bool:
+    """True for a TLD or multi-part public suffix (co.jp, com.au, co.nz, co.uk).
+
+    A name with a private label (airnewzealand.co.jp) is not a public suffix.
+    Wildcard patterns are not suffixes.
+    """
+    labels = _labels(host)
+    if not labels or any("*" in label for label in labels):
+        return False
+    if len(labels) == 1:
+        return True
+    return len(labels) <= suffix_length(labels)
+
+
+def registrable_domain(host: str) -> str | None:
+    """eTLD+1, or None when ``host`` is itself a public suffix or a wildcard."""
+    labels = _labels(host)
+    if not labels or any("*" in label for label in labels):
+        return None
+    sl = suffix_length(labels)
+    if len(labels) <= sl:
+        return None
+    return ".".join(labels[-(sl + 1):])
 
 
 def parse_scope(text: str):
@@ -172,31 +256,49 @@ def enum_roots(scope_text: str):
 
     ``*.synedra.com`` -> ``synedra.com``; a scoped wildcard host such as
     ``g-*.0.threema.ch`` yields both ``0.threema.ch`` and the registrable
-    ``threema.ch``. Enumeration is passive and every discovered name is still
-    re-checked with ``scope_allows`` before it is ever contacted, so asking a
-    discovery source for a broad apex is safe -- it can only widen what we
-    learn, never what we touch.
+    ``threema.ch``. The private-label remainder is preferred. The registrable
+    apex is added only when it is not a public suffix.
+
+    ``**.www.airnewzealand.co.jp`` must yield ``www.airnewzealand.co.jp`` (and
+    the safe apex ``airnewzealand.co.jp``), never ``co.jp``. Bare public
+    suffixes are third-party namespace, not program scope. Enumeration is
+    still passive: every discovered name is re-checked with ``scope_allows``
+    before it is contacted.
     """
     include, _ = parse_scope(scope_text)
     roots: list[str] = []
 
     def add(value: str) -> None:
         value = value.strip(".").lower()
-        if value and value not in roots:
-            roots.append(value)
+        if not value or "*" in value or value in roots:
+            return
+        if is_public_suffix(value):
+            return
+        roots.append(value)
 
     for pattern in include:
         if "*" not in pattern:
+            # Literal includes are roots as written. A literal public suffix
+            # is still refused — there is no private label to enumerate.
             add(pattern)
             continue
-        labels = pattern.split(".")
+        labels = [part for part in pattern.split(".") if part]
         wildcard_idx = [i for i, label in enumerate(labels) if "*" in label]
         last_wild = max(wildcard_idx) if wildcard_idx else -1
         rest = labels[last_wild + 1:]
-        if rest:
-            add(".".join(rest))
-        if len(labels) >= 2:
-            add(".".join(labels[-2:]))
+        rest_name = ".".join(rest)
+        if rest and not is_public_suffix(rest_name):
+            add(rest_name)
+            reg = registrable_domain(rest_name)
+            if reg:
+                add(reg)
+            continue
+        # Remainder was empty or itself a public suffix. Fall back to the
+        # registrable apex of whatever private labels the pattern still has.
+        bare = [label for label in labels if "*" not in label]
+        reg = registrable_domain(".".join(bare)) if bare else None
+        if reg:
+            add(reg)
     return roots
 
 
