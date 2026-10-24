@@ -82,7 +82,21 @@ The canaries that must hit:
 | Gitleaks | Example-key allowlist and a report that still exists when empty. |
 | Strix / pentest-harness | A finding without a saved exchange is not confirmed. The run log is written even when the result is empty, so a step cannot vanish. No agent or UI code was copied. |
 
-Nuclei, TruffleHog, and osv-scanner are optional unmodified subprocesses (`plugins/dsh-scan/modules.js`). TruffleHog and BBOT are AGPL-3.0 and are not vendored or wrapped as a service. Semgrep registry rules and the CodeQL CLI are not included. Staged files under `skills/staging/` stay there until they are rewritten; the new seeds are original and do not contain harvest text.
+Nuclei, TruffleHog, and osv-scanner are optional unmodified subprocesses (`plugins/dsh-scan/modules.js`). TruffleHog and BBOT are AGPL-3.0 and are not vendored or wrapped as a service. Semgrep registry rules and the CodeQL CLI are not included.
+
+## Weekly sync and skill promotion
+
+`.github/workflows/sync-reports-and-skills.yml` is the only scheduled workflow. Sunday 06:00 UTC, and `workflow_dispatch` with `task` (`all`, `fetch`, `harvest`, `ingest-skills`) and `dry_run`.
+
+| Job | Command | Result |
+|---|---|---|
+| `fetch` | `bash scripts/pipeline/run.sh fetch` | Disclosed HackerOne reports. Needs `H1_API_USERNAME` and `H1_API_TOKEN`. `--dry-run` does not call the API. |
+| `harvest` | `bash scripts/pipeline/run.sh harvest` | Clones `skills/sources.txt` into `skills/staging/`. Header records repo, path, author, license, commit, and fetch date. |
+| `ingest-skills` | `bash scripts/pipeline/run.sh ingest-skills` | Promotes staging into `skills/learned/` and creates a seed only when `skills/seeds/` has none for that class. |
+
+`harvest` waits for `fetch`. `ingest-skills` waits for both. A failed fetch does not block promotion. `--dry-run` on any of the three writes nothing. Journal ingest is still `run.sh ingest` and is a different command.
+
+The loader reads `skills/seeds/` and `skills/learned/` only. Staging stays the raw cache. Of the current 118 staged files, 30 map to one class and 88 are flagged `no-class` in `skills/ingest-report.json`. 29 promoted skills are original house-style text because their repos have no permissive license. The one MIT file (`Aetherdz/huntpack` business-logic) is copied with its copyright line. New seeds are `file-upload`, `rce`, and `saml`. Existing seeds are not overwritten. A confirmed finding can list `coveredBy` skill ids. The skill file is not itself the proof.
 
 ## Reference repos
 
@@ -91,7 +105,7 @@ These were read as structure, not as code to paste. Proof rules did not change: 
 | Repo | Kept | Left out |
 |---|---|---|
 | [pentest-harness](https://github.com/S1N6H/pentest-harness) (MIT) | A run log that is not thrown away, and a misconfiguration that fails the process instead of looking like an empty result. Credentials stay out of the log. | The Cordis UI, plugin tree, and agent runtime. This repo already has its own plugin host. |
-| [Bug-Bounty-Skills](https://github.com/S1N6H/Bug-Bounty-Skills) (pipeline MIT; skill text is not) | Content-hash dedupe, `owner-repo-path` filenames, and a license hint on each staged file. A failed harvest exits non-zero. | The aggregator source list and the habit of dropping third-party `SKILL.md` files where an agent would load them. Staging is still not loaded. |
+| [Bug-Bounty-Skills](https://github.com/S1N6H/Bug-Bounty-Skills) (pipeline MIT; skill text is not) | Content-hash dedupe, `owner-repo-path` filenames, and a license hint on each staged file. A failed harvest exits non-zero. | The aggregator source list. Third-party prose is loaded only when the source license is permissive; otherwise the learned skill is original house text. |
 | [S1N6H-Recon](https://github.com/S1N6H/S1N6H-Recon) (no license) | The idea that several passive sources should be unioned, then marked when a tool is missing. Phase 01 already calls subfinder and amass as argv, then scope-filters. It now sets `degraded: true` when neither tool ran. | The script itself. It interpolates the domain into `shell=True`, prints "finished" before the processes exit, has no scope check, and has no license. |
 | [Barcha](https://github.com/S1N6H/Barcha) (MIT) | Append-only scan history, and the existing rule that a TLS error means the host is up. | Shodan wildcard enumeration and `ghauri --dump` against discovered hosts. That is exploitation without a per-host scope decision. |
 | [Pentest-AI-BurpSuite](https://github.com/S1N6H/Pentest-AI-BurpSuite) (MIT) | Claims cite a saved exchange. The scan history line does not invent findings. | The Burp agent, the jar, and a tool loop that sends arbitrary requests from model output. |

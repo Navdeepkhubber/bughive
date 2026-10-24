@@ -1,0 +1,9 @@
+# One GitHub owner/repo per line. The harvester clones these into skills/staging/.
+# Lines starting with # are ignored. This list is curated: no aggregator sweep,
+# no malware or red-team packs.
+
+ctahok/hermes-bug-bounty-skills
+0x002132/skills-bugbounty
+Aetherdz/huntpack
+murraywu/Bug-Bounty-Skills
+Gabson0x/bountyforge

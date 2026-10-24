@@ -1,46 +1,41 @@
 # Staging
 
-Raw skill files pulled in by `scripts/harvest-bb-skills.py`. Nothing here is
-trusted or loaded into a hunt — `AGENTS.md`'s skill loading rule only covers
-`skills/seeds/` and `skills/learned/`.
+Raw skill files from `skills/sources.txt`, written by `scripts/harvest-bb-skills.py`.
+This directory is not loaded. The hunt loader reads `skills/seeds/` and
+`skills/learned/` only.
 
-Each file carries an attribution comment (source repo, path, fetch date).
-Before promoting anything out of this folder:
+```bash
+bash scripts/pipeline/run.sh harvest          # clone the source list
+bash scripts/pipeline/run.sh harvest --dry-run
+bash scripts/pipeline/run.sh ingest-skills    # promote into learned/ and missing seeds
+bash scripts/pipeline/run.sh ingest-skills --dry-run
+```
 
-1. **Check the source repo's own license.** These are third-party repos,
-   not this project's content; nothing here is blanket-MIT.
-2. **Condense to house style.** Every real seed in `skills/seeds/*.md` is a
-   ~100-200 word cheat sheet with custom section headers and raw payload
-   lists — tighter than `skills/_schema.md`'s nominal cap, and nothing like
-   the prose-heavy methodology docs these sources tend to ship (often
-   2,000-4,000+ words). Rewrite, don't trim.
-3. **Drop target-specific identifiers**, per `_schema.md`.
-4. Move the finished file into `skills/seeds/`, dated and credited in the
-   commit message, and delete the staged original.
+The same two steps are jobs in `.github/workflows/sync-reports-and-skills.yml`,
+after the HackerOne fetch. `--dry-run` prints the plan and writes nothing.
 
-Run the harvester manually: `python3 scripts/harvest-bb-skills.py`.
-It shallow-clones the curated list in the script. A content hash that is
-already staged is recorded as a duplicate and not written again. If every
-source fails to clone, the process exits 1 and says the pipeline is broken.
-Zero configured sources exits 2. A clone that succeeds and contains no skill
-files is a real empty result and exits 0. `harvest-manifest.json` is the run
-record and is gitignored.
+Each staged file starts with a provenance header: source repo, path, fetch
+date, author, license, and commit. A later harvest that sees the same body
+backfills author, commit, or license and keeps the original fetch date.
+`harvest-manifest.json` is the run record and is gitignored. Zero sources
+exits 2. Every clone failing exits 1. A clone with no skill files exits 0.
 
-The public Bug-Bounty-Skills aggregator is not a source. Its pipeline license
-does not cover the skill text, and its source list includes red-team and
-malware packs. This folder stays reference material.
+`node scripts/ingest-staging.mjs` then:
 
-## License gate
+1. Classifies each `*.staged.md` from its filename. No single class, or more
+   than one, is flagged in `skills/ingest-report.json` and left here.
+2. Writes `skills/learned/staged-<name>.md` in the house schema from
+   `skills/_schema.md`, with the provenance comment kept.
+3. Copies the staged body under `## Source text` only for MIT, Apache, BSD,
+   ISC, or Unlicense. Every other license becomes original house text. The
+   staged sentences are not copied.
+4. Creates `skills/seeds/<class>.md` when that seed does not exist. An
+   existing seed is not rewritten.
+5. Writes the same report on a second run when nothing changed, and deletes
+   a `skills/learned/staged-*.md` file that no longer has a staged source.
+   `h1-*.md` files are left alone.
 
-Staging files keep their upstream licenses. TruffleHog and BBOT are AGPL-3.0:
-call the unmodified binaries, do not vendor them. Semgrep registry rules and
-the CodeQL CLI are not harvested. nuclei-templates is MIT, but this repo does
-not copy template text; `plugins/dsh-scan/pack.js` is an original pack in that
-shape.
-
-Promotion is a rewrite into `skills/seeds/` (see the house style above), then
-delete that staged file. Seeds must not contain the `STAGING ONLY` or
-`harvested:` markers. Classes rewritten as original seeds, not copied:
-ssti, nosql, cors, race-condition, mass-assignment, secret-detection,
-sca-advisory, tls.
-
+The public Bug-Bounty-Skills aggregator is not a source. TruffleHog and BBOT
+are AGPL-3.0 and are not harvested. Semgrep registry rules and the CodeQL CLI
+are not harvested. nuclei-templates is MIT; this repo does not copy template
+text.

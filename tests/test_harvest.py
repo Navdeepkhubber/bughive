@@ -1,5 +1,8 @@
 import importlib.util
+import json
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -113,6 +116,86 @@ class HarvestTests(unittest.TestCase):
 
     def test_agpl_is_not_classified_as_gpl(self):
         self.assertEqual(harvest.classify_license("GNU AFFERO GENERAL PUBLIC LICENSE"), "AGPL-3.0")
+
+    def test_dry_run_lists_configured_sources_and_does_not_clone(self):
+        done = subprocess.run(
+            [sys.executable, os.path.join(ROOT, "scripts", "harvest-bb-skills.py"), "--dry-run"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(done.returncode, 0, done.stderr)
+        payload = json.loads(done.stdout)
+        self.assertTrue(payload["dry_run"])
+        self.assertEqual(payload["sources"], [
+            "ctahok/hermes-bug-bounty-skills",
+            "0x002132/skills-bugbounty",
+            "Aetherdz/huntpack",
+            "murraywu/Bug-Bounty-Skills",
+            "Gabson0x/bountyforge",
+        ])
+
+    def test_author_and_commit_land_in_the_header(self):
+        with tempfile.TemporaryDirectory() as staging:
+            result = harvest.harvest_sources(
+                ["ada/notes"],
+                staging,
+                git_clone(SKILL, "Ada Lovelace"),
+                "2026-10-24T00:00:00+00:00",
+                ROOT,
+            )
+            self.assertEqual(result["written"], 1)
+            with open(os.path.join(staging, result["files"][0]["dest"]), encoding="utf-8") as handle:
+                text = handle.read()
+            self.assertIn("author: Ada Lovelace", text)
+            self.assertRegex(text, r"commit: [0-9a-f]{40};")
+            self.assertIn("license: MIT", text)
+
+    def test_unchanged_body_backfills_author_without_a_new_write(self):
+        with tempfile.TemporaryDirectory() as staging:
+            name = harvest.flat_name("ada/notes", "SKILL.md")
+            with open(os.path.join(staging, name), "w", encoding="utf-8") as handle:
+                handle.write(
+                    "<!-- harvested: ada/notes/SKILL.md on 2026-10-01T00:00:00+00:00 -->\n"
+                    "<!-- STAGING ONLY -- old header -->\n\n"
+                    + SKILL
+                )
+            result = harvest.harvest_sources(
+                ["ada/notes"],
+                staging,
+                git_clone(SKILL, "Ada Lovelace"),
+                "2026-10-24T00:00:00+00:00",
+                ROOT,
+            )
+            self.assertEqual(result["written"], 0)
+            self.assertEqual(result["files"][0]["status"], "provenance")
+            with open(os.path.join(staging, name), encoding="utf-8") as handle:
+                text = handle.read()
+            self.assertIn("author: Ada Lovelace", text)
+            self.assertIn("on 2026-10-01T00:00:00+00:00", text)
+            self.assertTrue(text.endswith(SKILL) or SKILL in text)
+
+
+def git_clone(body, author):
+    def clone(repo, dest):
+        os.makedirs(dest, exist_ok=True)
+        env = {
+            **os.environ,
+            "GIT_AUTHOR_NAME": author,
+            "GIT_AUTHOR_EMAIL": "ada@example.com",
+            "GIT_COMMITTER_NAME": author,
+            "GIT_COMMITTER_EMAIL": "ada@example.com",
+        }
+        subprocess.run(["git", "init", dest], check=True, capture_output=True)
+        with open(os.path.join(dest, "LICENSE"), "w", encoding="utf-8") as handle:
+            handle.write("MIT License\n\nPermission is hereby granted\n")
+        with open(os.path.join(dest, "SKILL.md"), "w", encoding="utf-8") as handle:
+            handle.write(body)
+        subprocess.run(["git", "-C", dest, "add", "LICENSE", "SKILL.md"], check=True, capture_output=True)
+        subprocess.run(["git", "-C", dest, "commit", "-m", "add skill"], check=True, capture_output=True, env=env)
+        return True
+
+    return clone
 
 
 if __name__ == "__main__":

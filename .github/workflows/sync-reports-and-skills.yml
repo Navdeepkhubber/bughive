@@ -1,0 +1,128 @@
+name: Sync reports and skills
+
+on:
+  # Weekly, Sunday 06:00 UTC (11:30 Asia/Calcutta).
+  schedule:
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+    inputs:
+      task:
+        description: Which task to run
+        type: choice
+        default: all
+        options:
+          - all
+          - fetch
+          - harvest
+          - ingest-skills
+      dry_run:
+        description: Print the plan and do not write or push
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-reports-and-skills
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    if: github.event_name == 'schedule' || inputs.task == 'all' || inputs.task == 'fetch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install deps
+        run: pip install -r intelligence/requirements.txt
+      - name: Fetch disclosed reports
+        env:
+          H1_API_USERNAME: ${{ secrets.H1_API_USERNAME }}
+          H1_API_TOKEN: ${{ secrets.H1_API_TOKEN }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            python3 intelligence/fetch-h1-reports.py --dry-run
+            exit 0
+          fi
+          if [ -z "$H1_API_USERNAME" ] || [ -z "$H1_API_TOKEN" ]; then
+            echo '::error::Set H1_API_USERNAME and H1_API_TOKEN repository secrets to fetch disclosed reports.'
+            exit 1
+          fi
+          python3 intelligence/fetch-h1-reports.py
+      - name: Upload report queue
+        if: inputs.dry_run != true
+        uses: actions/upload-artifact@v4
+        with:
+          name: h1-reports
+          path: reports/
+          if-no-files-found: ignore
+          retention-days: 1
+      - name: Commit reports
+        if: inputs.dry_run != true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p reports
+          cp -n ~/.dsh/bounty-queue/h1-*.json reports/ 2>/dev/null || true
+          git add -A reports/
+          if ! git diff --staged --quiet; then
+            git commit -m "Auto-update disclosed reports: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          fi
+
+  harvest:
+    needs: fetch
+    if: always() && needs.fetch.result != 'cancelled' && (github.event_name == 'schedule' || inputs.task == 'all' || inputs.task == 'harvest')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Harvest staged skills
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            python3 scripts/harvest-bb-skills.py --dry-run
+          else
+            python3 scripts/harvest-bb-skills.py
+          fi
+      - name: Commit staging
+        if: inputs.dry_run != true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A skills/staging skills/sources.txt
+          if ! git diff --staged --quiet; then
+            git commit -m "Harvest staged skills: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          fi
+
+  ingest-skills:
+    needs: [fetch, harvest]
+    if: always() && needs.fetch.result != 'cancelled' && needs.harvest.result != 'cancelled' && (github.event_name == 'schedule' || inputs.task == 'all' || inputs.task == 'ingest-skills')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Promote staged skills
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/ingest-staging.mjs --dry-run
+          else
+            node scripts/ingest-staging.mjs
+          fi
+      - name: Commit promoted skills
+        if: inputs.dry_run != true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A skills/learned skills/seeds skills/ingest-report.json
+          if ! git diff --staged --quiet; then
+            git commit -m "Promote staged skills: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          fi

@@ -15,7 +15,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, writeFileSync, mkdtempSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdtempSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import http from "node:http";
 import https from "node:https";
@@ -892,6 +892,11 @@ export async function runScan(opts = {}) {
     seen.add(finding.fingerprint);
     deduped.push(finding);
   }
+  const coverage = loadSkillCoverage(opts.skillCoverage);
+  for (const finding of deduped) {
+    const hits = coverage.get(finding.class);
+    if (hits?.length) finding.coveredBy = hits;
+  }
   const stats = {
     ...statsBase(),
     brokenReason: null,
@@ -930,6 +935,29 @@ function moduleEvents(stats) {
       detail: run?.detail || null,
     };
   });
+}
+
+function loadSkillCoverage(override) {
+  if (override === false) return new Map();
+  let rows = null;
+  if (override && Array.isArray(override.files)) rows = override.files;
+  else if (!override) {
+    try {
+      rows = JSON.parse(readFileSync(join(SKILLS_DIR, "ingest-report.json"), "utf8")).files;
+    } catch {
+      return new Map();
+    }
+  }
+  const map = new Map();
+  for (const row of rows || []) {
+    if (row.status !== "ingested") continue;
+    for (const cls of row.classes || []) {
+      const list = map.get(cls) || [];
+      list.push(row.id);
+      map.set(cls, list);
+    }
+  }
+  return map;
 }
 
 function finish(stats, findings, sarif) {

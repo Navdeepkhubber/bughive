@@ -4,6 +4,8 @@ import contextlib
 import io
 import json
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -146,6 +148,12 @@ class FetchReportsTest(unittest.TestCase):
                 with self.assertRaises(SystemExit) as caught:
                     fetcher.main()
                 self.assertEqual(caught.exception.code, 1)
+
+    def test_dry_run_prints_and_does_not_fetch(self):
+        script = Path(__file__).resolve().parents[1] / "intelligence" / "fetch-h1-reports.py"
+        done = subprocess.run([sys.executable, str(script), "--dry-run"], capture_output=True, text=True, check=False)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("dry-run: would fetch disclosed HackerOne reports", done.stdout)
 
 
 if __name__ == "__main__":

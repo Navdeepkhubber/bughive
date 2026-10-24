@@ -363,5 +363,7 @@ def main():
 if __name__ == "__main__":
     if sys.argv[1:] == ["--check-auth"]:
         check_api_auth()
+    elif "--dry-run" in sys.argv[1:]:
+        print("dry-run: would fetch disclosed HackerOne reports")
     else:
         main()

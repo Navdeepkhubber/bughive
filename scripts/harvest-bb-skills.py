@@ -13,8 +13,10 @@ repo's aggregator source list, and it does not treat a failed clone as an
 empty harvest.
 
 Each staged file keeps an attribution header: source repo, path, fetch time,
-and a short license hint read from the source repo. The hint is not permission
-to promote the file.
+author, commit, and a short license hint read from the source repo. The hint
+is not permission to load the file. `scripts/ingest-staging.mjs` promotes a
+house-style skill into skills/learned/ and, when that class has no seed, into
+skills/seeds/. This script does not write those directories.
 """
 
 import hashlib
@@ -53,6 +55,23 @@ def strip_header(text: str) -> str:
     if text.startswith("<!-- harvested:"):
         return text.split("\n\n", 1)[-1]
     return text
+
+
+def fetched_stamp(text: str, fallback: str) -> str:
+    match = re.search(r"harvested:.*? on (\S+)", text)
+    return match.group(1) if match else fallback
+
+
+def provenance_changed(old_text: str, meta: dict, license_name: str) -> bool:
+    """True when a re-clone can fill author, commit, or license without touching the body."""
+    header = old_text.split("\n\n", 1)[0]
+    if meta.get("author") not in ("", "unknown") and f"author: {meta['author']}" not in header:
+        return True
+    if meta.get("commit") not in ("", "unknown") and f"commit: {meta['commit']}" not in header:
+        return True
+    if license_name not in ("", "unspecified") and f"license: {license_name}" not in header:
+        return True
+    return False
 
 
 def classify_license(text: str) -> str:
@@ -130,13 +149,34 @@ def index_existing(staging_dir: str):
     return by_hash, by_name
 
 
-def attribute(repo: str, rel_path: str, fetched: str, license_name: str, body: str) -> str:
+def git_meta(repo_dir: str) -> dict:
+    def one(*args):
+        try:
+            done = subprocess.run(
+                ["git", "-C", repo_dir, *args],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            return (done.stdout or "").strip()
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+            return ""
+
+    return {
+        "commit": one("rev-parse", "HEAD") or "unknown",
+        "author": one("log", "-1", "--format=%an") or "unknown",
+    }
+
+
+def attribute(repo: str, rel_path: str, fetched: str, license_name: str, body: str, author: str = "unknown", commit: str = "unknown") -> str:
     rel = rel_path.replace(os.sep, "/")
     return (
         f"<!-- harvested: {repo}/{rel} on {fetched} -->\n"
-        f"<!-- license: {license_name}; source repo license, not permission to load or promote -->\n"
-        "<!-- STAGING ONLY -- condense to skills/_schema.md house style, "
-        "verify the source repo's license, then promote to skills/seeds/ -->\n\n"
+        f"<!-- license: {license_name}; author: {author}; commit: {commit}; "
+        "source repo license, not permission to load or promote -->\n"
+        "<!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style "
+        "skill; a permissive license may also keep this text in skills/learned/. -->\n\n"
         f"{body}"
     )
 
@@ -193,6 +233,7 @@ def harvest_sources(sources, staging_dir, clone, now, root) -> dict:
                 continue
             cloned += 1
             license_name = license_hint(clone_dir)
+            meta = git_meta(clone_dir)
             skill_files = list_skill_files(clone_dir)
             print(f"[{repo}] {len(skill_files)} candidate file(s), license {license_name}", flush=True)
             if not skill_files:
@@ -228,21 +269,32 @@ def harvest_sources(sources, staging_dir, clone, now, root) -> dict:
                     continue
                 if os.path.exists(dest):
                     with open(dest, encoding="utf-8", errors="replace") as handle:
-                        old_body = strip_header(handle.read())
-                    if old_body == body:
+                        old_text = handle.read()
+                    if strip_header(old_text) == body:
                         present += 1
                         by_hash.setdefault(digest, name)
                         by_name[name] = digest
+                        status = "present"
+                        fresh = attribute(
+                            repo, rel_path, fetched_stamp(old_text, now), license_name, body,
+                            meta["author"], meta["commit"],
+                        )
+                        if fresh != old_text and provenance_changed(old_text, meta, license_name):
+                            with open(dest, "w", encoding="utf-8") as handle:
+                                handle.write(fresh)
+                            status = "provenance"
                         entries.append({
                             "repo": repo,
                             "path": rel_path,
                             "sha256": digest,
                             "dest": name,
-                            "status": "present",
+                            "status": status,
                             "license": license_name,
+                            "author": meta["author"],
+                            "commit": meta["commit"],
                         })
                         continue
-                text = attribute(repo, rel_path, now, license_name, body)
+                text = attribute(repo, rel_path, now, license_name, body, meta["author"], meta["commit"])
                 previous = by_name.get(name)
                 if previous and by_hash.get(previous) == name:
                     by_hash.pop(previous, None)
@@ -305,9 +357,28 @@ def _write_manifest(staging_dir: str, sources, result: dict) -> None:
         handle.write("\n")
 
 
-def main() -> int:
+def read_sources(path: str) -> list:
+    repos = []
+    with open(path, encoding="utf-8") as handle:
+        for raw in handle:
+            line = raw.split("#", 1)[0].strip()
+            if line:
+                repos.append(line)
+    return repos
+
+
+def main(argv=None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
+    dry = "--dry-run" in args
+    source_file = os.path.join(ROOT, "skills", "sources.txt")
+    if "--sources" in args:
+        source_file = args[args.index("--sources") + 1]
+    sources = read_sources(source_file) if os.path.isfile(source_file) else list(SOURCES)
+    if dry:
+        print(json.dumps({"dry_run": True, "sources": sources}))
+        return 0 if sources else 2
     result = harvest_sources(
-        SOURCES,
+        sources,
         STAGING_DIR,
         clone_repo,
         datetime.now(timezone.utc).isoformat(),
