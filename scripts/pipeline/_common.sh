@@ -22,6 +22,23 @@ mark_done() {
   date -u +%Y-%m-%dT%H:%M:%SZ > "$(hunt_dir "$1")/.state/$2.done"
 }
 
+# Non-empty line count as one integer.
+# `grep -c` prints 0 and exits 1 when nothing matches. `|| echo 0` then appends
+# a second line, so the value is "0\n0" and `[ "$n" -gt 0 ]` errors.
+line_count() {
+  local n file="$1"
+  if [ ! -f "$file" ]; then
+    printf '0\n'
+    return 0
+  fi
+  n=$(grep -c . "$file" 2>/dev/null || true)
+  n="${n%%$'\n'*}"
+  case "$n" in
+    ''|*[!0-9]*) n=0 ;;
+  esac
+  printf '%s\n' "$n"
+}
+
 # Phase directory for a recon-NN stage. Empty when the stage is not recon.
 recon_phase_id() {
   case "$1" in

@@ -7,6 +7,8 @@ out="$hd/recon/15-mass-oneliners"
 cache="$hd/recon/12-response-cache"
 endpoints="$hd/recon/all_endpoints"
 mkdir -p "$out"
+# Drop a previous run's SSRF file. Only a non-empty oob-hits poll may recreate it.
+rm -f "$out/vuln-ssrf"
 
 tools_run=()
 tools_skipped=()
@@ -66,17 +68,35 @@ if [ "$have_qsreplace" -eq 1 ] && [ "$have_httpx" -eq 1 ]; then
     fi
   fi
 
+  # httpx -fr records the payloaded requests that were SENT, not OOB callbacks.
+  # A stale vuln-ssrf from an earlier run must not be promoted either.
+  rm -f "$out/vuln-ssrf"
   if [ -n "$collab" ]; then
-    timeout 300 bash -c "cat '$param_urls' | qsreplace '$collab' | httpx -fr -silent -o '$out/vuln-ssrf'" 2>/dev/null || true
-    # Correlate any interaction back to the payload.
+    mkdir -p "$out/provenance"
+    timeout 300 bash -c "cat '$param_urls' | qsreplace '$collab' | httpx -fr -silent -o '$out/provenance/ssrf-sent.txt'" 2>/dev/null || true
+    : > "$out/oob-hits"
     if [ -f "$oob_log" ]; then
       node "$oob_cli" poll --log "$oob_log" --format urls > "$out/oob-hits" 2>/dev/null || true
-      hits=$(grep -c . "$out/oob-hits" 2>/dev/null || echo 0)
-      [ "$hits" -gt 0 ] && log "OOB: $hits out-of-band interaction(s) recorded — see $out/oob-hits"
+    fi
+    # One integer. grep -c already prints 0 when nothing matches; do not
+    # append another 0, or the value becomes two lines and the test breaks.
+    hits=$(line_count "$out/oob-hits")
+    hits="${hits%%$'\n'*}"
+    case "$hits" in
+      ''|*[!0-9]*) hits=0 ;;
+    esac
+    if [ "$hits" -gt 0 ]; then
+      log "OOB: $hits out-of-band interaction(s) recorded — see $out/oob-hits"
+      cp "$out/oob-hits" "$out/vuln-ssrf"
+      printf 'status=confirmed\nhits=%s\nsent_payloads=provenance/ssrf-sent.txt\n' "$hits" > "$out/ssrf-status.txt"
+    else
+      printf 'status=unconfirmed\nhits=0\nsent_payloads=provenance/ssrf-sent.txt\n' > "$out/ssrf-status.txt"
+      log "SSRF probes sent; no OOB interaction recorded (not promoted)"
     fi
     cleanup_oob
     oob_pid=""
   else
+    printf 'status=skipped\nhits=0\n' > "$out/ssrf-status.txt"
     tools_skipped+=('{"tool":"ssrf-check","reason":"no collaborator available: node or oob-cli missing and BUGHIVE_COLLABORATOR_URL unset. Blind SSRF/XXE/JNDI were NOT tested."}')
   fi
 
@@ -191,6 +211,7 @@ summary = {
         "Hits are candidates, not findings. SSTI product 35442497 in the body is a strong lead.",
         "XSS marker reflection is NOT XSS until a matcher confirms it on a saved response.",
         "A count of 0 means no parameter URL was probed or no marker matched. It is not a clean bill of health.",
+        "SSRF priority-9 rows are OOB interactions from oob-hits. httpx -fr requests that were only sent live in provenance/ssrf-sent.txt and are not candidates.",
     ],
     "output_files": [str(out)],
 }

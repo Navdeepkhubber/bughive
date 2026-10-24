@@ -21,26 +21,49 @@ done < <(python3 "$script_dir/_scope.py" enum-roots "$hd/scope.txt" 2>/dev/null 
 if [ "${#enum_roots[@]}" -eq 0 ]; then enum_roots=("$domain"); fi
 log "enumeration roots: ${enum_roots[*]}"
 
-# One phase budget for every root. A 30-domain VDP must not spend 90s on each
-# root and never leave enumeration. Partial names are kept and flagged.
+# One phase wall clock for the whole root list. subfinder (-dL) and amass
+# (-df) each run once. A per-root loop spends 90–150s on every registrable
+# root and gets SIGTERM before the phase finishes on a large VDP. Partial
+# output is kept and the phase is flagged truncated when the clock expires.
+# Per-root knobs in batch-defaults.json stay in place for the tranche runner;
+# this phase no longer multiplies them by the root count.
 eval "$(python3 "$script_dir/_batch.py" exports)"
 enum_budget="${BUGHIVE_SUBFINDER_BUDGET_SECONDS:-300}"
-sub_per="${BUGHIVE_SUBFINDER_PER_ROOT_SECONDS:-90}"
-amass_per="${BUGHIVE_AMASS_PER_ROOT_SECONDS:-150}"
+case "$enum_budget" in
+  ''|*[!0-9]*) enum_budget=300 ;;
+esac
 enum_deadline=$(( $(date +%s) + enum_budget ))
 truncated=0
 
-within_budget() {
-  # Prints the timeout to use. Exit 1 when the phase budget is already spent.
-  # Runs in a command substitution, so it must not rely on updating caller state.
-  local per="$1" left
+printf '%s\n' "${enum_roots[@]}" > "$out/enum-roots.txt"
+
+phase_timeout() {
+  # Seconds left on the single phase clock. Exit 1 when it is already spent.
+  local left
   left=$(( enum_deadline - $(date +%s) ))
-  if [ "$left" -lt 8 ]; then
+  if [ "$left" -lt 1 ]; then
     echo 0
     return 1
   fi
-  if [ "$left" -gt "$per" ]; then left="$per"; fi
   echo "$left"
+  return 0
+}
+
+run_enum() {
+  local name="$1" left rc
+  shift
+  if ! left="$(phase_timeout)"; then
+    truncated=1
+    log "$name skipped; phase wall clock exhausted"
+    return 0
+  fi
+  log "$name batched over ${#enum_roots[@]} root(s), ${left}s left on the phase clock"
+  rc=0
+  timeout "$left" "$@" || rc=$?
+  if [ "$rc" -eq 124 ]; then
+    truncated=1
+    log "$name hit the phase wall clock; partial output kept"
+  fi
   return 0
 }
 
@@ -50,32 +73,16 @@ tools_skipped=()
 
 if command -v subfinder >/dev/null 2>&1; then
   tools_run+=("subfinder")
-  for root in "${enum_roots[@]}"; do
-    if ! left="$(within_budget "$sub_per")"; then
-      truncated=1
-      log "subfinder budget exhausted; remaining roots skipped"
-      break
-    fi
-    log "subfinder $root (passive, ${left}s)"
-    timeout "$left" subfinder -d "$root" -silent -o "$out/raw-subfinder-$root.txt" 2>/dev/null || true
-    if [ -s "$out/raw-subfinder-$root.txt" ]; then cat "$out/raw-subfinder-$root.txt" >> "$out/raw-combined.txt"; fi
-  done
+  run_enum subfinder subfinder -dL "$out/enum-roots.txt" -silent -o "$out/raw-subfinder.txt"
+  if [ -s "$out/raw-subfinder.txt" ]; then cat "$out/raw-subfinder.txt" >> "$out/raw-combined.txt"; fi
 else
   tools_skipped+=('{"tool":"subfinder","reason":"not installed"}')
 fi
 
 if command -v amass >/dev/null 2>&1; then
   tools_run+=("amass")
-  for root in "${enum_roots[@]}"; do
-    if ! left="$(within_budget "$amass_per")"; then
-      truncated=1
-      log "amass budget exhausted; remaining roots skipped"
-      break
-    fi
-    log "amass enum -passive $root (${left}s)"
-    timeout "$left" amass enum -passive -d "$root" -silent -o "$out/raw-amass-$root.txt" 2>/dev/null || true
-    if [ -s "$out/raw-amass-$root.txt" ]; then cat "$out/raw-amass-$root.txt" >> "$out/raw-combined.txt"; fi
-  done
+  run_enum amass amass enum -passive -df "$out/enum-roots.txt" -silent -o "$out/raw-amass.txt"
+  if [ -s "$out/raw-amass.txt" ]; then cat "$out/raw-amass.txt" >> "$out/raw-combined.txt"; fi
 else
   tools_skipped+=('{"tool":"amass","reason":"not installed"}')
 fi
@@ -156,9 +163,12 @@ notes = [
     "assets.txt is the wildcard-expanded, scope-verified host list that later phases must use.",
     "scope.txt remains the program scope verbatim (wildcards included) and is what scope_guard enforces.",
 ]
+notes.append(
+    "Passive enumeration is batched: one subfinder -dL and one amass -df over enum-roots.txt, sharing one phase wall clock."
+)
 if enum_truncated:
     notes.append(
-        "enumeration hit its wall-clock budget; remaining roots were skipped and this phase is truncated"
+        "enumeration hit its wall-clock budget; partial names were kept and this phase is truncated"
     )
 if len(tools_run) == 0:
     notes.append(
