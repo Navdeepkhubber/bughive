@@ -122,7 +122,7 @@ should actually invoke:
 | `run.sh proxy start\|stop\|requests\|env <domain>` | Live capture proxy. `start` records a pid; `env` prints the exports; then run any tool and its traffic lands in `recon/proxy-capture.jsonl`. Add `--mitm` for full HTTPS capture. |
 | `run.sh shots <domain>` | Screenshot + perceptual-hash each in-scope host, then cluster clones into `recon/image-clusters.json`. |
 | `run.sh fetch [--dry-run]` | Fetch disclosed HackerOne reports. Job 1 of the weekly sync. |
-| `run.sh harvest [--dry-run]` | Clone the repos in `skills/sources.txt` into `skills/staging/` with provenance. Job 2. |
+| `run.sh harvest [--dry-run]` | Clone the repos in `skills/sources.txt` into `skills/staging/` with provenance. Copyleft repos are skipped. Other non-permissive repos are flagged. Job 2. |
 | `run.sh ingest-skills [--dry-run]` | Promote staged skills into `skills/learned/` and any missing seed. Job 3. This is not journal `ingest`. |
 
 **Capturing traffic you did not originate.** The journal only saw pipeline requests
@@ -387,8 +387,10 @@ runs when an earlier one fails, and it does not run when an earlier one is
 cancelled. The same three commands are `run.sh fetch`, `run.sh harvest`, and
 `run.sh ingest-skills`.
 
-Promotion reads `skills/staging/*.staged.md`. A filename that maps to one
-class becomes a house-style file in `skills/learned/`. MIT, Apache, BSD, ISC,
+Harvest reads `skills/sources.txt`. AGPL and GPL clones are skipped. Any
+other non-permissive license is flagged and still staged. Promotion then
+reads `skills/staging/*.staged.md`. A filename that maps to one class
+becomes a house-style file in `skills/learned/`. MIT, Apache, BSD, ISC,
 and Unlicense sources also keep their text under a Source text heading.
 Anything else is an original seed-style writeup; the staged prose is not
 copied. A class with no file in `skills/seeds/` gets one, and an existing

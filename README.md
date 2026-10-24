@@ -91,7 +91,7 @@ Nuclei, TruffleHog, and osv-scanner are optional unmodified subprocesses (`plugi
 | Job | Command | Result |
 |---|---|---|
 | `fetch` | `bash scripts/pipeline/run.sh fetch` | Disclosed HackerOne reports. Needs `H1_API_USERNAME` and `H1_API_TOKEN`. `--dry-run` does not call the API. |
-| `harvest` | `bash scripts/pipeline/run.sh harvest` | Clones `skills/sources.txt` into `skills/staging/`. Header records repo, path, author, license, commit, and fetch date. |
+| `harvest` | `bash scripts/pipeline/run.sh harvest` | Clones `skills/sources.txt` into `skills/staging/`. Header records repo, path, author, license, commit, and fetch date. AGPL and GPL repos are skipped. Other non-permissive repos are flagged and still staged so ingest can derive house text. |
 | `ingest-skills` | `bash scripts/pipeline/run.sh ingest-skills` | Promotes staging into `skills/learned/` and creates a seed only when `skills/seeds/` has none for that class. |
 
 `harvest` waits for `fetch`. `ingest-skills` waits for both. A failed fetch does not block promotion. `--dry-run` on any of the three writes nothing. Journal ingest is still `run.sh ingest` and is a different command.

@@ -45,6 +45,7 @@ SOURCES = [
 MAX_BYTES_PER_FILE = 1_000_000
 CLONE_TIMEOUT_SECS = 120
 MANIFEST_NAME = "harvest-manifest.json"
+PERMISSIVE = {"MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "0BSD", "Unlicense"}
 
 
 def content_hash(text: str) -> str:
@@ -90,6 +91,17 @@ def classify_license(text: str) -> str:
         if re.search(pattern, head, re.IGNORECASE):
             return label
     return "unspecified"
+
+
+def license_policy(name: str) -> str:
+    """permissive: stage and allow ingest to copy. flagged: stage for derivation only.
+    skip: copyleft, do not write the files into this repo."""
+    if name in PERMISSIVE:
+        return "permissive"
+    token = (name or "").upper()
+    if token.startswith("AGPL") or token.startswith("GPL"):
+        return "skip"
+    return "flagged"
 
 
 def license_hint(repo_dir: str) -> str:
@@ -206,6 +218,8 @@ def harvest_sources(sources, staging_dir, clone, now, root) -> dict:
     entries = []
     written = present = duplicates = skipped = 0
     failed = []
+    flagged = []
+    license_skipped = []
     cloned = 0
 
     if not sources:
@@ -216,6 +230,8 @@ def harvest_sources(sources, staging_dir, clone, now, root) -> dict:
             "duplicates": 0,
             "skipped": 0,
             "failed_sources": [],
+            "flagged_sources": [],
+            "license_skipped": [],
             "cloned": 0,
             "files": [],
             "verdict": "PIPELINE BROKEN: 0 harvest sources configured. This is not an empty skill library.",
@@ -233,17 +249,31 @@ def harvest_sources(sources, staging_dir, clone, now, root) -> dict:
                 continue
             cloned += 1
             license_name = license_hint(clone_dir)
+            policy = license_policy(license_name)
             meta = git_meta(clone_dir)
             skill_files = list_skill_files(clone_dir)
             print(f"[{repo}] {len(skill_files)} candidate file(s), license {license_name}", flush=True)
+            if policy == "skip":
+                license_skipped.append(repo)
+                entries.append({
+                    "repo": repo,
+                    "status": "license-skipped",
+                    "license": license_name,
+                    "license_policy": "skip",
+                })
+                print(f"[{repo}] SKIPPED incompatible license {license_name}; no files staged", flush=True)
+                continue
+            if policy == "flagged":
+                flagged.append(repo)
+                print(f"[{repo}] FLAGGED license {license_name}; staging for derivation only", flush=True)
             if not skill_files:
-                entries.append({"repo": repo, "status": "no-skill-files", "license": license_name})
+                entries.append({"repo": repo, "status": "no-skill-files", "license": license_name, "license_policy": policy})
             for full_path in skill_files:
                 rel_path = os.path.relpath(full_path, clone_dir).replace(os.sep, "/")
                 size = os.path.getsize(full_path)
                 if size > MAX_BYTES_PER_FILE:
                     skipped += 1
-                    entries.append({"repo": repo, "path": rel_path, "status": "skipped", "license": license_name, "bytes": size})
+                    entries.append({"repo": repo, "path": rel_path, "status": "skipped", "license": license_name, "license_policy": policy, "bytes": size})
                     print(f"  ! skipped {rel_path} ({size} bytes > cap)", flush=True)
                     continue
                 with open(full_path, encoding="utf-8", errors="replace") as handle:
@@ -264,6 +294,7 @@ def harvest_sources(sources, staging_dir, clone, now, root) -> dict:
                         "status": "duplicate",
                         "kept": kept,
                         "license": license_name,
+                        "license_policy": policy,
                     })
                     print(f"  dup {rel_path} (same as {kept})", flush=True)
                     continue
@@ -290,6 +321,7 @@ def harvest_sources(sources, staging_dir, clone, now, root) -> dict:
                             "dest": name,
                             "status": status,
                             "license": license_name,
+                            "license_policy": policy,
                             "author": meta["author"],
                             "commit": meta["commit"],
                         })
@@ -310,6 +342,7 @@ def harvest_sources(sources, staging_dir, clone, now, root) -> dict:
                     "dest": name,
                     "status": "written",
                     "license": license_name,
+                    "license_policy": policy,
                 })
 
     if cloned == 0:
@@ -322,7 +355,9 @@ def harvest_sources(sources, staging_dir, clone, now, root) -> dict:
         exit_code = 0
         verdict = (
             f"Harvest finished. {written} new/updated, {present} already present, "
-            f"{duplicates} duplicates skipped, {skipped} too large, {len(failed)} source failures."
+            f"{duplicates} duplicates skipped, {skipped} too large, "
+            f"{len(license_skipped)} copyleft repos skipped, {len(flagged)} non-permissive repos flagged, "
+            f"{len(failed)} source failures."
         )
     result = {
         "exit_code": exit_code,
@@ -331,6 +366,8 @@ def harvest_sources(sources, staging_dir, clone, now, root) -> dict:
         "duplicates": duplicates,
         "skipped": skipped,
         "failed_sources": failed,
+        "flagged_sources": flagged,
+        "license_skipped": license_skipped,
         "cloned": cloned,
         "files": entries,
         "verdict": verdict,
@@ -349,6 +386,8 @@ def _write_manifest(staging_dir: str, sources, result: dict) -> None:
         "duplicates": result["duplicates"],
         "skipped": result["skipped"],
         "failed_sources": result["failed_sources"],
+        "flagged_sources": result.get("flagged_sources", []),
+        "license_skipped": result.get("license_skipped", []),
         "files": result["files"],
     }
     path = os.path.join(staging_dir, MANIFEST_NAME)

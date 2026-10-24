@@ -1,6 +1,8 @@
 # One GitHub owner/repo per line. The harvester clones these into skills/staging/.
 # Lines starting with # are ignored. This list is curated: no aggregator sweep,
 # no malware or red-team packs.
+# Not a source: S1N6H/pentest-harness (MIT agent harness, not a skill pack) and
+# S1N6H/Bug-Bounty-Skills (its pipeline license does not cover the skill text).
 
 ctahok/hermes-bug-bounty-skills
 0x002132/skills-bugbounty

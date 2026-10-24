@@ -116,6 +116,35 @@ class HarvestTests(unittest.TestCase):
 
     def test_agpl_is_not_classified_as_gpl(self):
         self.assertEqual(harvest.classify_license("GNU AFFERO GENERAL PUBLIC LICENSE"), "AGPL-3.0")
+        self.assertEqual(harvest.license_policy("AGPL-3.0"), "skip")
+        self.assertEqual(harvest.license_policy("GPL-3.0"), "skip")
+        self.assertEqual(harvest.license_policy("MIT"), "permissive")
+        self.assertEqual(harvest.license_policy("unspecified"), "flagged")
+
+    def test_copyleft_repo_is_skipped_and_unlicensed_repo_is_flagged(self):
+        with tempfile.TemporaryDirectory() as staging:
+            result = harvest.harvest_sources(
+                ["copy/left", "no/license"],
+                staging,
+                plant({
+                    "copy/left": {
+                        "LICENSE": "GNU AFFERO GENERAL PUBLIC LICENSE\n",
+                        "SKILL.md": SKILL,
+                    },
+                    "no/license": {"SKILL.md": SKILL + "unique marker\n"},
+                }),
+                "t",
+                ROOT,
+            )
+            self.assertEqual(result["exit_code"], 0)
+            self.assertEqual(result["license_skipped"], ["copy/left"])
+            self.assertEqual(result["flagged_sources"], ["no/license"])
+            self.assertEqual(result["written"], 1)
+            self.assertEqual(result["files"][0]["status"], "license-skipped")
+            names = [name for name in os.listdir(staging) if name.endswith(".staged.md")]
+            self.assertEqual(names, [harvest.flat_name("no/license", "SKILL.md")])
+            with open(os.path.join(staging, names[0]), encoding="utf-8") as handle:
+                self.assertIn("license: unspecified", handle.read())
 
     def test_dry_run_lists_configured_sources_and_does_not_clone(self):
         done = subprocess.run(

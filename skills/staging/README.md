@@ -19,6 +19,9 @@ date, author, license, and commit. A later harvest that sees the same body
 backfills author, commit, or license and keeps the original fetch date.
 `harvest-manifest.json` is the run record and is gitignored. Zero sources
 exits 2. Every clone failing exits 1. A clone with no skill files exits 0.
+AGPL and GPL repos are not written into this directory (`license-skipped`).
+A repo with no permissive license is flagged in that manifest and still
+staged, so ingest can derive a house-style skill without copying the text.
 
 `node scripts/ingest-staging.mjs` then:
 
