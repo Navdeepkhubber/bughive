@@ -33,6 +33,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 // coverage tooling can never drift apart.
 import { CRITICAL_CLASSES } from "../../plugins/dsh-coverage/index.js";
 import { chainHypothesesFor } from "../../plugins/dsh-triage-gate/index.js";
+import { batchRequiredFromScope, loadBatchConfig } from "./tranche.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..");
@@ -407,6 +408,27 @@ export async function huntSnapshot(domain) {
   }
   const reconMax = Number(process.env.BUGHIVE_RECON_MAX_SECONDS) || RECON_MAX_SECONDS;
 
+  let batch = { required: false, complete: false, phase: null, tranche: 0, findings_emitted: false };
+  try {
+    const scopeText = existsSync(join(hd, "scope.txt")) ? readFileSync(join(hd, "scope.txt"), "utf8") : "";
+    let discovered = 0;
+    const assetsPath = join(hd, "recon", "01-subdomain-enum", "assets.txt");
+    if (existsSync(assetsPath)) {
+      discovered = readFileSync(assetsPath, "utf8").split("\n").filter((line) => line.trim()).length;
+    }
+    const batchState = await readJson(join(hd, "batch", "state.json"));
+    const required = batchRequiredFromScope(scopeText, discovered, loadBatchConfig(process.env), process.env);
+    batch = {
+      required,
+      complete: batchState?.complete === true || batchState?.phase === "done",
+      phase: batchState?.phase || null,
+      tranche: batchState?.tranche_index || 0,
+      findings_emitted: batchState?.findings_emitted === true,
+    };
+  } catch {
+    /* scope or batch state unreadable: leave batching off */
+  }
+
   // Coverage matrix (plugins/dsh-coverage). Drives the completeness gate: a hunt
   // must not declare "no findings" while critical (vuln class x asset) cells are
   // unresolved. Absent matrix => not enforced (backwards compatible).
@@ -449,6 +471,7 @@ export async function huntSnapshot(domain) {
     stalled,
     recon_elapsed_seconds: reconElapsed,
     recon_max_seconds: reconMax,
+    batch,
   };
 }
 
@@ -983,6 +1006,18 @@ export function buildExecutor(decision, domain) {
   const after = `bash scripts/pipeline/run.sh decide ${d}`;
   const llm = `You are the executor. JEV already decided. Do not pick a different stage, skill, or test method. Run this executor, then ${after}.`;
   const action = decision.next_action;
+  // A wide VDP runs one bounded tranche unit instead of an unbounded recon phase.
+  // Proof and coverage gates are unchanged; this only picks which command runs.
+  if (action === "deepen_recon" && decision.batch_active) {
+    return {
+      kind: "bash",
+      needs_llm: false,
+      stage: "batch-step",
+      command: `bash scripts/pipeline/run.sh batch step ${d}`,
+      after,
+      llm: `${llm} This step is one passive stage, the host ranking, one active stage, the proof-gated scan, or the findings emit. Do not start the next tranche until findings for the current tranche have been emitted.`,
+    };
+  }
   if (action === "deepen_recon" && decision.recon_phase) {
     const stage = phaseRunId(decision.recon_phase);
     return { kind: "bash", needs_llm: false, stage, command: `bash scripts/pipeline/run.sh ${stage} ${d}`, after, llm };
@@ -1285,6 +1320,9 @@ export async function decide(domain, { fetchImpl, planner } = {}) {
   const decision = applyPolicy({ snap, skills, routing, confirm });
   decision.planner = mode;
   decision.chain_hypotheses = chain_hypotheses;
+  if (snap.batch?.required && !snap.batch?.complete && decision.next_action === "deepen_recon") {
+    decision.batch_active = true;
+  }
   return writeDecision(snap, decision, domain);
 }
 

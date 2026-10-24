@@ -126,6 +126,7 @@ doc = {
     "domain": os.environ["RECON_DOMAIN"],
     "count": 0,
     "degraded": True,
+    "truncated": rc == "124",
     "tools_run": [],
     "notes": [reason],
     "output_files": [],

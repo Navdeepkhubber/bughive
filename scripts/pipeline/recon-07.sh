@@ -20,8 +20,17 @@ out="$hd/recon/07-js-analysis"
 assets="$out/assets"
 mkdir -p "$out" "$assets"
 
-MAX_ASSETS="${BH_JS_MAX_ASSETS:-60}"
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+eval "$(python3 "$script_dir/_batch.py" exports)"
+# BH_JS_MAX_ASSETS remains an explicit override. 0 means "no global total":
+# the per-host cap and the wall clock are the bounds.
+if [ -n "${BH_JS_MAX_ASSETS:-}" ]; then
+  MAX_ASSETS="$BH_JS_MAX_ASSETS"
+else
+  MAX_ASSETS="${BUGHIVE_JS_FETCH_TOTAL:-0}"
+fi
+PER_HOST="${BUGHIVE_JS_FETCH_CAP:-50}"
+JS_BUDGET="${BUGHIVE_JS_BUDGET_SECONDS:-300}"
 
 # ---------------------------------------------------------------- asset URLs
 # Normalize to https, strip :80/:443, collapse duplicated slashes, and keep
@@ -82,15 +91,53 @@ PY
 rm -f "$raw_urls"
 
 # ---------------------------------------------------------------- download (bounded)
+# Cap each host, then the optional global total, before any GET. The loop
+# also stops when the wall clock expires and records a truncated marker.
+python3 - "$fetch" "$PER_HOST" "$MAX_ASSETS" <<'PY'
+import sys
+from pathlib import Path
+from urllib.parse import urlsplit
+path, per_host, total = Path(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
+rows = []
+seen_host = {}
+for line in path.read_text(errors="ignore").splitlines() if path.is_file() else []:
+    url, _, name = line.partition("\t")
+    url, name = url.strip(), name.strip()
+    if not url or not name:
+        continue
+    host = (urlsplit(url).hostname or "").lower()
+    seen_host[host] = seen_host.get(host, 0) + 1
+    if seen_host[host] > per_host:
+        continue
+    rows.append(f"{url}\t{name}")
+    if total > 0 and len(rows) >= total:
+        break
+dropped = 0
+if path.is_file():
+    raw = [l for l in path.read_text(errors="ignore").splitlines() if l.strip()]
+    dropped = max(0, len(raw) - len(rows))
+path.write_text("".join(f"{row}\n" for row in rows))
+marker = path.with_name(".js-fetch-capped")
+marker.write_text("1\n" if dropped else "0\n")
+PY
 downloaded=0
+js_truncated=0
 effective="$out/asset_effective.tsv"
 : > "$effective"
+js_deadline=$(( $(date +%s) + JS_BUDGET ))
 if [ ! -d "$assets" ] || [ -z "$(ls -A "$assets" 2>/dev/null || true)" ]; then
   if [ -s "$fetch" ]; then
     while IFS=$'\t' read -r u name; do
       [ -n "$u" ] || continue
       [ -n "$name" ] || continue
-      [ "$downloaded" -ge "$MAX_ASSETS" ] && break
+      if [ "$(date +%s)" -ge "$js_deadline" ]; then
+        js_truncated=1
+        break
+      fi
+      if [ "$MAX_ASSETS" -gt 0 ] && [ "$downloaded" -ge "$MAX_ASSETS" ]; then
+        js_truncated=1
+        break
+      fi
       case "$name" in
         *[!a-zA-Z0-9._-]*|.*|*/*) continue ;;
       esac
@@ -148,9 +195,15 @@ try:
 except Exception:
     print(0)
 ")
-python3 - "$out/summary.json" "$domain" "$scan_count" "$downloaded" <<'PY'
+python3 - "$out/summary.json" "$domain" "$scan_count" "$downloaded" "$js_truncated" "$out/.js-fetch-capped" <<'PY'
 import json, os, sys
 path, domain, scanned, downloaded = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
+timed_out = sys.argv[5] == "1"
+try:
+    capped = open(sys.argv[6]).read().strip() == "1"
+except OSError:
+    capped = False
+truncated = timed_out or capped
 try:
     s = json.load(open(path))
 except Exception:
@@ -158,6 +211,12 @@ except Exception:
 s["domain"] = domain
 s["assets_downloaded"] = downloaded
 s["assets_on_disk"] = scanned
+s["truncated"] = bool(truncated or s.get("truncated"))
+if truncated:
+    s["degraded"] = True
+    notes = list(s.get("notes") or [])
+    notes.append("JS fetch hit the per-host cap or the wall-clock budget; partial assets kept")
+    s["notes"] = notes
 meta_path = os.path.join(os.path.dirname(path), "asset_filter.json")
 try:
     meta = json.load(open(meta_path))

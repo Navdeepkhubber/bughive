@@ -9,11 +9,12 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 mkdir -p "$out"
 
 python3 - "$out" "$hd" "$script_dir" <<'PY'
-import json, os, subprocess, sys, time
+import json, os, shutil, subprocess, sys, time
 from pathlib import Path
 
 sys.path.insert(0, sys.argv[3])
 from _recon_safety import is_scannable_public_ip
+from _batch import knob, knob_int, tranche_host_set
 
 out, hd = Path(sys.argv[1]), Path(sys.argv[2])
 dns_path = hd / "recon" / "02-dns-resolution" / "dns-records.json"
@@ -38,13 +39,15 @@ capped = []
 skipped_budget = 0
 nmap_missing = False
 degraded = False
+truncated = False
 
 def emit(summary_notes, degraded_flag):
     summary = {
         "phase": "03-port-scan",
         "domain": hd.name,
         "count": len(results),
-        "degraded": bool(degraded_flag),
+        "degraded": bool(degraded_flag or truncated),
+        "truncated": bool(truncated),
         "ips_seen": len(ips),
         "ips_skipped_nonpublic": len(nonpublic),
         "ips_skipped_cap": max(0, len([ip for ip in ips if is_scannable_public_ip(ip)]) - len(capped)),
@@ -80,6 +83,11 @@ except json.JSONDecodeError as exc:
     notes.append(f"dns-records.json unreadable: {exc}")
     emit(notes, True)
     sys.exit(0)
+
+allowed_hosts = tranche_host_set()
+if allowed_hosts is not None and isinstance(dns, dict):
+    dns = {host: recs for host, recs in dns.items() if str(host).strip().lower().rstrip(".") in allowed_hosts}
+    notes.append(f"port scan limited to the current tranche ({len(allowed_hosts)} host(s))")
 
 seen = []
 for _host, recs in (dns or {}).items() if isinstance(dns, dict) else []:
@@ -120,6 +128,67 @@ elif not capped:
     notes.append("no public addresses left after skipping non-public ranges")
     degraded = True
 
+engine = str(knob("BUGHIVE_PORTSCAN_ENGINE", "nmap") or "nmap").strip().lower()
+if engine == "naabu":
+    naabu_budget = knob_int("BUGHIVE_NAABU_BUDGET_SECONDS", 600, lo=1)
+    naabu_cap = knob_int("BUGHIVE_NAABU_RESULT_CAP", 2000, lo=1)
+    if not capped:
+        emit(notes, degraded)
+        sys.exit(0)
+    if not shutil.which("naabu"):
+        notes.append("naabu not installed; nmap fallback stays inside the existing per-phase cap")
+        degraded = True
+    else:
+        ipfile = out / "naabu-ips.txt"
+        ipfile.write_text("".join(f"{ip}\n" for ip in capped))
+        dest = out / "naabu.txt"
+        cmd = [
+            "naabu", "-l", str(ipfile),
+            "-s", str(knob("BUGHIVE_NAABU_SCAN", "s")),
+            "-rate", str(knob_int("BUGHIVE_NAABU_RATE", 1000, lo=1)),
+            "-c", str(knob_int("BUGHIVE_NAABU_CONCURRENCY", 100, lo=1)),
+            "-retries", str(knob_int("BUGHIVE_NAABU_RETRIES", 1, lo=0)),
+            "-top-ports", str(knob_int("BUGHIVE_NAABU_TOP_PORTS", 1000, lo=1)),
+            "-silent", "-o", str(dest),
+        ]
+        ran_naabu = True
+        try:
+            subprocess.run(cmd, timeout=naabu_budget, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except subprocess.TimeoutExpired:
+            truncated = True
+            degraded = True
+            notes.append(f"naabu hit the {naabu_budget}s wall-clock budget; partial ports kept")
+        except FileNotFoundError:
+            ran_naabu = False
+            notes.append("naabu not installed; nmap fallback stays inside the existing per-phase cap")
+            degraded = True
+        if ran_naabu:
+            open_rows = []
+            if dest.is_file():
+                for line in dest.read_text(errors="ignore").splitlines():
+                    line = line.strip()
+                    if not line or ":" not in line:
+                        continue
+                    ip, _, port = line.rpartition(":")
+                    ip = ip.strip()
+                    port = port.strip()
+                    if ip and port.isdigit():
+                        open_rows.append((ip, port))
+            if len(open_rows) > naabu_cap:
+                truncated = True
+                degraded = True
+                notes.append(f"naabu result cap {naabu_cap} reached; kept {naabu_cap} of {len(open_rows)}")
+                open_rows = open_rows[:naabu_cap]
+            for ip, port in open_rows:
+                results.setdefault(ip, {"open_ports": []})
+                if port not in results[ip]["open_ports"]:
+                    results[ip]["open_ports"].append(port)
+            for ip in capped:
+                results.setdefault(ip, {"open_ports": []})
+            notes.append("naabu scan used the tranche host list and the configured rate cap")
+            emit(notes, degraded)
+            sys.exit(0)
+
 deadline = time.monotonic() + budget
 for ip in capped:
     if time.monotonic() > deadline:
@@ -149,6 +218,7 @@ skipped_budget = len([ip for ip in capped if ip not in results and not nmap_miss
 if skipped_budget:
     notes.append(f"phase budget stopped the scan; {skipped_budget} public address(es) not scanned")
     degraded = True
+    truncated = True
 
 emit(notes, degraded)
 PY

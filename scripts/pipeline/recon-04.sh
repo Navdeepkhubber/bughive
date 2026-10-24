@@ -99,15 +99,24 @@ PY
 fi
 
 if command -v httpx >/dev/null 2>&1; then
+  eval "$(python3 "$script_dir/_batch.py" exports)"
   alt_n=$(awk -F, '{print NF}' <<<"$ALT_PORTS")
   ports=$((alt_n + 2))
   wall=$((host_count * ports * 8 / 50 + 30))
   if [ "$wall" -lt 45 ]; then wall=45; fi
-  if [ "$wall" -gt 300 ]; then wall=300; fi
-  log "httpx probing $host_count resolved in-scope host(s) (80,443 + alt ports, wall ${wall}s)"
+  wall_cap="${BUGHIVE_HTTPX_BUDGET_SECONDS:-300}"
+  if [ "$wall" -gt "$wall_cap" ]; then wall="$wall_cap"; fi
+  httpx_threads="${BUGHIVE_HTTPX_THREADS:-50}"
+  httpx_rate="${BUGHIVE_HTTPX_RATE:-150}"
+  tech_args=()
+  if [ "${BUGHIVE_HTTPX_TECH_DETECT:-1}" = "1" ] && httpx -h 2>&1 | grep -q -- '-tech-detect'; then
+    tech_args+=(-tech-detect)
+  fi
+  log "httpx probing $host_count resolved in-scope host(s) (-t $httpx_threads -rl $httpx_rate, wall ${wall}s)"
   set +e
   timeout "$wall" httpx -l "$out/hosts.txt" -p "80,443,$ALT_PORTS" \
-    -timeout 8 -retries 1 -threads 50 \
+    -timeout 8 -retries 1 -t "$httpx_threads" -rl "$httpx_rate" \
+    "${tech_args[@]}" \
     -silent -json -o "$out/httpx.jsonl" 2>/dev/null
   httpx_rc=$?
   set -e
@@ -121,6 +130,7 @@ from pathlib import Path
 sys.path.insert(0, sys.argv[3])
 from _scope import scope_allows
 from _recon_safety import httpx_truncated
+from _batch import apply_bounds, knob_int
 
 out, hd, alt_ports_csv = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[4]
 scope_text = (hd / "scope.txt").read_text()
@@ -191,6 +201,21 @@ else:
                 pass
 
 count = sum(len(v) for v in results.values())
+flat = []
+for host, rows in results.items():
+    for row in rows:
+        flat.append((host, row))
+bounded = apply_bounds(
+    flat,
+    result_cap=knob_int("BUGHIVE_HTTPX_RESULT_CAP", 400, lo=1),
+    exit_code=None,
+)
+if bounded["truncated"] and bounded["count"] < bounded["count_total"]:
+    trimmed = {}
+    for host, row in bounded["results"]:
+        trimmed.setdefault(host, []).append(row)
+    results = trimmed
+    count = bounded["count"]
 httpx_rc = None
 rc_path = out / "httpx.rc"
 if rc_path.is_file():
@@ -203,8 +228,10 @@ unres_path = out / "hosts-unresolved.txt"
 if unres_path.is_file():
     unresolved = [h.strip() for h in unres_path.read_text().splitlines() if h.strip()]
 httpx_produced = httpx_file.exists() and httpx_file.stat().st_size > 0
-truncated = httpx_rc is not None and httpx_truncated(httpx_rc, len(hosts), count)
-notes = []
+raw_count = bounded["count_total"]
+ratio_truncated = httpx_rc is not None and httpx_truncated(httpx_rc, len(hosts), raw_count)
+truncated = bool(bounded["truncated"] or ratio_truncated)
+notes = list(bounded["reasons"])
 if not hosts:
     notes.append("no in-scope hosts left to probe")
 if unresolved:
@@ -220,8 +247,9 @@ summary = {
     "hosts_probed": len(hosts),
     "hosts_unresolved": len(unresolved),
     "httpx_rc": httpx_rc,
+    "truncated": bool(truncated),
     "degraded": bool(truncated or not hosts),
-    "tools_run": [] if truncated or not httpx_produced else ["httpx"],
+    "tools_run": [] if ratio_truncated or not httpx_produced else ["httpx"],
     "tools_skipped": [] if httpx_file.exists() or truncated else [{"tool": "httpx", "reason": "not installed; curl fallback used, alt-port sweep skipped"}],
     "count": count,
     "results": results,
@@ -230,7 +258,13 @@ summary = {
 }
 (out / "http.json").write_text(json.dumps(results, indent=2))
 (out / "summary.json").write_text(json.dumps(summary, indent=2))
-print(json.dumps({"phase": "04", "hosts_probed": len(hosts), "responses": count, "degraded": summary["degraded"]}))
+print(json.dumps({
+    "phase": "04",
+    "hosts_probed": len(hosts),
+    "responses": count,
+    "degraded": summary["degraded"],
+    "truncated": bool(truncated),
+}))
 PY
 
 mark_done "$domain" "recon-04"
