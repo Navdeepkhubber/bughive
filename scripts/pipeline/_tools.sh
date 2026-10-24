@@ -242,6 +242,18 @@ cmd_audit() {
   printf '%s' "$out" | python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("pass") else 1)' || exit 1
 }
 
+# ------------------------------------------------------------------------ scan
+# Confirmed findings from the pinned rule pack. Requires a scope file.
+# Usage: run.sh scan <domain> <baseUrl>
+cmd_scan() {
+  local domain="$1" base="$2"
+  [ -n "$domain" ] && [ -n "$base" ] || die "usage: run.sh scan <domain> <baseUrl>"
+  local hd; hd="$(hunt_dir "$domain")"
+  [ -f "$hd/scope.txt" ] || die "no scope.txt — run init first"
+  node "$WS_ROOT/plugins/dsh-scan/cli.mjs" --base "$base" --scope-file "$hd/scope.txt" --out "$hd"
+  mark_done "$domain" "scan"
+}
+
 # ------------------------------------------------------------------------ eval
 # Usage: run.sh eval <scenarios|start|stop|score> [findings.json]
 cmd_eval() {

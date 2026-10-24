@@ -111,6 +111,19 @@ for pat in include:
 (out / "assets.txt").write_text("".join(f"{h}\n" for h in assets))
 (out / "in-scope-hosts.txt").write_text("".join(f"{h}\n" for h in allowed))
 
+# Zero enumerators is the S1N6H-Recon failure mode: the phase still exits, but
+# count 0 must not be read as "this target has no hosts".
+degraded = len(tools_run) == 0
+notes = [
+    "assets.txt is the wildcard-expanded, scope-verified host list that later phases must use.",
+    "scope.txt remains the program scope verbatim (wildcards included) and is what scope_guard enforces.",
+]
+if degraded:
+    notes.append(
+        "0 discovery tools ran. count 0 is a coverage gap, not proof the target has no hosts. "
+        "Install subfinder or amass. Literal hosts already named in scope.txt are still listed."
+    )
+
 summary = {
     "phase": "01-subdomain-enum",
     "domain": hd.name,
@@ -118,6 +131,7 @@ summary = {
     "enumeration_roots": enum_roots(scope_text),
     "tools_run": tools_run,
     "tools_skipped": tools_skipped,
+    "degraded": degraded,
     "count_total_discovered": len(all_hosts),
     "count_in_scope": len(assets),
     "in_scope_confirmed": assets,
@@ -129,10 +143,7 @@ summary = {
         str(out / "assets.txt"),
         str(out / "scope.txt"),
     ],
-    "notes": [
-        "assets.txt is the wildcard-expanded, scope-verified host list that later phases must use.",
-        "scope.txt remains the program scope verbatim (wildcards included) and is what scope_guard enforces.",
-    ],
+    "notes": notes,
 }
 (out / "summary.json").write_text(json.dumps(summary, indent=2))
 print(json.dumps({
@@ -141,6 +152,9 @@ print(json.dumps({
     "in_scope": len(assets),
     "out_of_scope": len(refused),
     "unresolved_wildcards": unresolved,
+    "degraded": degraded,
+    "tools_run": len(tools_run),
+    "tools_skipped": len(tools_skipped),
 }))
 PY
 

@@ -61,7 +61,7 @@ print(json.dumps(rows))
 {"phase":"14-nuclei-scan","domain":"$domain","tools_run":["nuclei"],"tools_skipped":[],"count":$count,"items":$items,"notes":[],"output_files":["$out/nuclei_output.jsonl"]}
 EOF
 else
-  echo '{"phase":"14-nuclei-scan","domain":"'"$domain"'","tools_run":[],"tools_skipped":[{"tool":"nuclei","reason":"not installed -- no reasonable manual substitute for a signature database this size"}],"count":0,"items":[],"notes":[],"output_files":[]}' > "$out/summary.json"
+  echo '{"phase":"14-nuclei-scan","domain":"'"$domain"'","tools_run":[],"tools_skipped":[{"tool":"nuclei","reason":"not installed"}],"count":0,"items":[],"notes":["0 templates loaded because nuclei is not installed. That is a coverage gap, not a clean target. run.sh scan applies the pinned in-repo rules."],"output_files":[]}' > "$out/summary.json"
 fi
 
 mark_done "$domain" "recon-14"

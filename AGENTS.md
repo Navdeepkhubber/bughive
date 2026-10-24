@@ -121,6 +121,9 @@ should actually invoke:
 | `run.sh eval scenarios\|start\|stop\|score` | The self-measurement harness (see `dsh-eval`). |
 | `run.sh proxy start\|stop\|requests\|env <domain>` | Live capture proxy. `start` records a pid; `env` prints the exports; then run any tool and its traffic lands in `recon/proxy-capture.jsonl`. Add `--mitm` for full HTTPS capture. |
 | `run.sh shots <domain>` | Screenshot + perceptual-hash each in-scope host, then cluster clones into `recon/image-clusters.json`. |
+| `run.sh fetch [--dry-run]` | Fetch disclosed HackerOne reports. Job 1 of the weekly sync. |
+| `run.sh harvest [--dry-run]` | Clone the repos in `skills/sources.txt` into `skills/staging/` with provenance. Copyleft repos are skipped. Other non-permissive repos are flagged. Job 2. |
+| `run.sh ingest-skills [--dry-run]` | Promote staged skills into `skills/learned/` and any missing seed. Job 3. This is not journal `ingest`. |
 
 **Capturing traffic you did not originate.** The journal only saw pipeline requests
 until the proxy existed. To capture a raw `curl`, a python script or a third-party
@@ -369,8 +372,32 @@ approved reports. Report the summary to the user.
 
 - Workspace: current directory (bughive)
 - Hunt artifacts: hunts/<domain>/
-- Skills: skills/seeds/ + skills/learned/
+- Skills the loader runs: skills/seeds/ + skills/learned/ (including `skills/learned/staged-*`)
+- Staging cache, not loaded: skills/staging/. Source list: skills/sources.txt
 - Playbooks: playbooks/
+
+## Weekly sync
+
+One workflow, `.github/workflows/sync-reports-and-skills.yml`. It runs on
+Sunday 06:00 UTC (11:30 Asia/Calcutta) and on `workflow_dispatch`. The manual
+input `task` is `all`, `fetch`, `harvest`, or `ingest-skills`. `dry_run`
+prints the plan and does not commit. Jobs are sequential: fetch disclosed
+reports, then harvest staging skills, then promote them. A later job still
+runs when an earlier one fails, and it does not run when an earlier one is
+cancelled. The same three commands are `run.sh fetch`, `run.sh harvest`, and
+`run.sh ingest-skills`.
+
+Harvest reads `skills/sources.txt`. AGPL and GPL clones are skipped. Any
+other non-permissive license is flagged and still staged. Promotion then
+reads `skills/staging/*.staged.md`. A filename that maps to one class
+becomes a house-style file in `skills/learned/`. MIT, Apache, BSD, ISC,
+and Unlicense sources also keep their text under a Source text heading.
+Anything else is an original seed-style writeup; the staged prose is not
+copied. A class with no file in `skills/seeds/` gets one, and an existing
+seed is left alone. Files with no single class stay in staging and are
+listed in `skills/ingest-report.json`. A second run with the same inputs
+rewrites nothing. A scan attaches `coveredBy` from that report. It does not
+treat the skill text as proof.
 
 ## Model
 

@@ -1,10 +1,13 @@
 # Disclosed report ingestion
 
-`.github/workflows/fetch-reports.yml` runs weekly and can also be started with
-`workflow_dispatch`. Configure the repository secrets `H1_API_USERNAME` (your
-HackerOne username) and `H1_API_TOKEN` (your personal Hacker API token). The
-workflow fails with a clear
-error if either secret is missing or the API request fails.
+`.github/workflows/sync-reports-and-skills.yml` is the weekly workflow. Its
+first job fetches disclosed reports. The next jobs harvest `skills/staging/`
+and promote them; see `skills/staging/README.md`. Run the fetch on its own
+with `bash scripts/pipeline/run.sh fetch`. `--dry-run` prints the plan and
+does not call the API. Configure the repository secrets `H1_API_USERNAME`
+(your HackerOne username) and `H1_API_TOKEN` (your personal Hacker API token).
+The fetch job fails with a clear error if either secret is missing or the API
+request fails. A failed fetch does not cancel the harvest or the promotion.
 
 The fetcher calls the Hacker API's `GET /v1/hackers/hacktivity` endpoint for
 disclosed reports. The organization `GET /v1/reports` endpoint is a different

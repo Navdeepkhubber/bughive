@@ -45,4 +45,4 @@ reason `timeout` and continue. Never block the phase on one slow source.
 }
 
 ## Phase procedure
-Passive subdomain enumeration. subfinder (default, passive sources only), optional amass -passive. NO active resolution. Partition discovered hostnames into in_scope_confirmed / in_scope_missing / out_of_scope_found against scope.txt. Never probe or resolve any host in this phase.
+Passive subdomain enumeration. subfinder (default, passive sources only), optional amass -passive. NO active resolution. Partition discovered hostnames into in_scope_confirmed / in_scope_missing / out_of_scope_found against scope.txt. Never probe or resolve any host in this phase. If neither enumerator is installed, `summary.json` sets `degraded: true`. A discovered count of 0 in that case is a coverage gap, not proof the target has no hosts.

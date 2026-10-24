@@ -189,7 +189,8 @@ summary = {
     "items": items[:200],
     "notes": [
         "Hits are candidates, not findings. SSTI product 35442497 in the body is a strong lead.",
-        "XSS marker reflection is NOT XSS until the browser validator executes it.",
+        "XSS marker reflection is NOT XSS until a matcher confirms it on a saved response.",
+        "A count of 0 means no parameter URL was probed or no marker matched. It is not a clean bill of health.",
     ],
     "output_files": [str(out)],
 }

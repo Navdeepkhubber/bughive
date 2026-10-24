@@ -256,8 +256,8 @@ def fetch_via_public():
     session = requests.Session()
     try:
         session.get(HTML_URL, headers=BROWSER_HEADERS, timeout=30)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[fetcher] hacktivity page fetch failed: {e}", file=sys.stderr)
 
     query = """
     query HacktivitySearchQuery($queryString: String!, $from: Int, $size: Int, $sort: SortInput!) {
@@ -287,11 +287,15 @@ def fetch_via_public():
                                   "Origin": "https://hackerone.com",
                                   "Referer": "https://hackerone.com/hacktivity"},
                          json=payload, timeout=30)
-        if r.status_code >= 500:
-            print(f"[fetcher] GraphQL {r.status_code} — endpoint unavailable")
-            return 0
+        if r.status_code >= 400:
+            raise RuntimeError(f"HackerOne GraphQL HTTP {r.status_code}")
         data = r.json()
-        nodes = (data.get("data", {}).get("search", {}).get("nodes") or [])
+        errors = data.get("errors") or []
+        search = (data.get("data") or {}).get("search")
+        if errors and not search:
+            message = errors[0].get("message", "graphql error") if isinstance(errors[0], dict) else str(errors[0])
+            raise RuntimeError(f"HackerOne GraphQL error: {message}")
+        nodes = (search or {}).get("nodes") or []
         written = 0
         for n in nodes:
             rep = n.get("report") or {}
@@ -307,21 +311,29 @@ def fetch_via_public():
             written += 1
         print(f"[fetcher] public done — {written} queued")
         return written
+    except RuntimeError:
+        raise
     except Exception as e:
-        print(f"[fetcher] public failed: {e}")
-        return 0
+        raise RuntimeError(f"HackerOne public scrape failed: {e}") from e
 
 # ─── main ───────────────────────────────────────────────────────────────────
 def main():
     QUEUE_DIR.mkdir(parents=True, exist_ok=True)
+    errors = []
 
-    for mode in (fetch_via_api, fetch_via_local, fetch_via_public):
-        result = mode()
-        if result and result > 0:
+    for name, mode in (("api", fetch_via_api), ("local", fetch_via_local), ("public", fetch_via_public)):
+        try:
+            result = mode()
+        except Exception as e:
+            print(f"[fetcher] {name} failed: {e}", file=sys.stderr)
+            errors.append(f"{name}: {e}")
+            continue
+        if result is None:
+            continue
+        if result > 0:
             return
-        if result == 0:
-            # tried, nothing new — but mode succeeded; stop here
-            return
+        print(f"[fetcher] {name} completed with nothing new")
+        return
 
     print()
     print("No reports ingested. To fix:")
@@ -341,10 +353,17 @@ def main():
     print("  Option C — public scrape:")
     print("    HackerOne's public endpoints are currently broken.")
     print("    Watch https://github.com/zzzteph/bugbounty-monitor for a fix.")
+    if errors:
+        print()
+        print("Errors (these are not an empty feed):")
+        for item in errors:
+            print(f"  {item}")
     sys.exit(1)
 
 if __name__ == "__main__":
     if sys.argv[1:] == ["--check-auth"]:
         check_api_auth()
+    elif "--dry-run" in sys.argv[1:]:
+        print("dry-run: would fetch disclosed HackerOne reports")
     else:
         main()

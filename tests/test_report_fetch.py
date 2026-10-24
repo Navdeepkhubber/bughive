@@ -4,8 +4,11 @@ import contextlib
 import io
 import json
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -15,6 +18,9 @@ SPEC = importlib.util.spec_from_file_location(
 )
 fetcher = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(fetcher)
+
+RECENT = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+OLDER = (datetime.now(timezone.utc) - timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class FetchReportsTest(unittest.TestCase):
@@ -39,10 +45,10 @@ class FetchReportsTest(unittest.TestCase):
             queue = Path(root) / "queue"
             pages = [
                 [{"id": str(i), "attributes": {"title": "Fixture", "disclosed": True,
-                  "severity_rating": "high", "disclosed_at": "2026-01-01T00:00:00Z"}}
+                  "severity_rating": "high", "disclosed_at": RECENT}}
                  for i in range(100)],
                 [{"id": "100", "attributes": {"title": "Fixture", "disclosed": True,
-                  "severity_rating": "high", "disclosed_at": "2026-01-01T00:00:00Z"}}],
+                  "severity_rating": "high", "disclosed_at": RECENT}}],
             ]
             def get(_url, *, params, **_kwargs):
                 data = pages[params["page[number]"] - 1]
@@ -64,7 +70,7 @@ class FetchReportsTest(unittest.TestCase):
             response = type("Response", (), {
                 "ok": True, "status_code": 200,
                 "json": lambda self: {"data": [{"id": "79", "attributes": {
-                    "title": "Fixture", "disclosed_at": "2026-01-01T00:00:00Z",
+                    "title": "Fixture", "disclosed_at": RECENT,
                     "disclosed": True, "severity_rating": "high", "cwe": "CWE-79",
                     "url": "https://hackerone.com/reports/79", "total_awarded_amount": 500,
                 }, "relationships": {
@@ -78,7 +84,7 @@ class FetchReportsTest(unittest.TestCase):
                  patch.object(fetcher.requests, "get", return_value=response) as get:
                 self.assertEqual(fetcher.fetch_via_api(), 1)
                 self.assertEqual(json.loads((reports / ".last-fetch.json").read_text()),
-                                 {"lastDisclosedAt": "2026-01-01T00:00:00Z"})
+                                 {"lastDisclosedAt": RECENT})
                 self.assertEqual(json.loads((queue / "h1-79.json").read_text())["cwe"],
                                  {"id": "CWE-79"})
                 item = json.loads((queue / "h1-79.json").read_text())
@@ -105,8 +111,8 @@ class FetchReportsTest(unittest.TestCase):
             reports = Path(root) / "reports"
             queue = Path(root) / "queue"
             data = [
-                {"id": "1", "attributes": {"disclosed": False, "severity_rating": "high", "disclosed_at": "2026-01-01T00:00:00Z"}},
-                {"id": "2", "attributes": {"disclosed": True, "severity_rating": "low", "disclosed_at": "2026-01-02T00:00:00Z"}},
+                {"id": "1", "attributes": {"disclosed": False, "severity_rating": "high", "disclosed_at": OLDER}},
+                {"id": "2", "attributes": {"disclosed": True, "severity_rating": "low", "disclosed_at": RECENT}},
             ]
             response = type("Response", (), {"ok": True, "status_code": 200,
                                             "json": lambda self: {"data": data}})()
@@ -117,7 +123,37 @@ class FetchReportsTest(unittest.TestCase):
                 self.assertEqual(fetcher.fetch_via_api(), 0)
                 self.assertEqual(list(queue.glob("*.json")), [])
                 self.assertEqual(json.loads((reports / ".last-fetch.json").read_text()),
-                                 {"lastDisclosedAt": "2026-01-02T00:00:00Z"})
+                                 {"lastDisclosedAt": RECENT})
+
+    def test_public_http_error_is_not_a_silent_zero(self):
+        class Session:
+            def get(self, *_args, **_kwargs):
+                return type("Response", (), {"ok": True, "status_code": 200})()
+
+            def post(self, *_args, **_kwargs):
+                return type("Response", (), {"ok": False, "status_code": 503, "text": "down"})()
+
+        with patch.object(fetcher.requests, "Session", return_value=Session()):
+            with self.assertRaisesRegex(RuntimeError, "GraphQL HTTP 503"):
+                fetcher.fetch_via_public()
+
+    def test_main_exits_when_every_mode_fails(self):
+        with tempfile.TemporaryDirectory() as root:
+            with patch.object(fetcher, "QUEUE_DIR", Path(root)), \
+                 patch.object(fetcher, "fetch_via_api", return_value=None), \
+                 patch.object(fetcher, "fetch_via_local", return_value=None), \
+                 patch.object(fetcher, "fetch_via_public", side_effect=RuntimeError("down")), \
+                 contextlib.redirect_stdout(io.StringIO()), \
+                 contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as caught:
+                    fetcher.main()
+                self.assertEqual(caught.exception.code, 1)
+
+    def test_dry_run_prints_and_does_not_fetch(self):
+        script = Path(__file__).resolve().parents[1] / "intelligence" / "fetch-h1-reports.py"
+        done = subprocess.run([sys.executable, str(script), "--dry-run"], capture_output=True, text=True, check=False)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("dry-run: would fetch disclosed HackerOne reports", done.stdout)
 
 
 if __name__ == "__main__":
