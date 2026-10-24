@@ -21,7 +21,29 @@ case "$stage" in
   eval)       cmd_eval "$@" ;;
   retrieve)   cmd_retrieve "$@" ;;
   recon-01|recon-02|recon-03|recon-04|recon-05|recon-06|recon-07|recon-08|recon-09|recon-10|recon-11|recon-12|recon-13|recon-14|recon-15|recon-16|recon-17|recon-18)
-    bash "$(dirname "$0")/${stage}.sh" "$@" ;;
+    if [ -n "${1:-}" ]; then
+      recon_phase_begin "$1"
+    fi
+    phase_timeout="$(recon_phase_timeout "$stage")"
+    set +e
+    if [ "$phase_timeout" -gt 0 ] 2>/dev/null; then
+      timeout "$phase_timeout" bash "$(dirname "$0")/${stage}.sh" "$@"
+    else
+      bash "$(dirname "$0")/${stage}.sh" "$@"
+    fi
+    rc=$?
+    set -e
+    if [ -n "${1:-}" ]; then
+      recon_phase_end "$1"
+      ensure_recon_summary "$1" "$stage" "$rc"
+    fi
+    # timeout(1) uses 124. A killed phase already wrote a degraded summary
+    # (or ensure_recon_summary just did) and is done — do not fail the executor.
+    if [ "$rc" -eq 124 ]; then
+      exit 0
+    fi
+    exit "$rc"
+    ;;
   hypothesis) bash "$(dirname "$0")/hypothesis.sh" "$@" ;;
   skills)     bash "$(dirname "$0")/skill-select.sh" "$@" ;;
   decide)     bash "$(dirname "$0")/jev-decide.sh" "$@" ;;

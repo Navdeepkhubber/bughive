@@ -78,6 +78,11 @@ const STATE_BUDGET = 24000;
 // wander indefinitely or stall and keep re-deciding with nothing to show.
 const MAX_DECIDES = Number(process.env.BUGHIVE_MAX_DECIDES) || 80;
 const STALL_DECIDES = 20;
+// Accumulated recon-phase runtime, not decide rounds and not idle time between
+// them. Default 20 minutes. A CDN-heavy VDP burned ~69 minutes in phases 01–09
+// because each deepen_recon cost one decide and many minutes of tools.
+export const RECON_MAX_SECONDS = 1200;
+const RECON_ENOUGH_PHASES = ["07-js-analysis", "08-tech-fingerprint", "14-nuclei-scan"];
 
 const HIGH_SIGNAL = [
   "14-nuclei-scan",
@@ -160,6 +165,38 @@ export function phaseRunId(phaseId) {
 export function legalPhases(present) {
   const have = present instanceof Set ? present : new Set(present || []);
   return PHASES.filter((p) => !have.has(p.id) && p.deps.every((d) => have.has(d))).map((p) => p.id);
+}
+
+/**
+ * A phase is done when its summary.json exists OR .state/recon-NN.done is set.
+ * Placeholders are phases marked done with no readable summary; callers should
+ * record those as degraded rather than treating the phase as absent.
+ */
+export function phasesFromSignals({ summaryIds = [], doneStages = [] } = {}) {
+  const present = new Set(summaryIds.filter(Boolean));
+  const placeholders = [];
+  for (const stage of doneStages) {
+    const phase = PHASES.find((p) => phaseRunId(p.id) === stage);
+    if (!phase) continue;
+    if (!present.has(phase.id)) placeholders.push(phase.id);
+    present.add(phase.id);
+  }
+  return { present: [...present], placeholders };
+}
+
+export function highSignalReconPresent(snap) {
+  const have = new Set([
+    ...(Array.isArray(snap?.present) ? snap.present : []),
+    ...Object.keys(snap?.recon || {}),
+  ]);
+  return RECON_ENOUGH_PHASES.some((id) => have.has(id));
+}
+
+export function reconWallExceeded(snap, env = process.env) {
+  const cap = Number(snap?.recon_max_seconds ?? env.BUGHIVE_RECON_MAX_SECONDS ?? RECON_MAX_SECONDS);
+  if (!Number.isFinite(cap) || cap <= 0) return false;
+  const elapsed = Number(snap?.recon_elapsed_seconds || 0);
+  return Number.isFinite(elapsed) && elapsed >= cap;
 }
 
 export function pickReconPhase(requested, legal) {
@@ -261,7 +298,7 @@ export async function loadSkills() {
   return skills;
 }
 
-async function huntSnapshot(domain) {
+export async function huntSnapshot(domain) {
   const hd = join(HUNTS, sanitizeDomain(domain));
   const stateDir = join(hd, ".state");
   let done = [];
@@ -289,7 +326,19 @@ async function huntSnapshot(domain) {
     }
   }
 
-  const present = new Set(phaseNames.filter((p) => recon[p]));
+  const signals = phasesFromSignals({
+    summaryIds: Object.keys(recon),
+    doneStages: done,
+  });
+  for (const id of signals.placeholders) {
+    recon[id] = {
+      phase: id,
+      degraded: true,
+      count: 0,
+      notes: ["marked done without a readable summary.json"],
+    };
+  }
+  const present = new Set(signals.present);
   const legal = legalPhases(present);
   const missing = HIGH_SIGNAL.filter((p) => !present.has(p));
 
@@ -348,6 +397,16 @@ async function huntSnapshot(domain) {
   // tactic or hand back, rather than looping until the budget cap forces a stop.
   const stalled = decides >= STALL_DECIDES && (counts.validated || 0) === 0;
 
+  let reconElapsed = 0;
+  try {
+    const raw = readFileSync(join(stateDir, "recon-elapsed-seconds"), "utf8").trim();
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && parsed >= 0) reconElapsed = parsed;
+  } catch {
+    /* no recon runtime recorded yet */
+  }
+  const reconMax = Number(process.env.BUGHIVE_RECON_MAX_SECONDS) || RECON_MAX_SECONDS;
+
   // Coverage matrix (plugins/dsh-coverage). Drives the completeness gate: a hunt
   // must not declare "no findings" while critical (vuln class x asset) cells are
   // unresolved. Absent matrix => not enforced (backwards compatible).
@@ -388,6 +447,8 @@ async function huntSnapshot(domain) {
     coverage,
     decides,
     stalled,
+    recon_elapsed_seconds: reconElapsed,
+    recon_max_seconds: reconMax,
   };
 }
 
@@ -427,6 +488,9 @@ function buildState(snap, skills) {
       snap.stalled
         ? ` — STALLED: ${snap.decides} rounds with zero validated findings. Change tactic, widen recon, or hand back to the human rather than looping.`
         : ""
+    }`,
+    `recon_runtime: ${snap.recon_elapsed_seconds || 0}s / ${snap.recon_max_seconds || RECON_MAX_SECONDS}s accumulated${
+      reconWallExceeded(snap) ? " — RECON BUDGET EXCEEDED. Do not pick deepen_recon." : ""
     }`,
     "Recon summaries:",
     reconText || "(no recon yet)",
@@ -749,8 +813,25 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   if (action === "deliver" && snap.counts.validated > 0 && (snap.counts.reports || 0) === 0) {
     clamp("report");
   }
-  if (action === "select_and_test" && worth < WORTH_TESTING_FLOOR && !toolHit && legal.length > 0) {
+  // Thin evidence used to defer testing for as long as any legal recon phase
+  // remained. That loop never reached proof on a CDN estate. Once JS, tech
+  // fingerprint, or nuclei is already on disk — or the recon runtime cap has
+  // been spent — keep select_and_test instead of forcing another phase.
+  const reconOverBudget = reconWallExceeded(snap);
+  if (
+    action === "select_and_test" &&
+    worth < WORTH_TESTING_FLOOR &&
+    !toolHit &&
+    legal.length > 0 &&
+    !highSignalReconPresent(snap) &&
+    !reconOverBudget
+  ) {
     clamp(reconPhase ? "deepen_recon" : "stop");
+  }
+  // Hard cap on accumulated recon runtime. Legal phases may remain; the hunt
+  // still has to leave recon. Coverage and proof gates below are unchanged.
+  if (reconOverBudget && reconCount > 0 && action === "deepen_recon") {
+    clamp(hasKeyword ? "select_and_test" : "score_skills");
   }
 
   let kept = [];
@@ -852,6 +933,9 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
     action === "select_and_test" ? `Test method: ${testMethod}. ${TEST_METHODS[testMethod]}` : "",
     action === "select_and_test" && focusUrl !== "none" ? `Focus: ${focusUrl}.` : "",
     action === "deepen_recon" && reconPhase ? `Phase: ${reconPhase}.` : "",
+    reconOverBudget && clampedFrom === "deepen_recon"
+      ? "Recon runtime budget is exhausted; do not start another recon phase."
+      : "",
     clampedFrom ? `Clamped from JEV's ${clampedFrom} by hunt policy.` : "",
     "Then call decide again unless this action is human_gate, stop, or deliver.",
   ]
@@ -867,6 +951,7 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
     human_review: human,
     cold_start: coldStart,
     worth_testing: worth,
+    recon_budget_exceeded: reconOverBudget,
     signal_score: signal.score,
     signal_label: signal.label,
     recon_phase: action === "deepen_recon" ? reconPhase : null,

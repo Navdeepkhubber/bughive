@@ -26,20 +26,92 @@ else
   python3 "$script_dir/_scope.py" roots "$hd/scope.txt" > "$out/hosts.txt" 2>/dev/null || : > "$out/hosts.txt"
 fi
 
-host_count=$(grep -c . "$out/hosts.txt" 2>/dev/null || echo 0)
+# Probe only names that actually resolved. Unresolved hosts burn the httpx
+# budget and a timeout then looks like a clean, tiny result set.
+dns_records="$hd/recon/02-dns-resolution/dns-records.json"
+if [ -s "$dns_records" ] && [ -s "$out/hosts.txt" ]; then
+  python3 - "$out/hosts.txt" "$dns_records" "$out/hosts-unresolved.txt" <<'PY'
+import json, sys
+from pathlib import Path
+hosts_path, dns_path, dropped_path = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
+hosts = [h.strip() for h in hosts_path.read_text().split() if h.strip()]
+try:
+    dns = json.loads(dns_path.read_text() or "{}")
+except json.JSONDecodeError:
+    dns = {}
+resolved = set()
+if isinstance(dns, dict):
+    for host, recs in dns.items():
+        if not isinstance(recs, dict):
+            continue
+        addrs = []
+        for key in ("A", "AAAA"):
+            values = recs.get(key) or []
+            if isinstance(values, str):
+                values = [values]
+            addrs.extend(values)
+        if any(str(v).strip() for v in addrs):
+            resolved.add(str(host).strip().lower().rstrip("."))
+kept, dropped = [], []
+for host in hosts:
+    (kept if host.lower().rstrip(".") in resolved else dropped).append(host)
+hosts_path.write_text("".join(f"{h}\n" for h in kept))
+dropped_path.write_text("".join(f"{h}\n" for h in dropped))
+print(json.dumps({"kept": len(kept), "dropped": len(dropped)}))
+PY
+fi
+
+# grep -c exits 1 when the count is 0, so `|| echo` would append a second 0
+# and the numeric test would not see an empty host file.
+host_count=$(grep -c . "$out/hosts.txt" 2>/dev/null || true)
+host_count=${host_count:-0}
 if [ "$host_count" -eq 0 ]; then
-  log "no concrete in-scope hosts to probe -- phase 01 discovered nothing resolvable"
-  cat > "$out/summary.json" <<EOF
-{"phase":"04-http-probe","domain":"$domain","tools_run":[],"tools_skipped":[],"count":0,"results":{},"notes":["no concrete in-scope hosts; nothing was probed. Run recon-01 with a working subdomain source before treating HTTP probing as complete."],"output_files":[]}
-EOF
+  log "no concrete resolved in-scope hosts to probe"
+  RECON_OUT="$out" RECON_DOMAIN="$domain" python3 - <<'PY'
+import json, os
+from pathlib import Path
+out = Path(os.environ["RECON_OUT"])
+unres = out / "hosts-unresolved.txt"
+n = 0
+if unres.is_file():
+    n = sum(1 for line in unres.read_text().splitlines() if line.strip())
+notes = ["no concrete in-scope hosts; nothing was probed. Run recon-01 with a working subdomain source before treating HTTP probing as complete."]
+if n:
+    notes.append(f"{n} host(s) had no A/AAAA record and were not probed")
+doc = {
+    "phase": "04-http-probe",
+    "domain": os.environ["RECON_DOMAIN"],
+    "tools_run": [],
+    "tools_skipped": [],
+    "count": 0,
+    "hosts_probed": 0,
+    "hosts_unresolved": n,
+    "degraded": True,
+    "results": {},
+    "notes": notes,
+    "output_files": [],
+}
+(out / "summary.json").write_text(json.dumps(doc, indent=2) + "\n")
+PY
   mark_done "$domain" "recon-04"
   echo '{"phase":"04","hosts":0,"degraded":true}'
   exit 0
 fi
 
 if command -v httpx >/dev/null 2>&1; then
-  log "httpx probing $host_count in-scope host(s) (80,443 + alt ports)"
-  timeout 300 httpx -l "$out/hosts.txt" -p "80,443,$ALT_PORTS" -silent -json -o "$out/httpx.jsonl" 2>/dev/null || true
+  alt_n=$(awk -F, '{print NF}' <<<"$ALT_PORTS")
+  ports=$((alt_n + 2))
+  wall=$((host_count * ports * 8 / 50 + 30))
+  if [ "$wall" -lt 45 ]; then wall=45; fi
+  if [ "$wall" -gt 300 ]; then wall=300; fi
+  log "httpx probing $host_count resolved in-scope host(s) (80,443 + alt ports, wall ${wall}s)"
+  set +e
+  timeout "$wall" httpx -l "$out/hosts.txt" -p "80,443,$ALT_PORTS" \
+    -timeout 8 -retries 1 -threads 50 \
+    -silent -json -o "$out/httpx.jsonl" 2>/dev/null
+  httpx_rc=$?
+  set -e
+  echo "$httpx_rc" > "$out/httpx.rc"
 fi
 
 python3 - "$out" "$hd" "$script_dir" "$ALT_PORTS" <<'PY'
@@ -48,6 +120,7 @@ from pathlib import Path
 
 sys.path.insert(0, sys.argv[3])
 from _scope import scope_allows
+from _recon_safety import httpx_truncated
 
 out, hd, alt_ports_csv = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[4]
 scope_text = (hd / "scope.txt").read_text()
@@ -118,19 +191,46 @@ else:
                 pass
 
 count = sum(len(v) for v in results.values())
+httpx_rc = None
+rc_path = out / "httpx.rc"
+if rc_path.is_file():
+    try:
+        httpx_rc = int(rc_path.read_text().strip() or "-1")
+    except ValueError:
+        httpx_rc = None
+unresolved = []
+unres_path = out / "hosts-unresolved.txt"
+if unres_path.is_file():
+    unresolved = [h.strip() for h in unres_path.read_text().splitlines() if h.strip()]
+httpx_produced = httpx_file.exists() and httpx_file.stat().st_size > 0
+truncated = httpx_rc is not None and httpx_truncated(httpx_rc, len(hosts), count)
+notes = []
+if not hosts:
+    notes.append("no in-scope hosts left to probe")
+if unresolved:
+    notes.append(f"{len(unresolved)} unresolved host(s) were not probed")
+if truncated:
+    notes.append(
+        f"httpx truncated (rc={httpx_rc}, responses={count}, hosts_probed={len(hosts)}); "
+        "partial output is not a clean success"
+    )
 summary = {
     "phase": "04-http-probe",
     "domain": hd.name,
     "hosts_probed": len(hosts),
-    "tools_run": ["httpx"] if httpx_file.exists() and httpx_file.stat().st_size > 0 else [],
-    "tools_skipped": [] if httpx_file.exists() else [{"tool": "httpx", "reason": "not installed; curl fallback used, alt-port sweep skipped"}],
+    "hosts_unresolved": len(unresolved),
+    "httpx_rc": httpx_rc,
+    "degraded": bool(truncated or not hosts),
+    "tools_run": [] if truncated or not httpx_produced else ["httpx"],
+    "tools_skipped": [] if httpx_file.exists() or truncated else [{"tool": "httpx", "reason": "not installed; curl fallback used, alt-port sweep skipped"}],
     "count": count,
     "results": results,
+    "notes": notes,
     "output_files": [str(out / "http.json")],
 }
 (out / "http.json").write_text(json.dumps(results, indent=2))
 (out / "summary.json").write_text(json.dumps(summary, indent=2))
-print(json.dumps({"phase": "04", "hosts_probed": len(hosts), "responses": count}))
+print(json.dumps({"phase": "04", "hosts_probed": len(hosts), "responses": count, "degraded": summary["degraded"]}))
 PY
 
 mark_done "$domain" "recon-04"

@@ -8,6 +8,7 @@
  */
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { analyzeSources } from "./index.js";
 
 import { stat, readdir, readFile } from "node:fs/promises";
@@ -15,6 +16,50 @@ import { extname } from "node:path";
 
 const SCANNABLE = new Set([".js", ".mjs", ".cjs", ".ts", ".jsx", ".tsx", ".html", ".htm", ".json"]);
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
+const SNIFF_BYTES = 4096;
+
+/**
+ * Guess a scannable extension from a body that was saved without one.
+ * Redirect stubs are HTML; real bundles are JS. A known non-empty extension
+ * is never overridden — callers only sniff extensionless files.
+ */
+export function sniffExtension(sample) {
+  const raw = Buffer.isBuffer(sample) ? sample.toString("utf8") : String(sample || "");
+  if (!raw || raw.includes("\0")) return "";
+  const head = raw.replace(/^\uFEFF/, "").trimStart().slice(0, 800);
+  if (!head) return "";
+  if (
+    /^<!doctype\s+html/i.test(head) ||
+    /^<\/?[a-z][\s\S]{0,40}>/i.test(head) ||
+    /<script[\s>]/i.test(head) ||
+    /<head[\s>]/i.test(head) ||
+    /<html[\s>]/i.test(head)
+  ) {
+    return ".html";
+  }
+  if (head.startsWith("{") || head.startsWith("[")) return ".json";
+  if (
+    /^\s*(import|export|function|const|let|var|class)\b/.test(head) ||
+    /=>/.test(head) ||
+    /\b(document|window)\s*[.\[]/.test(head)
+  ) {
+    return ".js";
+  }
+  return "";
+}
+
+async function fileIsScannable(filePath, name) {
+  const ext = extname(name).toLowerCase();
+  if (SCANNABLE.has(ext)) return true;
+  if (ext) return false;
+  try {
+    const buf = await readFile(filePath);
+    if (buf.length > MAX_FILE_BYTES || buf.includes(0)) return false;
+    return SCANNABLE.has(sniffExtension(buf.subarray(0, SNIFF_BYTES)));
+  } catch {
+    return false;
+  }
+}
 
 async function collect(dir, acc = []) {
   let entries;
@@ -26,7 +71,7 @@ async function collect(dir, acc = []) {
   for (const e of entries) {
     const p = join(dir, e.name);
     if (e.isDirectory()) await collect(p, acc);
-    else if (SCANNABLE.has(extname(e.name).toLowerCase())) acc.push(p);
+    else if (await fileIsScannable(p, e.name)) acc.push(p);
   }
   return acc;
 }
@@ -98,4 +143,6 @@ async function main() {
   );
 }
 
-await main();
+const invokedDirectly =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (invokedDirectly) await main();
