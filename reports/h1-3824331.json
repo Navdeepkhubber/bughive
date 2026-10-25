@@ -1,0 +1,17 @@
+{
+  "h1Id": 3824331,
+  "title": "Null Dereference in X509ToObject",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-23T22:30:38.540Z",
+  "weakness": null,
+  "cwe": {
+    "id": "NULL Pointer Dereference"
+  },
+  "cveIds": [],
+  "teamHandle": "nodejs",
+  "teamName": "Node.js",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3824331",
+  "vulnerabilityInformation": "A null pointer dereference vulnerability was identified in X.509 certificate handling. The vulnerability could cause a process to crash when converting a specially crafted certificate to a JavaScript object. This vulnerability affected Node.js versions 24.x and 26.x.",
+  "fetchedAt": "2026-10-25T10:27:53.478934+00:00"
+}
