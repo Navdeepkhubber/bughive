@@ -42,6 +42,11 @@ export async function loop(domain, { maxSteps = 32, approveGates = false } = {})
       skill: decision.skill,
       kind: ex.kind,
     });
+    // Host checkpoint. --approve-gates must not skip it: the next host stays
+    // untouched until `run.sh batch continue`.
+    if (decision.await_confirm || ex.await_confirm) {
+      return { status: "await_confirm", decision, steps };
+    }
     if (ex.kind === "bash" && ex.command) {
       await run(ex.command);
       await markStage(d, ex.stage);
@@ -51,7 +56,8 @@ export async function loop(domain, { maxSteps = 32, approveGates = false } = {})
     // human_review score still carries JEV's own requested action in
     // resume_command. When the operator has approved the gates for this hunt, resume
     // the planner's action instead of stopping. Never implied -- requires the flag.
-    if (approveGates && ex.kind === "halt" && ex.resume_command) {
+    // await_confirm is not a human_gate and has no resume_command.
+    if (approveGates && ex.kind === "halt" && ex.resume_command && !decision.await_confirm && !ex.await_confirm) {
       steps.push({
         approved_gate: true,
         clamped_from: decision.clamped_from,
@@ -98,7 +104,7 @@ if (invokedDirectly) {
           executor: out.decision?.executor,
         }),
       );
-      process.exit(out.status === "human_gate" ? 0 : 10);
+      process.exit(out.status === "human_gate" || out.status === "await_confirm" ? 0 : 10);
     })
     .catch((err) => {
       console.error(err.message || err);

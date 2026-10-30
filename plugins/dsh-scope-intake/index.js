@@ -173,6 +173,18 @@ const POLICY_RULES = [
     note: "DoS prohibited — keep request rates low and never amplify.",
   },
   {
+    id: "no-disruption",
+    subject: /\b(disrupt\w*|service degradation)\b/i,
+    excludes: [],
+    note: "No-disruption rule — select the low rate profile and proceed.",
+  },
+  {
+    id: "critical-infrastructure",
+    subject: /\b(critical[\s-]*infrastructure|emergency[\s-]*services?|life[\s-]*safety)\b/i,
+    excludes: [],
+    note: "Critical infrastructure — select the low rate profile and proceed.",
+  },
+  {
     id: "brute-force",
     subject: /\b(brute[\s-]*force|password guessing|credential stuffing)\b/i,
     excludes: [],
@@ -362,6 +374,7 @@ export function apply(ctx) {
         in_scope: p.in_scope.length,
         excluded: p.out_of_scope.length,
         excluded_classes: p.excluded_classes,
+        policy_flags: p.policy_flags,
       });
     },
   });

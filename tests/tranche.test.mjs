@@ -27,8 +27,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 test("batch knobs default to the brief and stay overridable", () => {
   const cfg = loadBatchConfig({});
-  assert.equal(cfg.batchDomains, 5);
-  assert.equal(cfg.trancheHostCap, 40);
+  assert.equal(cfg.batchDomains, 1);
+  assert.equal(cfg.trancheHostCap, 1);
   assert.equal(cfg.passiveUrlCap, 1500);
   assert.equal(cfg.jsFetchCap, 50);
   assert.equal(cfg.httpx.threads, 50);
@@ -70,28 +70,46 @@ test("batch knobs default to the brief and stay overridable", () => {
   assert.equal(tuned.httpx.budgetSeconds, 12);
   assert.equal(tuned.passiveUrlCap, 1000);
   assert.equal(tuned.katana.budgetSeconds, 900);
+
+  const low = loadBatchConfig({ BUGHIVE_RATE_PROFILE: "low" });
+  assert.equal(low.rateProfile, "low");
+  assert.equal(low.httpx.rateLimit, 5);
+  assert.equal(low.httpx.threads, 2);
+  assert.equal(low.nuclei.rateLimit, 5);
+  assert.equal(low.nuclei.concurrency, 2);
+  assert.equal(low.nuclei.bulkSize, 2);
+  assert.equal(low.nmapTop, 100);
+  const tunedLow = loadBatchConfig({
+    BUGHIVE_RATE_PROFILE: "low",
+    BUGHIVE_LOW_HTTPX_RATE: "3",
+    BUGHIVE_LOW_NMAP_TOP: "80",
+  });
+  assert.equal(tunedLow.httpx.rateLimit, 3);
+  assert.equal(tunedLow.httpx.threads, 2);
+  assert.equal(tunedLow.nmapTop, 80);
+  assert.equal(tunedLow.nuclei.bulkSize, 2);
 });
 
 test("tranche split respects the domain batch and spills when one root exceeds the host cap", () => {
   const cfg = loadBatchConfig({});
   const wide = ["a.com", "b.com", "c.com", "d.com", "e.com", "f.com"].map((host) => ({ host }));
   const byDomain = splitTranches(wide, cfg);
-  assert.equal(byDomain.length, 2);
-  assert.equal(byDomain[0].host_count, 5);
-  assert.equal(byDomain[0].domains.length, 5);
-  assert.equal(byDomain[1].host_count, 1);
-  assert.equal(byDomain[1].domains[0], "f.com");
+  assert.equal(byDomain.length, 6);
+  assert.equal(byDomain[0].host_count, 1);
+  assert.equal(byDomain[0].domains.length, 1);
+  assert.equal(byDomain[5].host_count, 1);
+  assert.equal(byDomain[5].domains[0], "f.com");
 
   const fat = Array.from({ length: 58 }, (_, i) => ({
     host: `h${String(i).padStart(2, "0")}.airnewzealand.co.nz`,
   }));
   const spilled = splitTranches(fat, cfg);
-  assert.equal(spilled.length, 2);
-  assert.equal(spilled[0].host_count, 40);
-  assert.equal(spilled[1].host_count, 18);
+  assert.equal(spilled.length, 58);
+  assert.equal(spilled[0].host_count, 1);
+  assert.equal(spilled[57].host_count, 1);
   assert.equal(spilled[0].domains.length, 1);
   assert.equal(spilled[0].spilled, true);
-  assert.equal(spilled[1].spilled, true);
+  assert.equal(spilled[57].spilled, true);
   assert.deepEqual(spilled[0].domains, ["airnewzealand.co.nz"]);
 
   const both = [];
@@ -215,7 +233,7 @@ test("stage bounds set degraded and truncated when the cap or the clock hits fir
   assert.deepEqual(py.results, ["a"]);
 });
 
-test("the next tranche waits until the current tranche emits findings", () => {
+test("the next tranche waits for confirm after the current host emits findings", () => {
   const plan = {
     tranches: [
       { index: 1, hosts: ["api.a.test"], domains: ["a.test"], tail: false },
@@ -224,9 +242,13 @@ test("the next tranche waits until the current tranche emits findings", () => {
   };
   let state = initialBatchState();
   const seen = [];
-  for (let guard = 0; guard < 40 && !state.complete; guard += 1) {
+  for (let guard = 0; guard < 80 && !state.complete; guard += 1) {
     const unit = nextBatchUnit(state, plan);
     seen.push(`${unit.kind}:${unit.stage || ""}:${unit.tranche || ""}`);
+    if (unit.kind === "await_confirm") {
+      state = { ...state, confirmed: true };
+      continue;
+    }
     state = advanceBatchState(state, unit, { trancheCount: plan.tranches.length });
   }
   const emit1 = seen.findIndex((line) => line.startsWith("emit::1"));
@@ -250,6 +272,11 @@ test("the next tranche waits until the current tranche emits findings", () => {
     findings_emitted: false,
   };
   assert.equal(nextBatchUnit(waiting, plan).kind, "emit");
+  const paused = advanceBatchState(waiting, { kind: "emit" }, { trancheCount: 2 });
+  assert.equal(paused.phase, "await_confirm");
+  assert.equal(paused.confirmed, false);
+  assert.equal(nextBatchUnit(paused, plan).kind, "await_confirm");
+  assert.equal(nextBatchUnit({ ...paused, confirmed: true }, plan).kind, "advance");
   assert.equal(trancheMayAdvance({ emitted: false }), false);
   assert.equal(trancheMayAdvance({ emitted: true, findings: [] }), true);
   assert.equal(trancheMayAdvance({ findings: { emitted: true } }), true);
@@ -273,7 +300,8 @@ test("wide scope routes deepen_recon through the batch step without touching a n
   const cfg = loadBatchConfig({});
   const many = Array.from({ length: 30 }, (_, i) => `www.brand${i}.example`).join("\n");
   assert.equal(batchRequiredFromScope(many, 0, cfg, {}), true);
-  assert.equal(batchRequiredFromScope("www.one.example\n", 3, cfg, {}), false);
+  assert.equal(batchRequiredFromScope("www.one.example\n", 1, cfg, {}), false);
+  assert.equal(batchRequiredFromScope("www.one.example\n", 3, cfg, {}), true);
   assert.equal(batchRequiredFromScope("www.one.example\n", 58, cfg, {}), true);
   assert.equal(batchRequiredFromScope(many, 58, cfg, { BUGHIVE_BATCH: "0" }), false);
 });
@@ -286,8 +314,9 @@ test("plan from a scope file spills a 58-host root without using the network", a
   try {
     const plan = await buildPlan(dir, loadBatchConfig({}));
     assert.equal(plan.host_count, 58);
-    assert.equal(plan.tranches[0].host_count, 40);
-    assert.equal(plan.tranches[1].host_count, 18);
+    assert.equal(plan.tranches.length, 58);
+    assert.equal(plan.tranches[0].host_count, 1);
+    assert.equal(plan.tranches[57].host_count, 1);
     assert.equal(plan.tranches[0].spilled, true);
     assert.ok(plan.ranked[0].host <= plan.ranked[1].host);
   } finally {

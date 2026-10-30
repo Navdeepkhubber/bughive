@@ -113,6 +113,7 @@ should actually invoke:
 | Stage | What it does |
 |---|---|
 | `run.sh scope <domain> <file>` | Parse a program page into `scope.txt` plus `program-scope.json` (exclusions + policy flags + `excluded_classes`). |
+| `run.sh batch run\|continue\|stop <domain>` | One host per tranche. `run` emits that host's findings and pauses at `await_confirm` (exit 0). `continue` is what touches the next host; `stop` leaves it untouched. A no-disruption, critical-infrastructure, or dos flag selects the low rate profile (`BUGHIVE_LOW_*` overrides). Automated-scanning skips recon-03/05/14/15 for that domain only. |
 | `run.sh coverage init\|gate\|gaps\|summary <domain>` | Coverage matrix; `gate` **exits non-zero** while critical cells are unresolved, so it can block delivery. |
 | `run.sh ingest <domain>` | Harvest request evidence from `recon/` into the journal (proxy history). Idempotent. Run it after recon so `audit` has evidence. |
 | `run.sh dedup <domain>` | Collapse clone/staging hosts from the response cache into `recon/asset-clusters.json`. |

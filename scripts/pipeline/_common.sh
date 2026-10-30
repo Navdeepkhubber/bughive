@@ -195,6 +195,45 @@ cmd_mark() {
   echo "{\"marked\":\"$stage\"}"
 }
 
+# Policy forbids this volume phase. Write a degraded summary and mark the
+# stage done so dependents (recon-04 depends on recon-03) still become legal.
+cmd_mark_skipped() {
+  local domain="$1" stage="$2"
+  local phase hd summary
+  [ -n "$domain" ] && [ -n "$stage" ] || die "usage: run.sh mark-skipped <domain> <recon-NN>"
+  phase="$(recon_phase_id "$stage")"
+  [ -n "$phase" ] || die "not a recon stage: $stage"
+  hd="$(hunt_dir "$domain")"
+  summary="$hd/recon/$phase/summary.json"
+  mkdir -p "$(dirname "$summary")" "$hd/.state"
+  RECON_PHASE="$phase" RECON_DOMAIN="$(sanitize_domain "$domain")" RECON_SUMMARY="$summary" \
+    python3 - <<'PY'
+import json, os
+doc = {
+    "phase": os.environ["RECON_PHASE"],
+    "domain": os.environ["RECON_DOMAIN"],
+    "count": 0,
+    "skipped": True,
+    "degraded": True,
+    "tools_run": [],
+    "tools_skipped": [{
+        "tool": os.environ["RECON_PHASE"],
+        "reason": "program forbids automated scanning; phase marked done so dependents can run",
+    }],
+    "notes": [
+        "skipped: program forbids automated scanning for this domain",
+        "counted as done so a later phase that depends on it can run",
+    ],
+    "output_files": [],
+}
+with open(os.environ["RECON_SUMMARY"], "w", encoding="utf-8") as fh:
+    json.dump(doc, fh, indent=2)
+    fh.write("\n")
+PY
+  mark_done "$domain" "$stage"
+  echo "{\"skipped\":true,\"stage\":\"$stage\",\"phase\":\"$phase\"}"
+}
+
 # Dispatch only when executed directly (`bash _common.sh cmd_init ...`).
 # When sourced by run.sh / recon-*.sh this must NOT run, otherwise $@ is the
 # caller's arguments and gets executed as a command.
