@@ -25,6 +25,12 @@ import {
   splitTranches,
   trancheMayAdvance,
 } from "./tranche.mjs";
+import {
+  SKIP_SCAN_STAGES,
+  classifyPolicy,
+  lowProfileEnv,
+  policyFlagIds,
+} from "./rate-profile.mjs";
 import { RECON_MAX_SECONDS } from "./jev-decide.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -209,14 +215,26 @@ function runCommand(command, { env, cwd }) {
   });
 }
 
+function readPolicyIds(hd) {
+  try {
+    const raw = JSON.parse(readFileSync(join(hd, "program-scope.json"), "utf8"));
+    return policyFlagIds(raw?.policy_flags);
+  } catch {
+    return [];
+  }
+}
+
 function stageEnv(base, config, extra = {}) {
-  return {
+  const env = {
     ...base,
     BUGHIVE_PASSIVE_WIDE: "1",
     BUGHIVE_GAU_MAX_ROOTS: "1000000",
-    BUGHIVE_PORTSCAN_ENGINE: "naabu",
     ...extra,
   };
+  if (String(env.BUGHIVE_RATE_PROFILE || "").toLowerCase() === "low") {
+    Object.assign(env, lowProfileEnv(env));
+  }
+  return env;
 }
 
 async function runPipeline(domain, stage, env) {
@@ -332,6 +350,8 @@ export async function stepDomain(domain, env = process.env) {
   if (!existsSync(join(hd, "scope.txt"))) {
     throw new Error(`no scope.txt under ${hd}; run init first`);
   }
+  const policy = classifyPolicy(readPolicyIds(hd));
+  if (policy.low) env = { ...env, ...lowProfileEnv(env) };
   const config = loadBatchConfig(env);
   let plan = await readJson(join(hd, "batch", "plan.json"));
   if (!plan) {
@@ -340,6 +360,20 @@ export async function stepDomain(domain, env = process.env) {
   }
   const done = await doneStages(hd);
   let state = await readState(hd, done);
+  if (state.phase === "await_confirm" && !state.confirmed) {
+    const next = plan.tranches[(state.tranche_index || 0) + 1];
+    const current = plan.tranches[state.tranche_index || 0];
+    return {
+      unit: "await_confirm",
+      phase: "await_confirm",
+      code: 0,
+      complete: false,
+      paused: true,
+      tranche: current?.index ?? (state.tranche_index || 0) + 1,
+      host: current?.hosts?.[0] || null,
+      next_host: next?.hosts?.[0] || null,
+    };
+  }
   plan = applyTailPolicy(plan, {
     elapsed: reconElapsed(hd),
     budget: reconBudget(env),
@@ -380,13 +414,23 @@ export async function stepDomain(domain, env = process.env) {
   } else if (unit.kind === "active") {
     const tranche = plan.tranches[(state.tranche_index || 0)];
     const hostFile = join(trancheDir(hd, tranche.index), "hosts.txt");
-    const result = await runPipeline(domain, unit.stage, stageEnv(env, config, {
-      BUGHIVE_TRANCHE_HOSTS: hostFile,
-      BUGHIVE_PORTSCAN_ENGINE: "naabu",
-    }));
-    report.code = result.code;
-    report.stderr_tail = result.stderr.slice(-500);
-    if (result.code !== 0) return report;
+    if (policy.forbidScans && SKIP_SCAN_STAGES.has(unit.stage)) {
+      const result = await runCommand(
+        `bash scripts/pipeline/run.sh mark-skipped ${sanitizeDomain(domain)} ${unit.stage}`,
+        { cwd: ROOT, env: stageEnv(env, config) },
+      );
+      report.code = result.code;
+      report.skipped = unit.stage;
+      report.stderr_tail = result.stderr.slice(-500);
+      if (result.code !== 0) return report;
+    } else {
+      const result = await runPipeline(domain, unit.stage, stageEnv(env, config, {
+        BUGHIVE_TRANCHE_HOSTS: hostFile,
+      }));
+      report.code = result.code;
+      report.stderr_tail = result.stderr.slice(-500);
+      if (result.code !== 0) return report;
+    }
   } else if (unit.kind === "scan") {
     const tranche = plan.tranches[state.tranche_index || 0];
     const started = Date.now();
@@ -445,6 +489,8 @@ export async function stepDomain(domain, env = process.env) {
     });
     report.emitted = record.emitted;
     report.finding_count = record.findings.length;
+  } else if (unit.kind === "await_confirm") {
+    report.paused = true;
   } else if (unit.kind === "advance") {
     const emitted = await readJson(join(
       trancheDir(hd, plan.tranches[state.tranche_index || 0].index),
@@ -464,14 +510,91 @@ export async function stepDomain(domain, env = process.env) {
   await writeFile(join(hd, "batch", "state.json"), `${JSON.stringify(state, null, 2)}\n`);
   report.complete = state.complete;
   report.phase = state.phase;
+  if (state.phase === "await_confirm") {
+    const next = plan.tranches[(state.tranche_index || 0) + 1];
+    const current = plan.tranches[state.tranche_index || 0];
+    report.paused = true;
+    report.host = current?.hosts?.[0] || null;
+    report.next_host = next?.hosts?.[0] || null;
+  }
   return report;
+}
+
+function pauseText(domain, report) {
+  const host = report.host || "the current host";
+  const next = report.next_host || "(none)";
+  return [
+    `Paused after host ${host}. Run next host ${next}? [continue/stop]`,
+    `Continue: bash scripts/pipeline/run.sh batch continue ${domain}`,
+    `Stop: bash scripts/pipeline/run.sh batch stop ${domain}`,
+  ].join("\n");
+}
+
+async function runUntilPause(domain) {
+  const config = loadBatchConfig();
+  const reports = [];
+  for (let i = 0; i < config.maxSteps; i += 1) {
+    const report = await stepDomain(domain);
+    reports.push({
+      unit: report.unit,
+      stage: report.stage,
+      tranche: report.tranche,
+      code: report.code,
+      complete: report.complete,
+      paused: report.paused === true,
+    });
+    if (report.code) {
+      process.stdout.write(`${JSON.stringify({ steps: reports, failed: report })}\n`);
+      process.exitCode = report.code;
+      return;
+    }
+    if (report.paused || report.phase === "await_confirm" || report.unit === "await_confirm") {
+      process.stderr.write(`${pauseText(domain, report)}\n`);
+      process.stdout.write(`${JSON.stringify({
+        paused: true,
+        phase: "await_confirm",
+        host: report.host || null,
+        next_host: report.next_host || null,
+        steps: reports,
+      })}\n`);
+      return;
+    }
+    if (report.complete || report.unit === "done") break;
+  }
+  process.stdout.write(`${JSON.stringify({ steps: reports })}\n`);
+}
+
+async function continueDomain(domain) {
+  const hd = huntDir(domain);
+  const state = await readJson(join(hd, "batch", "state.json"));
+  if (!state || state.phase !== "await_confirm") {
+    process.stderr.write("batch is not waiting for confirm\n");
+    process.exitCode = 2;
+    return;
+  }
+  state.confirmed = true;
+  await mkdir(join(hd, "batch"), { recursive: true });
+  await writeFile(join(hd, "batch", "state.json"), `${JSON.stringify(state, null, 2)}\n`);
+  await runUntilPause(domain);
+}
+
+async function stopDomain(domain) {
+  const hd = huntDir(domain);
+  const state = (await readJson(join(hd, "batch", "state.json"))) || {};
+  state.phase = "stopped";
+  state.complete = true;
+  state.stopped = true;
+  state.confirmed = false;
+  await mkdir(join(hd, "batch"), { recursive: true });
+  await writeFile(join(hd, "batch", "state.json"), `${JSON.stringify(state, null, 2)}\n`);
+  process.stdout.write(`${JSON.stringify({ stopped: true, phase: "stopped", host: state.host || null })}\n`);
 }
 
 async function main() {
   const cmd = process.argv[2];
   const domain = process.argv[3];
-  if (!cmd || !domain || !["plan", "step", "run"].includes(cmd)) {
-    process.stderr.write("usage: batch-run.mjs <plan|step|run> <domain>\n");
+  if (!cmd || !domain || !["plan", "step", "run", "continue", "stop"].includes(cmd)) {
+    process.stderr.write("usage: batch-run.mjs <plan|step|run|continue|stop> <domain>\n");
     process.exit(2);
   }
   if (cmd === "plan") {
@@ -492,19 +615,15 @@ async function main() {
     if (report.code) process.exitCode = report.code;
     return;
   }
-  const config = loadBatchConfig();
-  const reports = [];
-  for (let i = 0; i < config.maxSteps; i += 1) {
-    const report = await stepDomain(domain);
-    reports.push({ unit: report.unit, stage: report.stage, tranche: report.tranche, code: report.code, complete: report.complete });
-    if (report.code) {
-      process.stdout.write(`${JSON.stringify({ steps: reports, failed: report })}\n`);
-      process.exitCode = report.code;
-      return;
-    }
-    if (report.complete || report.unit === "done") break;
+  if (cmd === "continue") {
+    await continueDomain(domain);
+    return;
   }
-  process.stdout.write(`${JSON.stringify({ steps: reports })}\n`);
+  if (cmd === "stop") {
+    await stopDomain(domain);
+    return;
+  }
+  await runUntilPause(domain);
 }
 
 const invoked = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];

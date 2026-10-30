@@ -1,0 +1,19 @@
+{
+  "note": "The low (no-disruption / safe) profile. Throughput defaults stay in batch-defaults.json. A BUGHIVE_LOW_* variable, when set, replaces the number below. Applied only when BUGHIVE_RATE_PROFILE=low.",
+  "low": {
+    "BUGHIVE_HTTPX_RATE": 5,
+    "BUGHIVE_HTTPX_THREADS": 2,
+    "BUGHIVE_NUCLEI_RATE": 5,
+    "BUGHIVE_NUCLEI_CONCURRENCY": 2,
+    "BUGHIVE_NUCLEI_BULK": 2,
+    "BUGHIVE_NMAP_TOP": 100,
+    "overrides": {
+      "BUGHIVE_HTTPX_RATE": "BUGHIVE_LOW_HTTPX_RATE",
+      "BUGHIVE_HTTPX_THREADS": "BUGHIVE_LOW_HTTPX_THREADS",
+      "BUGHIVE_NUCLEI_RATE": "BUGHIVE_LOW_NUCLEI_RATE",
+      "BUGHIVE_NUCLEI_CONCURRENCY": "BUGHIVE_LOW_NUCLEI_CONC",
+      "BUGHIVE_NUCLEI_BULK": "BUGHIVE_LOW_NUCLEI_BULK",
+      "BUGHIVE_NMAP_TOP": "BUGHIVE_LOW_NMAP_TOP"
+    }
+  }
+}
