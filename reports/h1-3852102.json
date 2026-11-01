@@ -1,0 +1,17 @@
+{
+  "h1Id": 3852102,
+  "title": "Revoked deployment collaborator regains access to private comments after active collaborator interaction",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-29T08:25:44.335Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Access Control Check Implemented After Asset is Accessed"
+  },
+  "cveIds": [],
+  "teamHandle": "vercel",
+  "teamName": "Vercel",
+  "bountyAmount": 1026,
+  "reportUrl": "https://hackerone.com/reports/3852102",
+  "vulnerabilityInformation": "A revoked deployment collaborator was able to regain access to private collaboration data after an active collaborator interacted with the deployment toolbar. After a collaborator's authorization was revoked and their token became invalid, a subsequent interaction by an active collaborator caused the revoked token to become authorized again. This allowed the revoked user to access the synchronization endpoint and retrieve private deployment collaboration data, including comment threads and messages, without being re-invited or granted new authorization.",
+  "fetchedAt": "2026-11-01T12:25:02.824809+00:00"
+}

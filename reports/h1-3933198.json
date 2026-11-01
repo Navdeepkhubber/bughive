@@ -1,0 +1,17 @@
+{
+  "h1Id": 3933198,
+  "title": "wordpress.org/openverse/: unauthenticated open redirect \u2014 `str_replace()`'s 4th arg is a count, not a limit; bypasses WordPress.org SSO allow-list",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-30T21:41:09.957Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Open Redirect"
+  },
+  "cveIds": [],
+  "teamHandle": "wordpress",
+  "teamName": "WordPress",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3933198",
+  "vulnerabilityInformation": "A vulnerability was discovered in the open redirect feature of a WordPress theme that serves a subdirectory site. The vulnerability was caused by incorrect use of a string replacement function where the fourth argument, intended to limit replacements to one occurrence, was actually interpreted as an output parameter rather than a limit. This caused all instances of the path prefix to be removed instead of just the leading one. When a specially crafted path containing the prefix twice was requested, the remaining portion could be concatenated with a base URL in a way that altered the authority component, redirecting users to an attacker-controlled destination. The redirect used an unsafe API that performed no destination validation. The vulnerability allowed unauthenticated attackers to bypass the site's SSO redirect allow-list by crafting URLs that appeared to point to the legitimate domain but redirected elsewhere. The impact included silent redirection of users to attacker-controlled hosts with permanent browser caching and legitimate referrer information, creating an effective phishing vector.",
+  "fetchedAt": "2026-11-01T12:25:02.824498+00:00"
+}

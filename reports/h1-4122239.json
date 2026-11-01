@@ -1,0 +1,19 @@
+{
+  "h1Id": 4122239,
+  "title": "CVE-2026-111952: OpenSSL provider use-after-free again",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-26T07:52:59.561Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Use After Free"
+  },
+  "cveIds": [
+    "CVE-2026-111952"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4122239",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-01T12:25:02.825723+00:00"
+}

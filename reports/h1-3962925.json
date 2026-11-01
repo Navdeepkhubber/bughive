@@ -1,0 +1,17 @@
+{
+  "h1Id": 3962925,
+  "title": "Launchpad file read leaks production keys",
+  "severity": "Critical",
+  "disclosedAt": "2026-10-28T04:53:47.847Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Path Traversal"
+  },
+  "cveIds": [],
+  "teamHandle": "basecamp",
+  "teamName": "Basecamp",
+  "bountyAmount": 9337,
+  "reportUrl": "https://hackerone.com/reports/3962925",
+  "vulnerabilityInformation": "A file-read vulnerability in a platform exposed production storage credentials. The vulnerable processing path was fixed, exposed credentials were rotated, and the old key was deleted.",
+  "fetchedAt": "2026-11-01T12:25:02.824979+00:00"
+}

@@ -1,0 +1,22 @@
+{
+  "h1Id": 4125601,
+  "title": "OpenSSL `--cert-status` accepts indefinitely stale GOOD OCSP staples",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-26T12:50:37.450Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Check for Certificate Revocation"
+  },
+  "cveIds": [
+    "CVE-2020-8286",
+    "CVE-2024-8096",
+    "CVE-2026-7009",
+    "CVE-2026-93493"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4125601",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-01T12:25:02.825420+00:00"
+}

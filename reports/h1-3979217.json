@@ -1,0 +1,17 @@
+{
+  "h1Id": 3979217,
+  "title": " Cross-account webhook takeover: PUT and DELETE on /<account>/webhooks/<id>.json reach another account's webhook",
+  "severity": "High",
+  "disclosedAt": "2026-10-30T11:08:50.996Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Authentication - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "basecamp",
+  "teamName": "Basecamp",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3979217",
+  "vulnerabilityInformation": "A cross-account webhook takeover vulnerability was identified in Basecamp's webhook API endpoints. The PUT and DELETE operations on webhook resources were authorizing based on project visibility rather than account membership. This allowed an attacker from one account to modify and delete webhooks belonging to another account when the victim's project was configured with all-access permissions. The vulnerability enabled redirection of webhooks to attacker-controlled servers, allowing interception of sensitive project communications and data.",
+  "fetchedAt": "2026-11-01T12:25:02.824645+00:00"
+}

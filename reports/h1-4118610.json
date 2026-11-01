@@ -1,0 +1,20 @@
+{
+  "h1Id": 4118610,
+  "title": "CVE-2026-111484: OpenSSL with SecTrust accepts bad OCSP staples",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-26T07:53:49.149Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Certificate Validation"
+  },
+  "cveIds": [
+    "CVE-2026-111484",
+    "CVE-2026-7009"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4118610",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-01T12:25:02.825671+00:00"
+}

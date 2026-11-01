@@ -1,0 +1,17 @@
+{
+  "h1Id": 4000084,
+  "title": "A disabled account's API key still works on BMO's Mojolicious /rest/ routes, including for security-group bugs filed after the disable",
+  "severity": "High",
+  "disclosedAt": "2026-10-26T10:49:19.776Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Authentication - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "mozilla",
+  "teamName": "Mozilla",
+  "bountyAmount": 4000,
+  "reportUrl": "https://hackerone.com/reports/4000084",
+  "vulnerabilityInformation": "A Bugzilla instance had inconsistent authentication validation across its API implementations. The newer REST routes failed to verify account status when processing API keys, while the legacy REST API and web interface correctly rejected disabled accounts. This allowed disabled accounts' API keys to remain functional on the newer routes, including for security-sensitive bug operations. The vulnerability was remediated by implementing proper account status validation in the REST API authentication process.",
+  "fetchedAt": "2026-11-01T12:25:02.825520+00:00"
+}

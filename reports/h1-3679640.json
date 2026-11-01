@@ -1,0 +1,19 @@
+{
+  "h1Id": 3679640,
+  "title": "Unauthenticated Persistent Denial-of-Service via Federated Share Injection",
+  "severity": "High",
+  "disclosedAt": "2026-10-27T10:43:59.752Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Uncontrolled Resource Consumption"
+  },
+  "cveIds": [
+    "CVE-2026-77167"
+  ],
+  "teamHandle": "nextcloud",
+  "teamName": "Nextcloud",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3679640",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-01T12:25:02.825279+00:00"
+}

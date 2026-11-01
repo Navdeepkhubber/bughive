@@ -1,0 +1,19 @@
+{
+  "h1Id": 3576823,
+  "title": "SSRF on Nextcloud Whiteboard Application via Recordings to Unauthorised Access to Whiteboards",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-27T11:26:00.153Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Server-Side Request Forgery (SSRF)"
+  },
+  "cveIds": [
+    "CVE-2026-87897"
+  ],
+  "teamHandle": "nextcloud",
+  "teamName": "Nextcloud",
+  "bountyAmount": 250,
+  "reportUrl": "https://hackerone.com/reports/3576823",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-01T12:25:02.825034+00:00"
+}

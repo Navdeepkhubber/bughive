@@ -1,0 +1,17 @@
+{
+  "h1Id": 3981292,
+  "title": "Cross-account XSS on app.basecamp.com: oEmbed option injection chained through Turbo defeats the CSP nonce",
+  "severity": "High",
+  "disclosedAt": "2026-10-28T04:58:32.862Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Cross-site Scripting (XSS) - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "basecamp",
+  "teamName": "Basecamp",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3981292",
+  "vulnerabilityInformation": "A cross-account cross-site scripting vulnerability was discovered on an application's embed display page. Following a domain migration, provider-supplied HTML was rendered on the application origin instead of an isolated embeds host, allowing crafted embeds to execute scripts in the context of other user accounts. The issue was remediated by restricting embed HTML rendering to the embeds host only and rebuilding provider frames from media identifiers, preventing options in pasted URLs from reaching third-party players.",
+  "fetchedAt": "2026-11-01T12:25:02.824906+00:00"
+}

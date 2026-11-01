@@ -1,0 +1,17 @@
+{
+  "h1Id": 3816330,
+  "title": "Monero IPv6 /128 tracking bypasses per-IP limit, enables remote OOM",
+  "severity": "High",
+  "disclosedAt": "2026-10-28T20:13:57.562Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Uncontrolled Resource Consumption"
+  },
+  "cveIds": [],
+  "teamHandle": "monero",
+  "teamName": "Monero",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3816330",
+  "vulnerabilityInformation": "Monero's IPv6 connection tracking used individual /128 addresses, which allowed the per-IP RPC connection limit to be bypassed by using multiple IPv6 addresses. This undermined the intended connection restrictions for IPv6 clients and was resolved in version 0.18.5.3.",
+  "fetchedAt": "2026-11-01T12:25:02.824859+00:00"
+}

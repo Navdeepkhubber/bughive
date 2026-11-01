@@ -1,0 +1,17 @@
+{
+  "h1Id": 4043537,
+  "title": "CampTix [camptix_private]: the view token is derived from the requester's own IP, so naming any attendee's e-mail unlocks the gated content",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-30T21:41:28.599Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Authentication - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "wordpress",
+  "teamName": "WordPress",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4043537",
+  "vulnerabilityInformation": "A vulnerability was discovered in CampTix where the view token used to gate private content was derived from an attendee's email address and the requester's IP address. This allowed an attacker who knew an attendee's email address to gain access to gated content without possessing a valid ticket. The token generation process was performed using data controlled by the requester, making it guessable. Additionally, when a token was requested, the stored token of legitimate ticket holders was overwritten, preventing their access on subsequent visits. The vulnerability affected only installations where the private shortcode feature was deployed.",
+  "fetchedAt": "2026-11-01T12:25:02.824285+00:00"
+}

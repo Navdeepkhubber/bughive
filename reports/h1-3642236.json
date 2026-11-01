@@ -1,0 +1,19 @@
+{
+  "h1Id": 3642236,
+  "title": "Tables application does not respect sharing limitations set by admin",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-27T11:22:32.011Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [
+    "CVE-2026-82986"
+  ],
+  "teamHandle": "nextcloud",
+  "teamName": "Nextcloud",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3642236",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-01T12:25:02.825085+00:00"
+}

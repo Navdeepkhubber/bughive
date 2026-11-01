@@ -1,0 +1,19 @@
+{
+  "h1Id": 4128428,
+  "title": "CVE-2026-115528: wolfSSL TLS connect without cert",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-26T07:21:36.975Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Certificate Validation"
+  },
+  "cveIds": [
+    "CVE-2026-115528"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4128428",
+  "vulnerabilityInformation": "A vulnerability was discovered in curl when built with wolfSSL that allowed TLS connections to complete without certificate verification. When using default certificate verification settings, curl accepted anonymous Diffie-Hellman cipher suites that transmitted no server certificate. This caused user credentials and request data to be sent to unauthenticated servers. The issue was caused by insufficient certificate validation checks in the wolfSSL backend code. Connections using OpenSSL or GnuTLS were not affected by this vulnerability.",
+  "fetchedAt": "2026-11-01T12:25:02.825771+00:00"
+}

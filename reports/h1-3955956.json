@@ -1,0 +1,17 @@
+{
+  "h1Id": 3955956,
+  "title": "launchpad.37signals.com OAuth AS issues victim-bound credential to unverified attacker redirect \u2192 full CIA triad on Basecamp API ",
+  "severity": "High",
+  "disclosedAt": "2026-10-30T13:40:05.079Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Authentication - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "basecamp",
+  "teamName": "Basecamp",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3955956",
+  "vulnerabilityInformation": "A custom OAuth2 authorization server was found to issue victim-bound API credentials to unverified attacker-controlled redirect URIs. The authorization server accepted client registrations with self-chosen redirect URIs without performing ownership verification, ownership approval, or URI structure validation. During authorization, the server treated these unverified URIs as trusted redirect destinations.\n\nThe deprecated implicit grant type was still enabled, which delivered access tokens directly to registered redirects in URL fragments without requiring client authentication or an authorization code exchange. Additionally, the authorization server accepted and honored dangerous redirect URI patterns including cleartext HTTP loopback addresses, custom application schemes, and wildcard hosts and paths.\n\nA victim-bound access token delivered to an attacker-controlled redirect was demonstrated to have full impact across confidentiality, integrity, and availability. The token was used to read the victim's project lists, modify project names server-side with confirmed persistence, and permanently delete victim projects. All operations returned successful HTTP status codes and were verified to have persisted on the server.",
+  "fetchedAt": "2026-11-01T12:25:02.824579+00:00"
+}

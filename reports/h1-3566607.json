@@ -1,0 +1,19 @@
+{
+  "h1Id": 3566607,
+  "title": "No password confirmation required when using apptoken on sensitive endpoint",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-27T10:40:47.066Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Privilege Management"
+  },
+  "cveIds": [
+    "CVE-2026-77172"
+  ],
+  "teamHandle": "nextcloud",
+  "teamName": "Nextcloud",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3566607",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-01T12:25:02.825325+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "h1Id": 3938190,
+  "title": " Windows SSPI connection-pool probe can reuse a connection under the wrong user",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-26T09:09:56.813Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Authentication Bypass by Spoofing"
+  },
+  "cveIds": [],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3938190",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-01T12:25:02.825620+00:00"
+}

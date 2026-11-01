@@ -1,0 +1,17 @@
+{
+  "h1Id": 4125043,
+  "title": "netrc credentials leaked to a cross-host redirect target on the Basic auth path (not covered by redirect credential protections)",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-26T12:51:00.121Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Insufficiently Protected Credentials"
+  },
+  "cveIds": [],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4125043",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-01T12:25:02.825374+00:00"
+}

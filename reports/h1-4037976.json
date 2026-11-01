@@ -1,0 +1,19 @@
+{
+  "h1Id": 4037976,
+  "title": "Incomplete VCS metadata exclusion: `.svn` / `.bzr` bypass CVE-2026-61792 due to missing `VCS_METADATA_DIRS` entries.",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-30T05:08:33.268Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Path Traversal"
+  },
+  "cveIds": [
+    "CVE-2026-61792"
+  ],
+  "teamHandle": "weblate",
+  "teamName": "Weblate",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4037976",
+  "vulnerabilityInformation": "A translation management application contained incomplete VCS metadata exclusion in its ZIP download feature. The exclusion mechanism only covered Git and Mercurial metadata directories but failed to exclude Subversion and Bazaar metadata directories. This gap allowed Subversion and Bazaar metadata files, including working-copy databases and credential cache entries, to be included in downloaded archives when such directories were present in component trees. The issue represented a completeness failure in a security hardening mechanism introduced in a prior security fix, affecting multiple code paths including path validation, symlink resolution, backup operations, and component discovery.",
+  "fetchedAt": "2026-11-01T12:25:02.824756+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "h1Id": 3999856,
+  "title": "A third-party Basecamp OAuth token mints a full launchpad web session through GET /my/login_option",
+  "severity": "High",
+  "disclosedAt": "2026-10-30T11:07:36.214Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "basecamp",
+  "teamName": "Basecamp",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3999856",
+  "vulnerabilityInformation": "A third-party OAuth token was able to mint a full web session through an API endpoint, allowing an integration to obtain unauthorized session access and modify account settings. The vulnerability has been patched to only accept authorized session tokens.",
+  "fetchedAt": "2026-11-01T12:25:02.824703+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "h1Id": 3682163,
+  "title": "Files Confidential tagging can be bypassed with # in filename ",
+  "severity": "Medium",
+  "disclosedAt": "2026-10-27T11:00:19.687Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [
+    "CVE-2026-77173"
+  ],
+  "teamHandle": "nextcloud",
+  "teamName": "Nextcloud",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3682163",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-01T12:25:02.825184+00:00"
+}
