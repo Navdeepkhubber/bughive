@@ -4,6 +4,10 @@
 ---
 name: security-arsenal
 description: Security payloads, bypass tables, wordlists, gf pattern names, always-rejected bug list, and conditionally-valid-with-chain table. Use when you need specific payloads for XSS/SSRF/SQLi/XXE/NoSQLi/command injection/SSTI/IDOR/path-traversal/HTTP smuggling/WebSocket/MFA bypass, bypass techniques, or to check if a finding is submittable. Also use when asked about what NOT to submit.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # SECURITY ARSENAL
@@ -912,3 +916,12 @@ def welch_t(a, b):
 ```
 
 Same rule applies to blind boolean oracles where the diff is response-length or status-code under jitter — sample, don't assume.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

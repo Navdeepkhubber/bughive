@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 <!-- harvested: Gabson0x/bountyforge/skills/godmod/SKILL.md on 2026-10-23T20:17:17.066629+00:00 -->
 <!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
 
@@ -62,3 +69,12 @@ See also: [[Methodology]], [[Wild Mode]], [[Trust Map]], [[A→B Chains]]
 - If asked to audit, check the spec AND the implementation AND the tests.
 - If something looks fine on the surface, check the edge cases: overflow, underflow, reentrancy, replay, race condition, integer coercion.
 EOF
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

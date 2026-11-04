@@ -4,6 +4,10 @@
 ---
 name: api-security
 description: "REST/OAuth/JWT API security — each pattern has SIGNAL → TEST → CONFIRM → KILL + response-driven next actions + sibling endpoint analysis. NOT for GraphQL depth (use a dedicated GraphQL skill) or general web vulns (use web2-vuln-classes)."
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # API SECURITY — EXECUTION MATRIX + RESPONSE-DRIVEN
@@ -88,3 +92,12 @@ Found API endpoint?
 | Info Disclosure | `reference/info-disclosure.md` |
 | Method Override | `reference/method-override.md` |
 | BFF Testing | `reference/bff-testing.md` |
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

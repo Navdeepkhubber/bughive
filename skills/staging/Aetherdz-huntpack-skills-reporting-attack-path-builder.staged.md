@@ -4,6 +4,10 @@
 ---
 name: attack-path-builder
 description: "Chains low/medium findings into critical attack paths (ATO, privesc, data breach, business logic bypass). One verified chain beats 10 standalone lows. Must pass Chain Gate: each step independently verified, chain is technically necessary."
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # ATTACK PATH BUILDER — Dynamic Chain Discovery
@@ -126,3 +130,12 @@ verdict: "B confidence 0.7, race unconfirmed — gather evidence"
 **Combined Impact:** <final>, CVSS <score>, PoC (zero state), Business impact
 **Why chain:** Each independently verified · F1 output is F2 input · neither alone achieves impact · removing any step breaks chain.
 ```
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

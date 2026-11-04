@@ -4,6 +4,10 @@
 ---
 name: hunt-api-misconfig
 description: "Hunt API security misconfiguration — mass assignment, JWT attacks, prototype pollution, CORS, HTTP verb tampering. Mass assignment: send {is_admin:true, role:admin, verified:true} on profile/account/reset endpoints — server blindly applies. JWT: alg=none, weak HMAC bruteforce, kid path traversal, JWK injection, token confusion. Prototype pollution: __proto__ injection in JSON merge / Object.assign / lodash _.merge → polluted prototype reaches sink (RCE in Node, XSS in browser). CORS: wildcard with credentials, null origin, regex with subdomain takeover, postMessage origin checks. HTTP verb: GET-bypass-CSRF, X-HTTP-Method-Override, TRACE enabled. Detection: API responses with extra fields, JWTs in headers (decode at jwt.io), CORS preflight responses. Use when hunting API misconfigs, JWT flaws, mass-assignment, prototype pollution, CORS bypasses."
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 ## 12. API SECURITY MISCONFIGURATION
@@ -55,3 +59,11 @@ curl -s -I -H "Origin: https://evil.com" https://target.com/api/user/me
 - **`security-arsenal`** — Load the JWT Attack Payloads section (alg=none, kid path traversal, JWK injection, embedded JWK) and the Mass-Assignment Field Wordlist (`is_admin`, `role`, `verified`, `permissions`, `org_id`, `tenant_id`).
 - **`triage-validation`** — Apply the Server-Policy-vs-State gate: a permissive CORS header alone is informational; demonstrate actual cross-origin credentialed read of sensitive data before reporting.
 
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

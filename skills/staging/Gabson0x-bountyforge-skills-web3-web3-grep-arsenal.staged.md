@@ -5,6 +5,10 @@
 name: web3-grep-arsenal
 description: Master grep command arsenal for Web3 smart contract auditing. Use when starting a new protocol scan, before deep code review, or when hunting specific vulnerability classes.
 Contains: 10 grep blocks for all major vuln classes, tier ranking, protocol-specific patterns, 2025 new patterns, copy-paste ready blocks.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # GREP ARSENAL — MASTER REFERENCE
@@ -320,3 +324,12 @@ grep -rn "totalDeposited\|totalPrincipal\|_balance\b" src/ --include="*.sol"
 ---
 
 → NEXT: [04-poc-and-foundry.md](04-poc-and-foundry.md)
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

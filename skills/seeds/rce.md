@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: rce
 ## Trigger Conditions
 A parameter that reaches a command or template.
@@ -18,3 +25,12 @@ The local fixture returns a different saved response for the probe than for the 
 
 ## Provenance
 Original house-style seed for `rce`. Per-source attribution is on the matching `skills/learned/staged-*` files.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

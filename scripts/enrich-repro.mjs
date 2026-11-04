@@ -5,6 +5,7 @@
  *   node scripts/enrich-repro.mjs --cve CVE-2021-44228
  *   node scripts/enrich-repro.mjs --backfill
  *   node scripts/enrich-repro.mjs --backfill --dry-run
+ *   node scripts/enrich-repro.mjs --backfill-bc
  *
  * Resolves NVD, vendor advisories linked from NVD, GitHub Advisory (GHSA),
  * CISA KEV, the ExploitDB GitLab CSV, PoC-in-GitHub, and local HackerOne
@@ -17,7 +18,7 @@
  */
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -72,6 +73,188 @@ export const KEEP_SKILLS = [
   "skills/h1-3771147-mariadb-myisam-bof/SKILL.md",
   "skills/h1-3782405-mariadb-charset-collation-bof/SKILL.md",
   "skills/learned/h1-Improper Access Control - Generic-3533697.md",
+];
+
+/** What's missing when a tier-B skill has no single confident CVE. */
+export const NO_CVE_MAPPED = "no CVE mapped";
+/** What's missing when a tier-C skill has neither a CVE nor a target. */
+export const NO_CVE_TARGET = "no CVE/target in skill; needs teardown or stays unverified";
+
+export const TIER_B_SKILLS = [
+  "skills/idor-team-membership-api/SKILL.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-graphql.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-oauth.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-saml.md",
+  "skills/seeds/2fa-bypass.md",
+  "skills/seeds/deserialization.md",
+  "skills/seeds/jwt.md",
+  "skills/seeds/log4shell.md",
+  "skills/seeds/oauth.md",
+  "skills/seeds/saml.md",
+  "skills/seeds/sqli.md",
+  "skills/seeds/unauth-api.md",
+  "skills/staging/0x002132-skills-bugbounty-apk-redteam-pipeline.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-bb-methodology.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-bugcrowd-reporting.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-cloud-iam-deep.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-evidence-hygiene.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-api-misconfig.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-ato.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-cloud-misconfig.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-graphql.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-idor.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-mfa-bypass.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-misc.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-ntlm-info.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-oauth.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-race-condition.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-saml.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-sqli.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-ssrf.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-ssti.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-subdomain.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-xxe.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-m365-entra-attack.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-meme-coin-audit.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-mid-engagement-ir-detection.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-okta-attack.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-osint-methodology.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-redteam-report-template.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-security-arsenal.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-supply-chain-attack-recon.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-triage-validation.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-web2-recon.staged.md",
+  "skills/staging/Aetherdz-huntpack-router.staged.md",
+  "skills/staging/Aetherdz-huntpack-skills-hunting-api-security.staged.md",
+  "skills/staging/Aetherdz-huntpack-skills-hunting-web2-vuln-classes.staged.md",
+  "skills/staging/Aetherdz-huntpack-skills-reporting-attack-path-builder.staged.md",
+  "skills/staging/Aetherdz-huntpack-skills-understand-application-model-builder.staged.md",
+  "skills/staging/Aetherdz-huntpack-skills-validation-false-positive-killer.staged.md",
+  "skills/staging/Aetherdz-huntpack-skills-validation-triage-validation.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-fizz.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-godmod.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-pashov-x-ray.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-security-arsenal.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-smart-contract-audit.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-triage-validation.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web2-recon.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web3-audit.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web3-web3-ai-tools.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web3-web3-bug-classes.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web3-web3-case-study-role-misconfig.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web3-web3-hunt-foundation.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web3-web3-hunt-zksync-era.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web3-web3-methodology-research.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web3-web3-poc-foundry.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web3-web3-solidity-audit-mcp.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web3-web3-start-here.staged.md",
+  "skills/staging/Gabson0x-bountyforge.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-bug-bounty-hunting-references-original-skill-index.md.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-bug-bounty-hunting.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-hunt-api-misconfig.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-hunt-ato.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-hunt-idor.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-hunt-ssrf.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-hunt-xss.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-redteam-mindset.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-security-arsenal.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-triage-validation.staged.md",
+  "skills/staging/murraywu-Bug-Bounty-Skills-Bug-Bounty-Report-Generator.staged.md",
+  "skills/staging/murraywu-Bug-Bounty-Skills-Bug-Bounty-SQLi-Helper.staged.md",
+  "skills/staging/murraywu-Bug-Bounty-Skills-Bug-Bounty-Security-Checklist.staged.md",
+];
+
+export const TIER_C_SKILLS = [
+  "skills/bughunter.md",
+  "skills/h1-4016541-tls-session-resumption-client-cert-bypass/SKILL.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-ato.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-auth-bypass.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-business-logic.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-cache-poison.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-csrf.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-file-upload.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-http-smuggling.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-idor.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-race-condition.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-rce.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-sqli.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-ssrf.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-ssti.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-subdomain.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-xss.md",
+  "skills/learned/staged-0x002132-skills-bugbounty-hunt-xxe.md",
+  "skills/learned/staged-Aetherdz-huntpack-skills-hunting-business-logic-hunter.md",
+  "skills/learned/staged-ctahok-hermes-bug-bounty-skills-hunt-ato.md",
+  "skills/learned/staged-ctahok-hermes-bug-bounty-skills-hunt-auth-bypass.md",
+  "skills/learned/staged-ctahok-hermes-bug-bounty-skills-hunt-file-upload.md",
+  "skills/learned/staged-ctahok-hermes-bug-bounty-skills-hunt-idor.md",
+  "skills/learned/staged-ctahok-hermes-bug-bounty-skills-hunt-rce.md",
+  "skills/learned/staged-ctahok-hermes-bug-bounty-skills-hunt-sqli.md",
+  "skills/learned/staged-ctahok-hermes-bug-bounty-skills-hunt-ssrf.md",
+  "skills/learned/staged-ctahok-hermes-bug-bounty-skills-hunt-xss.md",
+  "skills/learned/staged-murraywu-Bug-Bounty-Skills-Bug-Bounty-SQLi-Helper.md",
+  "skills/learned/staged-murraywu-Bug-Bounty-Skills-Bug-Bounty-XSS-Helper.md",
+  "skills/seeds/business-logic.md",
+  "skills/seeds/cache-poisoning.md",
+  "skills/seeds/classnotes-basics.md",
+  "skills/seeds/cors.md",
+  "skills/seeds/critical-files.md",
+  "skills/seeds/crlf-injection.md",
+  "skills/seeds/csrf-token-bypass.md",
+  "skills/seeds/file-upload.md",
+  "skills/seeds/github-recon.md",
+  "skills/seeds/google-dorks.md",
+  "skills/seeds/graphql.md",
+  "skills/seeds/host-header-injection.md",
+  "skills/seeds/htmli.md",
+  "skills/seeds/idor.md",
+  "skills/seeds/lfi.md",
+  "skills/seeds/mass-assignment.md",
+  "skills/seeds/nosql.md",
+  "skills/seeds/open-redirect.md",
+  "skills/seeds/parameter-tampering.md",
+  "skills/seeds/password-reset-flow.md",
+  "skills/seeds/prototype-pollution.md",
+  "skills/seeds/race-condition.md",
+  "skills/seeds/ratelimit.md",
+  "skills/seeds/rce.md",
+  "skills/seeds/recon-methodology.md",
+  "skills/seeds/request-smuggling.md",
+  "skills/seeds/sca-advisory.md",
+  "skills/seeds/secret-detection.md",
+  "skills/seeds/ssrf.md",
+  "skills/seeds/ssti.md",
+  "skills/seeds/subdomain-takeover.md",
+  "skills/seeds/tls.md",
+  "skills/seeds/wordpress.md",
+  "skills/seeds/xss.md",
+  "skills/seeds/xxe.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-business-logic.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-cache-poison.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-dispatch.staged.md",
+  "skills/staging/0x002132-skills-bugbounty-hunt-llm-ai.staged.md",
+  "skills/staging/Aetherdz-huntpack-docs-SKILL-FORMAT.md.staged.md",
+  "skills/staging/Aetherdz-huntpack-skills-discipline-domain-scoped-hunting.staged.md",
+  "skills/staging/Aetherdz-huntpack-skills-hunting-business-logic-hunter.staged.md",
+  "skills/staging/Aetherdz-huntpack-skills-recon-web2-recon.staged.md",
+  "skills/staging/Aetherdz-huntpack-skills-reporting-report-writing.staged.md",
+  "skills/staging/Aetherdz-huntpack-skills-understand-application-archetypes.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-bb-methodology.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-code-sleuth.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-fizz-skills-fizz-convert.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-fizz-skills-fizz-sync.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-hackenproof-triage-marketplace.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-meme-coin-audit.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-pashov-solidity-auditor.staged.md",
+  "skills/staging/Gabson0x-bountyforge-skills-web3-web3-grep-arsenal.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-hunt-auth-bypass.staged.md",
+  "skills/staging/ctahok-hermes-bug-bounty-skills-hunt-file-upload.staged.md",
+  "skills/staging/murraywu-Bug-Bounty-Skills-Bug-Bounty-Burp-Guide.staged.md",
+  "skills/staging/murraywu-Bug-Bounty-Skills-Bug-Bounty-Code-Review.staged.md",
+  "skills/staging/murraywu-Bug-Bounty-Skills-Bug-Bounty-Learning-Guide.staged.md",
+  "skills/staging/murraywu-Bug-Bounty-Skills-Bug-Bounty-Recon.staged.md",
+  "skills/staging/murraywu-Bug-Bounty-Skills-Bug-Bounty-Writeup-Helper.staged.md",
+  "skills/staging/murraywu-Bug-Bounty-Skills-Bug-Bounty-XSS-Helper.staged.md",
 ];
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -729,6 +912,156 @@ export function reclassifyChecklist(text) {
   kept.push("kind: checklist", "repro: checklist");
   const next = [...lines.slice(0, start + 1), ...kept, ...lines.slice(end)];
   return next.join("\n");
+}
+
+/**
+ * A skill resolves to one CVE only when the file itself is that vulnerability:
+ * one product, one technique, and a version bound that identifies a single
+ * public CVE. Technique classes (SQLi, OAuth, IDOR) and multi-product
+ * playbooks (Okta, Entra, NTLM recon, OSINT) do not match — a keyword search
+ * there returns a family of issues, which is not a confident mapping.
+ *
+ * log4shell.md states Log4j JNDI with the 2.14.1 ceiling. That ceiling is the
+ * original affected bound of CVE-2021-44228. NVD's current description still
+ * names Log4j JNDI (the range text has since been widened through 2.15.0).
+ */
+export function confidentCveForSkill(relPath, text) {
+  const name = String(relPath || "").replace(/\\/g, "/").split("/").pop() || "";
+  const body = stripEnrichment(text);
+  if (name === "log4shell.md" && /log4j/i.test(body) && /2\.14\.1/.test(body) && /\$\{jndi:/i.test(body)) {
+    return "CVE-2021-44228";
+  }
+  return null;
+}
+
+/** Live NVD text must actually be the Log4j JNDI record before it is applied. */
+export function nvdConfirmsCandidate(record, cve) {
+  if (!record || record.id !== cve) return false;
+  const nvd = record.nvd || {};
+  if (nvd.rateLimited || nvd.status !== 200) return false;
+  const description = String(nvd.description || "");
+  if (!description) return false;
+  if (/rejected|disputed/i.test(nvd.vulnStatus || "")) return false;
+  if (cve === "CVE-2021-44228") return /log4j/i.test(description) && /jndi/i.test(description);
+  return false;
+}
+
+export function unverifiedMarkMarkdown(missing) {
+  return [
+    "> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.",
+    "",
+    "### What's missing",
+    `- ${missing}`,
+  ].join("\n");
+}
+
+/** Status block only. No steps and no payloads, because there is no source to cite. */
+export function markUnverified(text, missing) {
+  const line = String(missing || "").trim();
+  if (!line) throw new Error("unverified mark needs a What's missing line");
+  const yaml = [FM_START, "cve: null", "repro: unverified", FM_END].join("\n");
+  const steps = `## Steps to reproduce\n\n${unverifiedMarkMarkdown(line)}\n`;
+  return insertBody(insertFrontmatter(text, yaml), steps);
+}
+
+async function readConfirmingCache(ctx, cve) {
+  const path = cachePath(ctx, cve);
+  if (!existsSync(path) || ctx.force) return null;
+  try {
+    const parsed = JSON.parse(await readFile(path, "utf8"));
+    const record = parsed.record;
+    if (!nvdConfirmsCandidate(record, cve)) return null;
+    record.repro = classifyRecord(record);
+    record.section_markdown = renderSteps(record);
+    return record;
+  } catch {
+    return null;
+  }
+}
+
+export async function applyTierB(rel, text, ctx) {
+  const cve = confidentCveForSkill(rel, text);
+  if (!cve) {
+    return { text: markUnverified(text, NO_CVE_MAPPED), cve: null, enriched: false, cacheWritten: false, record: null };
+  }
+  const hadCache = existsSync(cachePath(ctx, cve));
+  let record = await readConfirmingCache(ctx, cve);
+  let cacheWritten = false;
+  if (!record) {
+    record = await enrichCve(cve, ctx);
+    if (!nvdConfirmsCandidate(record, cve)) {
+      if (!hadCache) await rm(cachePath(ctx, cve), { force: true });
+      throw new Error(`refusing to apply ${cve} for ${rel}: NVD did not confirm the product`);
+    }
+    cacheWritten = !hadCache && existsSync(cachePath(ctx, cve));
+  }
+  return {
+    text: applyEnrichment(text, [record], new Set([cve]), []),
+    cve,
+    enriched: true,
+    cacheWritten,
+    record,
+  };
+}
+
+export function applyTierC(text) {
+  return markUnverified(text, NO_CVE_TARGET);
+}
+
+async function atomicWrite(path, text) {
+  const next = text.endsWith("\n") ? text : `${text}\n`;
+  const tmp = `${path}.${process.pid}.tmp`;
+  await writeFile(tmp, next);
+  await rename(tmp, path);
+}
+
+export async function backfillBc(ctx, opts = {}) {
+  const root = opts.root || ROOT;
+  const tierB = opts.tierB || TIER_B_SKILLS;
+  const tierC = opts.tierC || TIER_C_SKILLS;
+  const write = opts.write !== false && !ctx.dryRun;
+  const protectedSkills = new Set([...TIER_A_SKILLS, ...CHECKLIST_SKILLS, ...KEEP_SKILLS]);
+  for (const rel of [...tierB, ...tierC]) {
+    if (protectedSkills.has(rel)) throw new Error(`refusing to touch protected skill ${rel}`);
+  }
+  const candidates = [];
+  for (const rel of tierB) {
+    const text = await readFile(join(root, rel), "utf8");
+    if (confidentCveForSkill(rel, text)) candidates.push(rel);
+  }
+  if (candidates.length && (!ctx.kev || !ctx.exploitdb)) {
+    ctx.h1ByCve = await loadH1Index(join(root, "reports"));
+    await loadFeeds(ctx);
+  }
+  const enriched = [];
+  let unmapped = 0;
+  const cacheAdded = [];
+  for (const rel of tierB) {
+    const full = join(root, rel);
+    const original = await readFile(full, "utf8");
+    const result = await applyTierB(rel, original, ctx);
+    if (result.enriched) {
+      enriched.push({ skill: rel, cve: result.cve, repro: result.record.repro });
+      if (result.cacheWritten) cacheAdded.push(result.cve);
+    } else {
+      unmapped += 1;
+    }
+    if (write) await atomicWrite(full, result.text);
+  }
+  for (const rel of tierC) {
+    const full = join(root, rel);
+    const next = applyTierC(await readFile(full, "utf8"));
+    if (write) await atomicWrite(full, next);
+  }
+  return {
+    tier_b: tierB.length,
+    confident_cve: enriched.length,
+    unmapped,
+    tier_c_unverified: tierC.length,
+    cache_added: cacheAdded,
+    cache_added_count: cacheAdded.length,
+    enriched,
+  };
 }
 
 function splitCpe(criteria) {
@@ -1530,7 +1863,12 @@ async function main() {
   });
   ctx.dryRun = dryRun;
   if (process.argv.includes("--help")) {
-    process.stdout.write("usage: node scripts/enrich-repro.mjs --cve CVE-YYYY-NNNN | --backfill [--dry-run] [--force]\n");
+    process.stdout.write("usage: node scripts/enrich-repro.mjs --cve CVE-YYYY-NNNN | --backfill [--dry-run] [--force] | --backfill-bc [--dry-run]\n");
+    return;
+  }
+  if (process.argv.includes("--backfill-bc")) {
+    const summary = await backfillBc(ctx);
+    process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
     return;
   }
   if (dryRun && process.argv.includes("--backfill")) {

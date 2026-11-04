@@ -6,6 +6,10 @@ name: hunt-race-condition
 description: Hunting skill for race condition vulnerabilities. Built from 3 public bug bounty reports. Use when hunting race condition on any target.
 sources: github
 report_count: 3
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 ## Crown Jewel Targets
@@ -255,3 +259,12 @@ A cloud hosting provider enforced limits on the number of resources (e.g., dropl
 - **`hunt-api-misconfig`** — Wallet/balance/credit endpoints without atomic UPDATE are double-spend candidates. Chain primitive: race + atomic-update missing → double-spend balance → withdraw N× user balance.
 - **`security-arsenal`** — Load the Turbo Intruder single-packet template, h2.cl smuggling for atomic submit, and `curl --next` parallel multi-request patterns.
 - **`triage-validation`** — Apply the Statistical-Sampling gate: a single anomalous response is noise; require 1 successful + N duplicate / over-quota / stale-state demonstrations with response screenshots before reporting.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

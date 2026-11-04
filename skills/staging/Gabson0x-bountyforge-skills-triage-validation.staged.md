@@ -4,6 +4,10 @@
 ---
 name: triage-validation
 description: Finding validation before writing any report — 7-Question Gate (all 7 questions), 4 pre-submission gates, always-rejected list, conditionally valid with chain table, CVSS 3.1 quick reference, severity decision guide, report title formula, 60-second pre-submit checklist. Use BEFORE writing any report. One wrong answer = kill the finding and move on. Saves N/A ratio.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # TRIAGE & VALIDATION
@@ -397,3 +401,12 @@ Reporting B saying "similar to A in my other report" — fresh Gate 0 for every 
 Overclaiming severity — triagers trust you less next time
 Under-describing impact — triager doesn't understand why it matters
 ```
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

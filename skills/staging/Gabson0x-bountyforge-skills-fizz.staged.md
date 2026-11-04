@@ -4,6 +4,10 @@
 ---
 name: fizz
 description: Generate Echidna/Medusa-compatible Solidity fuzz suites from Foundry or Hardhat projects. Trigger on "fizz", "generate fuzz suite", "build fuzz harness", "stateful fuzzing", "fuzzing harness", "property testing", and "invariant suite".
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # Fizz — Fuzz Suite Generator
@@ -595,3 +599,12 @@ node {SKILL_PATH}/scripts/fizz_sync.js {PROJECT_ROOT} --refresh-snapshot --meta-
 ```
 
 This writes `{PROJECT_ROOT}/{META_DIR}/last-run.json` — a hash+signature snapshot of the in-scope contracts, handlers, and `PROPERTIES.md` entries. Later, when the user modifies sources and invokes `/fizz-sync`, that skill diffs against this file to detect added/removed/changed functions, quarantine stale properties, and regenerate only the drifted handler stubs.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

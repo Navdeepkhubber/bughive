@@ -17,6 +17,10 @@ triggers:
   - fetch url
   - server side request forgery
 category: security
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 # SSRF Hunting Methodology
 
@@ -265,3 +269,12 @@ Before reporting an SSRF:
 - [ ] Impact clearly articulated — what can attacker DO with this access
 - [ ] Not just "DNS callback only" with no data returned (low/borderline)
 - [ ] Retested from fresh session without prior cookies/cache
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

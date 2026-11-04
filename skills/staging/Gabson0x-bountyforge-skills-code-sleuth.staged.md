@@ -4,6 +4,10 @@
 ---
 name: code-sleuth
 description: Analyze EVM smart contracts for storage-safety vulnerabilities that can cause persistent state updates to be lost, overwritten, misdirected, or to collide across proxy or upgrade boundaries.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # Code Sleuth — Storage Safety
@@ -168,3 +172,12 @@ Only report issues where the result could cause:
 - corrupted configuration
 - inaccessible funds
 - broken protocol invariants
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

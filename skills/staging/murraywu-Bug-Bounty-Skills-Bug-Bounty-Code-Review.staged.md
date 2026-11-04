@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 <!-- harvested: murraywu/Bug-Bounty-Skills/Bug-Bounty-Code-Review/SKILL.md on 2026-10-23T20:17:15.480945+00:00 -->
 <!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
 
@@ -545,3 +552,12 @@ def get_user(username):
 ---
 
 *Skill 版本：1.0 | 基于 Bug Bounty 课程提取 | 2026-04-02*
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

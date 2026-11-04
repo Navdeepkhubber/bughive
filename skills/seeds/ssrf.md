@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: ssrf
 ## Trigger Params
 webhook_url, callback, import_from, avatar_url, url, file, image_url, next, redirect, preview, PDF/HTML render
@@ -30,3 +37,12 @@ data://target.com/plain;base64,VHVoaW4=
 http://google.com:11211:80/
 ## Triage
 Metadata → Critical. Internal scan → High. Callback → Med.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

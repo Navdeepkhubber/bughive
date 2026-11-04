@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: idor
 ## Params
 id, uid, user, userid, email, username
@@ -21,3 +28,12 @@ id, uid, user, userid, email, username
 17. Base64 decode/mutate
 ## Triage
 PII → High. Auth bypass → Critical.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: race-condition
 ## Trigger Conditions
 Single-use coupons, balances, votes, or one-time tokens.
@@ -14,3 +21,12 @@ Parallel identical POSTs, no payload mutation.
 A second applied state change is medium/high. Repeated identical errors are not.
 ## Example
 Twelve parallel redeems of one coupon; two or more return applied.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

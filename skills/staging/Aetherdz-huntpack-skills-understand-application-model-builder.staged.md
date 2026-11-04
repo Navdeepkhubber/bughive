@@ -4,6 +4,10 @@
 ---
 name: application-model-builder
 description: "Mandatory first step BEFORE any payload testing. Build the Application Model (assets, actors, permissions, workflows, trust boundaries, state machines), then break assumptions systematically. Output must match schema below — unknowns marked as such."
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # APPLICATION MODELING — mandatory before payloads
@@ -96,3 +100,12 @@ Unknown fields marked `unknown` with how to discover them.
 
 ## REFERENCE FILES
 No reference files yet. Patterns documented inline above.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

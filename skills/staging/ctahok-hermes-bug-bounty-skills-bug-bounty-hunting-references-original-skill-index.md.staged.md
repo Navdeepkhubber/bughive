@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 <!-- harvested: ctahok/hermes-bug-bounty-skills/bug-bounty-hunting/references/original-skill-index.md on 2026-10-23T20:17:12.990858+00:00 -->
 <!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
 
@@ -101,3 +108,12 @@ category: security
 3. Place at `~/.hermes/skills/bug-bounty/{name}/SKILL.md`
 4. Verify with `skill_view(name='{name}')`
 5. Add a reference in `references/original-skill-index.md` changing ⬜ to ✅
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: mass-assignment
 ## Trigger Conditions
 Profile or signup JSON copied onto a stored object.
@@ -14,3 +21,12 @@ The handler assigns the client object without an allowlist, so role or owner is 
 A privilege field that sticks is high. Ignoring unknown fields is not.
 ## Example
 POST profile `{"nickname":"x"}` stays a user; `{"role":"admin"}` returns isAdmin true.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

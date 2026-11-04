@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: host-header-injection
 ## Payloads
 Host: attacker.com
@@ -19,3 +26,12 @@ X-Forwared-Host: 127.0.0.1
 3. Victim's link = https://attacker.com/reset?token=...
 ## Triage
 Password reset poisoning → Critical. Cache poisoning → High.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

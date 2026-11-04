@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 <!-- harvested: Aetherdz/huntpack/docs/SKILL-FORMAT.md on 2026-10-23T20:17:14.753083+00:00 -->
 <!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
 
@@ -64,3 +71,12 @@ python3 scripts/validate-skills.py skills/<category>/<skill-name>
 ```
 
 CI runs this on every PR. See `CONTRIBUTING.md` for the submission process.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

@@ -17,6 +17,10 @@ triggers:
   - dom xss
   - blind xss
 category: security
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # Cross-Site Scripting (XSS) Hunting Methodology
@@ -567,3 +571,12 @@ CSP bypass JSONP:     <script src="/jsonp?callback=alert(1)">
 ---
 
 *Methodology derived from 174+ disclosed HackerOne XSS reports. Always verify with multiple browsers and no extensions. When in doubt, exfiltrate — don't alert.*
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

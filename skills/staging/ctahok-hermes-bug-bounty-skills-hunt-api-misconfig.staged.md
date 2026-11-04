@@ -18,6 +18,10 @@ triggers:
   - api misconfiguration
   - rest api testing
 category: security
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 # API Misconfiguration Hunting
 
@@ -241,3 +245,12 @@ For every API endpoint:
 - [ ] Parameter pollution (duplicate params)
 - [ ] IDOR on IDs/UUIDs in API paths
 - [ ] Unauthenticated admin/admin-like endpoints
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

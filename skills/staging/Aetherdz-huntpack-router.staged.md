@@ -14,6 +14,10 @@ compatibility: Agent-agnostic dispatcher over the skills/ collection (12 skills,
 metadata:
   category: router
   difficulty: intermediate
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # Master Router — Bug Bounty Skill Dispatcher
@@ -103,3 +107,12 @@ chain_candidate: false
 ```
 
 No evidence → no claim → kill it.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

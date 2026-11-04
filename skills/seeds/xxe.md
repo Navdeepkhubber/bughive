@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: xxe
 ## Payloads
 <?xml version="1.0"?>
@@ -11,3 +18,12 @@ x.dtd:
 %eval;%exfil;
 ## Triage
 File read → High. SSRF → High. OOB → Med.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

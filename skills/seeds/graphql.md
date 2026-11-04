@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: graphql
 ## Introspection
 {__schema{types{name fields{name}}}}
@@ -23,3 +30,12 @@ query { user(id:1){ id email role } }
 ## Triage
 Schema leak -> Low. Alias/batch rate-limit bypass on auth -> High.
 Field authz bypass / IDOR -> High/Critical. DoS via nesting -> Medium.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

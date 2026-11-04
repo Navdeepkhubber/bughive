@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: xss
 ## Trigger Conditions
 A parameter reflected into HTML.
@@ -36,3 +43,12 @@ The local fixture returns a different saved response for the probe than for the 
   "staged": "ctahok-hermes-bug-bounty-skills-hunt-xss.staged.md"
 }
 ```
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

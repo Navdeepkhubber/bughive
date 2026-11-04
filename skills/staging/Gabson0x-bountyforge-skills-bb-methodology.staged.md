@@ -4,6 +4,10 @@
 ---
 name: bb-methodology
 description: The "3rd eye" for pentesting — reminds agent to understand before assuming, validate before reporting.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # 3rd Eye — Pentesting Reminder
@@ -114,3 +118,12 @@ See [[Report Writing]].
 | Need payloads or bypasses | See [[Security Arsenal]] |
 | Writing report | See [[Report Writing]], [[Triage]] |
 | Smart contract audit | See [[Web3 Audit]], [[Smart Contract Audit]] |
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

@@ -18,6 +18,10 @@ triggers:
   - authentication bypass
   - login bypass
 category: security
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 # Account Takeover (ATO) Hunting Methodology
 
@@ -207,3 +211,12 @@ For **each** authentication-related feature, test:
 | ATO via CSRF on email change | High | Requires phishing but works |
 | Self-ATO (own account) | Informational | Not a bug |
 | ATO requiring compromised account | Medium | Chained finding |
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->
