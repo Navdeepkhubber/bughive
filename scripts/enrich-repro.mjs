@@ -21,6 +21,7 @@ import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { assertReproState } from "../plugins/dsh-repro-steps/parse.js";
 
 export const NVD_MIN_INTERVAL_MS = 7000;
 export const CACHE_FRESH_MS = 7 * 24 * 60 * 60 * 1000;
@@ -645,7 +646,7 @@ export function enrichmentYaml(records, citedGhsas) {
     lines.push("ghsa:");
     for (const id of citedGhsas) lines.push(`  - ${id}`);
   }
-  lines.push(`repro: ${rollupRepro(records.map((record) => record.repro))}`);
+  lines.push(`repro: ${assertReproState(rollupRepro(records.map((record) => record.repro)))}`);
   lines.push("references:");
   const multi = records.length > 1;
   for (const record of records) {

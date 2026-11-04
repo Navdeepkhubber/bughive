@@ -216,6 +216,12 @@ function matchOne(matcher, responses, ctx) {
   return matcher.negative ? !ok : ok;
 }
 
+/** Evaluate one saved response with the same matcher the scan pack uses. */
+export function matchSavedResponse(matcher, response) {
+  if (!matcher || typeof matcher !== "object" || !response) return false;
+  return matchOne({ ...matcher, request: "probe" }, { probe: response }, { oobHits: 0 });
+}
+
 export function validateRule(rule, skillsDir) {
   const errors = [];
   if (!rule?.id) errors.push("missing id");

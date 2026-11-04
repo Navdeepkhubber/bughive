@@ -2,6 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
+import { isReproState, parseSteps } from "../dsh-repro-steps/parse.js";
 
 export const name = "skill-loader";
 export const inject = ["tools"];
@@ -109,6 +110,9 @@ export function apply(ctx, config = {}) {
           source: `${p.sub}/${p.file}`,
           score: Number(p.score.toFixed(2)),
           provenance: { severity: p.meta.severity, bounty: p.meta.bounty, cwe: p.meta.cwe },
+          repro: p.meta.repro || null,
+          reproState: isReproState(p.meta.repro) ? p.meta.repro : null,
+          steps: parseSteps(p.body),
           body: p.body,
         })),
       }, null, 2);
