@@ -90,9 +90,9 @@ bash scripts/pipeline/run.sh harvest           # clone skills/sources.txt into s
 bash scripts/pipeline/run.sh harvest --dry-run
 bash scripts/pipeline/run.sh ingest-skills     # promote staging into skills/learned/ and missing seeds
 bash scripts/pipeline/run.sh ingest-skills --dry-run
-npm test                   # tests/*.test.mjs, then the fetch/harvest unittest modules
+npm test                   # tests/*.test.mjs, then the fetch/harvest/zero-wire unittest modules
 npm run test:accuracy     # node --test tests/*.test.mjs
-npm run test:fetch        # python3 -m unittest tests/test_report_fetch.py tests/test_harvest.py
+npm run test:fetch        # python3 -m unittest tests/test_report_fetch.py tests/test_harvest.py tests/test_zero_wire.py
 ```
 
 `npm run fetch` is the same Python script as `run.sh fetch`. Install its dependency with `pip install -r intelligence/requirements.txt` (`requests`). `--dry-run` still imports that package. Without `H1_API_USERNAME` and `H1_API_TOKEN`, API mode is skipped. `--dry-run` on `harvest` and `ingest-skills` writes nothing. A public HTTP or GraphQL error raises instead of returning zero. `fetch` exits 1 when every mode fails, and it prints those errors.
@@ -162,7 +162,7 @@ Nuclei, TruffleHog, and osv-scanner are optional unmodified subprocesses (`plugi
 
 ## Weekly sync and skill promotion
 
-`.github/workflows/sync-reports-and-skills.yml` is the only scheduled workflow. Sunday 06:00 UTC, and `workflow_dispatch` with `task` (`all`, `fetch`, `harvest`, `ingest-skills`) and `dry_run`.
+`.github/workflows/sync-reports-and-skills.yml` runs Sunday 06:00 UTC, and `workflow_dispatch` with `task` (`all`, `fetch`, `harvest`, `ingest-skills`) and `dry_run`. `.github/workflows/harvest-zero-wire.yml` runs every 6 hours and on `workflow_dispatch`. It writes `skills/cloudflare-zero-wire/` from the public Zero Wire RSS feed and opens a pull request only when that tree changes.
 
 | Job | Command | Result |
 |---|---|---|
