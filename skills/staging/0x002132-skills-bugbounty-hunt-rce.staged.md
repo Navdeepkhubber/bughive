@@ -6,6 +6,111 @@ name: hunt-rce
 description: Hunting skill for rce vulnerabilities. Built from 67 public bug bounty reports. Use when hunting rce on any target.
 sources: github, hackerone_public
 report_count: 67
+# bughive-repro-start
+cve:
+  - CVE-2021-41773
+  - CVE-2021-42013
+  - CVE-2022-22963
+  - CVE-2024-23897
+repro: verified-public
+references:
+  - source: nvd
+    id: CVE-2021-41773
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2021-41773"
+    gave: "descriptions, configurations, 12 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2021-41773
+    url: "https://httpd.apache.org/security/vulnerabilities_24.html"
+    gave: "affected range phrase plus advisory URL"
+  - source: ghsa
+    id: CVE-2021-41773
+    url: "https://github.com/advisories/GHSA-29h7-gr57-5f8r"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2021-41773
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2021-11-03, dueDate 2021-11-17, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2021-41773
+    url: "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50383.sh"
+    gave: "public PoC (EDB-50383)"
+  - source: poc-in-github
+    id: CVE-2021-41773
+    url: "https://github.com/blasty/CVE-2021-41773"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2021-42013
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2021-42013"
+    gave: "descriptions, configurations, 12 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2021-42013
+    url: "https://httpd.apache.org/security/vulnerabilities_24.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2021-42013
+    url: "https://github.com/advisories/GHSA-m24x-wx9p-jqmh"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2021-42013
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2021-11-03, dueDate 2021-11-17, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2021-42013
+    url: "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50406.sh"
+    gave: "public PoC (EDB-50406)"
+  - source: poc-in-github
+    id: CVE-2021-42013
+    url: "https://github.com/walnutsecurity/cve-2021-42013"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2022-22963
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2022-22963"
+    gave: "descriptions, configurations, 2 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2022-22963
+    url: "https://tanzu.vmware.com/security/cve-2022-22963"
+    gave: "advisory page fetched; no concrete input copied"
+  - source: ghsa
+    id: CVE-2022-22963
+    url: "https://github.com/advisories/GHSA-6v73-fgf6-w5j7"
+    gave: "package range, first_patched_version, references"
+  - source: cisa-kev
+    id: CVE-2022-22963
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2022-08-25, dueDate 2022-09-15, knownRansomwareCampaignUse=Unknown"
+  - source: exploitdb
+    id: CVE-2022-22963
+    url: "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/java/webapps/51577.py"
+    gave: "public PoC (EDB-51577)"
+  - source: poc-in-github
+    id: CVE-2022-22963
+    url: "https://github.com/hktalent/spring-spel-0day-poc"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2024-23897
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2024-23897"
+    gave: "descriptions, configurations, 5 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2024-23897
+    url: "https://www.jenkins.io/security/advisory/2024-01-24/#SECURITY-3314"
+    gave: "advisory page fetched; no concrete input copied"
+  - source: ghsa
+    id: CVE-2024-23897
+    url: "https://github.com/advisories/GHSA-6f9g-cxwr-q5jr"
+    gave: "package range, first_patched_version, references"
+  - source: cisa-kev
+    id: CVE-2024-23897
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2024-08-19, dueDate 2024-09-09, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2024-23897
+    url: "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/java/webapps/51993.py"
+    gave: "public PoC (EDB-51993)"
+  - source: poc-in-github
+    id: CVE-2024-23897
+    url: "https://github.com/h4x0r-dz/CVE-2024-23897"
+    gave: "public PoC repository"
+# bughive-repro-end
 ---
 
 ## Crown Jewel Targets
@@ -408,3 +513,123 @@ During reconnaissance on a target's cloud infrastructure, a researcher discovere
 - **`hunt-aspnet`** — ASP.NET ViewState deserialization is a giant RCE class behind a known `__VIEWSTATE` parameter. Chain primitive: machineKey recovery (or leaked `<machineKey>` from `web.config` disclosure) → `ysoserial.net -p ViewState -g TypeConfuseDelegate` → RCE as `IIS APPPOOL\<name>`.
 - **`security-arsenal`** — Reach for the deserialization payload tree (ysoserial Java gadget chains, ysoserial.net for .NET ViewState/BinaryFormatter, Python pickle `__reduce__`, Ruby Marshal, PHP `phar://` metadata, Node `node-serialize` IIFE) the moment you have a sink that accepts serialized bytes.
 - **`triage-validation`** — Apply the Pre-Severity Gate before claiming Critical. A "blind RCE" that turns out to be file-write-only with no execution path is not RCE; a sandboxed eval that can't reach `os` is at best Medium SSTI. Prove `whoami`/OOB DNS callback with a unique marker before writing the report.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce — CVE-2021-41773
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: apache http_server 2.4.49; fedoraproject fedora 34; fedoraproject fedora 35. NVD lists 7 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-41773)]
+- Vendor advisory states the range `2.4.17 through 2.4.68`. [[vendor](https://httpd.apache.org/security/vulnerabilities_24.html)]
+- Weakness: CWE-22. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-41773)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-41773)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50383.sh)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: apache http_server 2.4.49. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-41773)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-41773)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50383.sh)]
+
+### Public PoC (if any)
+- EDB-50383 (verified flag 1): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50383.sh
+- EDB-50512 (verified flag 1): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50512.py
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-41773
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/blasty/CVE-2021-41773
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2021/CVE-2021-41773.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/164418/Apache-HTTP-Server-2.4.49-Path-Traversal-Remote-Code-Execution.html
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/164418/Apache-HTTP-Server-2.4.49-Path-Traversal.html
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2021-42013
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: apache http_server 2.4.49; apache http_server 2.4.50; fedoraproject fedora 34. NVD lists 10 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-42013)]
+- Weakness: CWE-22. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-42013)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-42013)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50406.sh)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: apache http_server 2.4.49. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-42013)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-42013)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50406.sh)]
+
+### Public PoC (if any)
+- EDB-50406 (verified flag 1): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50406.sh
+- EDB-50512 (verified flag 1): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50512.py
+- EDB-50446 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50446.sh
+- GHSA-listed: http://packetstormsecurity.com/files/165089/Apache-HTTP-Server-2.4.50-CVE-2021-42013-Exploitation.html
+- GHSA-listed: https://www.povilaika.com/apache-2-4-50-exploit
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/walnutsecurity/cve-2021-42013
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2021/CVE-2021-42013.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/164501/Apache-HTTP-Server-2.4.50-Path-Traversal-Code-Execution.html
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/164609/Apache-HTTP-Server-2.4.50-Remote-Code-Execution.html
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2022-22963
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware spring_cloud_function <= 3.1.6; vmware spring_cloud_function >= 3.2.0, <= 3.2.2; oracle banking_branch 14.5. NVD lists 47 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-22963)]
+- GitHub Advisory package range: maven `org.springframework.cloud:spring-cloud-function-context` >= 3.2.0, < 3.2.3; first patched 3.2.3; maven `org.springframework.cloud:spring-cloud-function-context` < 3.1.7; first patched 3.1.7. [[ghsa](https://github.com/advisories/GHSA-6v73-fgf6-w5j7)]
+- Weakness: CWE-94, CWE-917. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-22963)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-22963)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/java/webapps/51577.py)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: vmware spring_cloud_function <= 3.1.6. GHSA first patched version: 3.2.3. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-22963)] [[ghsa](https://github.com/advisories/GHSA-6v73-fgf6-w5j7)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-22963)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/java/webapps/51577.py)]
+
+### Public PoC (if any)
+- EDB-51577 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/java/webapps/51577.py
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2022-22963
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/hktalent/spring-spel-0day-poc
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2022/CVE-2022-22963.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/173430/Spring-Cloud-3.2.2-Remote-Command-Execution.html
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2024-23897
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: jenkins jenkins < 2.426.3; jenkins jenkins < 2.442. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-23897)]
+- GitHub Advisory package range: maven `org.jenkins-ci.main:jenkins-core` >= 1.606, <= 2.426.2; first patched 2.426.3; maven `org.jenkins-ci.main:jenkins-core` = 2.441; first patched 2.442; maven `org.jenkins-ci.main:jenkins-core` >= 2.427, < 2.440.1; first patched 2.440.1. [[ghsa](https://github.com/advisories/GHSA-6f9g-cxwr-q5jr)]
+- Weakness: CWE-22, CWE-27. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-23897)]
+
+### Input / trigger
+- No concrete request string is stated in the cited advisory text. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-23897)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/java/webapps/51993.py)]
+
+### Expected (patched) vs vulnerable behavior
+- See the public record (abstract only). No concrete vulnerable-versus-patched behavior was copied from the advisory. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-23897)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-23897)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/java/webapps/51993.py)]
+
+### Public PoC (if any)
+- EDB-51993 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/java/webapps/51993.py
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-23897
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/h4x0r-dz/CVE-2024-23897
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2024/CVE-2024-23897.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/176840/Jenkins-2.441-LTS-2.426.3-Arbitrary-File-Read.html
+- NVD Exploit-tagged reference: https://www.sonarsource.com/blog/excessive-expansion-uncovering-critical-security-vulnerabilities-in-jenkins/
+
+### What's missing
+- (none for verified-public)
+<!-- bughive-repro-end -->

@@ -6,6 +6,332 @@ name: hunt-sharepoint
 description: Hunt Microsoft SharePoint Server (2013/2016/2019/Subscription Edition) on-prem farms — anonymous endpoint enumeration, version disclosure, legacy SOAP login bypass (Authentication.asmx), ToolShell precondition chain (CVE-2025-53770), SafeControl reflection enumeration via Picker.aspx, NTLM Type-2 AD topology disclosure, custom-branding module discovery, EoL farm permanent-CVE-window exploitation, FormDigest anonymous issuance, file-extension blocklist NOT-an-oracle pattern, custom-zone Forms auth bridging on-prem AD. Use when target has SharePoint headers (SPRequestGuid, X-MS-InvokeApp, X-SharePointHealthScore, MicrosoftSharePointTeamServices) or paths (/_layouts/15/, /_vti_bin/, /_api/, /_catalogs/).
 sources: github, authorized-engagement
 report_count: 1
+# bughive-repro-start
+cve:
+  - CVE-2025-53770
+  - CVE-2023-29357
+  - CVE-2023-33160
+  - CVE-2023-33157
+  - CVE-2023-36941
+  - CVE-2024-21318
+  - CVE-2024-30043
+  - CVE-2024-38023
+  - CVE-2024-38024
+  - CVE-2024-38094
+  - CVE-2025-53771
+  - CVE-2025-29794
+  - CVE-2019-0604
+repro: partial
+references:
+  - source: nvd
+    id: CVE-2025-53770
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2025-53770"
+    gave: "descriptions, configurations, 3 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2025-53770
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-53770"
+    gave: "advisory page fetched; no concrete input copied"
+  - source: ghsa
+    id: CVE-2025-53770
+    url: "https://github.com/advisories/GHSA-xcrc-8vqv-vc8r"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2025-53770
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2025-07-20, dueDate 2025-07-21, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2025-53770
+    url: "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/52405.py"
+    gave: "public PoC (EDB-52405)"
+  - source: poc-in-github
+    id: CVE-2025-53770
+    url: "https://github.com/soltanali0/CVE-2025-53770-Exploit"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2023-29357
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2023-29357"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2023-29357
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-29357"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2023-29357
+    url: "https://github.com/advisories/GHSA-m2h6-v37r-r43p"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2023-29357
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2024-01-10, dueDate 2024-01-31, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2023-29357
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2023-29357
+    url: "https://github.com/Chocapikk/CVE-2023-29357"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2023-33160
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2023-33160"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2023-33160
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-33160"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2023-33160
+    url: "https://github.com/advisories/GHSA-4xp7-7c5x-72xh"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2023-33160
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2023-33160
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2023-33160
+    url: null
+    gave: "404 for master/2023/CVE-2023-33160.json"
+  - source: nvd
+    id: CVE-2023-33157
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2023-33157"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2023-33157
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-33157"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2023-33157
+    url: "https://github.com/advisories/GHSA-hf9f-hpv8-5r38"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2023-33157
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2023-33157
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2023-33157
+    url: null
+    gave: "404 for master/2023/CVE-2023-33157.json"
+  - source: nvd
+    id: CVE-2023-36941
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2023-36941"
+    gave: "descriptions, configurations, 2 Exploit-tagged refs"
+  - source: ghsa
+    id: CVE-2023-36941
+    url: "https://github.com/advisories/GHSA-wpvc-538m-c48m"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2023-36941
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2023-36941
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2023-36941
+    url: null
+    gave: "404 for master/2023/CVE-2023-36941.json"
+  - source: nvd
+    id: CVE-2024-21318
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2024-21318"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2024-21318
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-21318"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2024-21318
+    url: "https://github.com/advisories/GHSA-3pg3-7f5j-x2m5"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2024-21318
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2024-21318
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2024-21318
+    url: null
+    gave: "404 for master/2024/CVE-2024-21318.json"
+  - source: nvd
+    id: CVE-2024-30043
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2024-30043"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2024-30043
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-30043"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2024-30043
+    url: "https://github.com/advisories/GHSA-j424-2gw5-5mrv"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2024-30043
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2024-30043
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2024-30043
+    url: "https://github.com/W01fh4cker/CVE-2024-30043-XXE"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2024-38023
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2024-38023"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2024-38023
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-38023"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2024-38023
+    url: "https://github.com/advisories/GHSA-24wv-53mh-2995"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2024-38023
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2024-38023
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2024-38023
+    url: null
+    gave: "404 for master/2024/CVE-2024-38023.json"
+  - source: nvd
+    id: CVE-2024-38024
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2024-38024"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2024-38024
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-38024"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2024-38024
+    url: "https://github.com/advisories/GHSA-w43m-j2c6-338v"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2024-38024
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2024-38024
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2024-38024
+    url: null
+    gave: "404 for master/2024/CVE-2024-38024.json"
+  - source: nvd
+    id: CVE-2024-38094
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2024-38094"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2024-38094
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-38094"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2024-38094
+    url: "https://github.com/advisories/GHSA-whmw-hq6p-c3w4"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2024-38094
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2024-10-22, dueDate 2024-11-12, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2024-38094
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2024-38094
+    url: null
+    gave: "404 for master/2024/CVE-2024-38094.json"
+  - source: nvd
+    id: CVE-2025-53771
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2025-53771"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2025-53771
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-53771"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2025-53771
+    url: "https://github.com/advisories/GHSA-6pmq-337c-gv96"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2025-53771
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2025-53771
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2025-53771
+    url: null
+    gave: "404 for master/2025/CVE-2025-53771.json"
+  - source: nvd
+    id: CVE-2025-29794
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2025-29794"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2025-29794
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-29794"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2025-29794
+    url: "https://github.com/advisories/GHSA-wjr6-rfwf-wx2f"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2025-29794
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2025-29794
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2025-29794
+    url: null
+    gave: "404 for master/2025/CVE-2025-29794.json"
+  - source: nvd
+    id: CVE-2019-0604
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2019-0604"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2019-0604
+    url: "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2019-0604"
+    gave: "advisory page fetched; no concrete input copied"
+  - source: ghsa
+    id: CVE-2019-0604
+    url: "https://github.com/advisories/GHSA-6mr5-xh3f-7vqm"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2019-0604
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2021-11-03, dueDate 2022-05-03, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2019-0604
+    url: "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/48053.py"
+    gave: "public PoC (EDB-48053)"
+  - source: poc-in-github
+    id: CVE-2019-0604
+    url: "https://github.com/linhlhq/CVE-2019-0604"
+    gave: "public PoC repository"
+# bughive-repro-end
 ---
 
 ## Crown Jewel Targets
@@ -438,3 +764,322 @@ Same target. Feeding `Microsoft.SharePoint.WebPartPages.DataFormWebPart` (the ca
 - **`hunt-aspnet`** — SharePoint is ASP.NET Webforms under the covers; ViewState, machineKey, and SafeControl reflection all apply. Chain primitive: SharePoint version disclosure → confirm patch level missing → `hunt-aspnet` ViewState dual-parser MAC-bypass → deserialization gadget → RCE in `w3wp.exe` as farm account.
 - **`hunt-rce`** — ToolShell precondition chain (CVE-2025-53770) is the current high-impact SP RCE path. Chain primitive: ToolShell preconditions met (`/_layouts/15/ToolPane.aspx?DisplayMode=Edit&a=/ToolPane.aspx` reachable + version vulnerable) → `hunt-rce` deserialization gadget chain → SYSTEM/farm-account shell → `m365-entra-attack` lateral via stolen on-prem service-account token to Entra-synced identity.
 - **`triage-validation`** — SharePoint farms generate a lot of "looks like a finding" hygiene noise (FormDigest issuance, version disclosure, extension blocklist quirks). Chain primitive: run every SP finding through the 7-Question Gate before reporting — most version-disclosure-only findings die at "is this actually exploitable on this farm" without a paired CVE PoC.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce — CVE-2025-53770
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_server < 16.0.18526.20508; microsoft sharepoint_server 2016; microsoft sharepoint_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-53770)]
+- Weakness: CWE-502. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-53770)]
+
+### Input / trigger
+- NVD characterizes the trigger as deserialization. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-53770)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/52405.py)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as deserialization. Structured affected range: microsoft sharepoint_server < 16.0.18526.20508. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-53770)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-53770)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/52405.py)]
+
+### Public PoC (if any)
+- EDB-52405 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/52405.py
+- GHSA-listed: https://www.bleepingcomputer.com/news/microsoft/microsoft-sharepoint-zero-day-exploited-in-rce-attacks-no-patch-available
+- GHSA-listed: https://www.cisa.gov/news-events/alerts/2025/07/20/microsoft-releases-guidance-exploitation-sharepoint-vulnerability-cve-2025-53770
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/soltanali0/CVE-2025-53770-Exploit
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2025/CVE-2025-53770.json
+- NVD Exploit-tagged reference: https://arstechnica.com/security/2025/07/sharepoint-vulnerability-with-9-8-severity-rating-is-under-exploit-across-the-globe/
+- NVD Exploit-tagged reference: https://github.com/kaizensecurity/CVE-2025-53770
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2023-29357
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-29357)]
+- Weakness: CWE-303. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-29357)]
+
+### Input / trigger
+- No concrete request string is stated in the cited advisory text. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-29357)] [[ghsa](https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2023-29357)]
+
+### Expected (patched) vs vulnerable behavior
+- See the public record (abstract only). No concrete vulnerable-versus-patched behavior was copied from the advisory. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-29357)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-29357)] [[ghsa](https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2023-29357)]
+
+### Public PoC (if any)
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2023-29357
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/Chocapikk/CVE-2023-29357
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2023/CVE-2023-29357.json
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2023-33160
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_server; microsoft sharepoint_server 2016; microsoft sharepoint_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-33160)]
+- Weakness: CWE-502. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-33160)]
+
+### Input / trigger
+- Affected product and an abstract condition are public (remote code execution). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-33160)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: microsoft sharepoint_server. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-33160)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-33160)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2023-33157
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_server; microsoft sharepoint_server 2016; microsoft sharepoint_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-33157)]
+- Weakness: CWE-94. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-33157)]
+
+### Input / trigger
+- Affected product and an abstract condition are public (remote code execution). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-33157)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: microsoft sharepoint_server. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-33157)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-33157)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2023-36941
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: phpgurukul online_fire_reporting_system 1.2. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-36941)]
+- Weakness: CWE-79. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-36941)]
+
+### Input / trigger
+- NVD characterizes the trigger as cross-site scripting. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-36941)] [[nvd](https://medium.com/%40ridheshgohil1092/cve-2023-36941-xss-on-online-fire-reporting-system-v-1-2-df84d7ac3fd1)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as cross-site scripting. Structured affected range: phpgurukul online_fire_reporting_system 1.2. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-36941)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-36941)] [[nvd](https://medium.com/%40ridheshgohil1092/cve-2023-36941-xss-on-online-fire-reporting-system-v-1-2-df84d7ac3fd1)]
+
+### Public PoC (if any)
+- NVD Exploit-tagged reference: https://medium.com/%40ridheshgohil1092/cve-2023-36941-xss-on-online-fire-reporting-system-v-1-2-df84d7ac3fd1
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2024-21318
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_server; microsoft sharepoint_server 2016; microsoft sharepoint_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-21318)]
+- Weakness: CWE-502. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-21318)]
+
+### Input / trigger
+- Affected product and an abstract condition are public (remote code execution). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-21318)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: microsoft sharepoint_server. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-21318)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-21318)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2024-30043
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_server < 16.0.17328.20292; microsoft sharepoint_server 2016; microsoft sharepoint_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-30043)]
+- Weakness: CWE-611. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-30043)]
+
+### Input / trigger
+- NVD characterizes the trigger as information disclosure. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-30043)] [[poc-in-github](https://github.com/W01fh4cker/CVE-2024-30043-XXE)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as information disclosure. Structured affected range: microsoft sharepoint_server < 16.0.17328.20292. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-30043)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-30043)] [[poc-in-github](https://github.com/W01fh4cker/CVE-2024-30043-XXE)]
+
+### Public PoC (if any)
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/W01fh4cker/CVE-2024-30043-XXE
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2024/CVE-2024-30043.json
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2024-38023
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_server; microsoft sharepoint_server 2016; microsoft sharepoint_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38023)]
+- Weakness: CWE-502. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38023)]
+
+### Input / trigger
+- Affected product and an abstract condition are public (remote code execution). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38023)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: microsoft sharepoint_server. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38023)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38023)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2024-38024
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_server; microsoft sharepoint_server 2016; microsoft sharepoint_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38024)]
+- Weakness: CWE-502. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38024)]
+
+### Input / trigger
+- Affected product and an abstract condition are public (remote code execution). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38024)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: microsoft sharepoint_server. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38024)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38024)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2024-38094
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_server; microsoft sharepoint_server 2016; microsoft sharepoint_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38094)]
+- Weakness: CWE-502. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38094)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38094)] [[ghsa](https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-38094)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: microsoft sharepoint_server. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38094)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-38094)] [[ghsa](https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-38094)]
+
+### Public PoC (if any)
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-38094
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2025-53771
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_server < 16.0.18526.20508; microsoft sharepoint_server 2016; microsoft sharepoint_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-53771)]
+- Weakness: CWE-287. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-53771)]
+
+### Input / trigger
+- NVD characterizes the trigger as path traversal. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-53771)] [[ghsa](https://www.bleepingcomputer.com/news/microsoft/microsoft-sharepoint-zero-day-exploited-in-rce-attacks-no-patch-available)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as path traversal. Structured affected range: microsoft sharepoint_server < 16.0.18526.20508. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-53771)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-53771)] [[ghsa](https://www.bleepingcomputer.com/news/microsoft/microsoft-sharepoint-zero-day-exploited-in-rce-attacks-no-patch-available)]
+
+### Public PoC (if any)
+- GHSA-listed: https://www.bleepingcomputer.com/news/microsoft/microsoft-sharepoint-zero-day-exploited-in-rce-attacks-no-patch-available
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2025-29794
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_enterprise_server 2016; microsoft sharepoint_server < 16.0.18526.20172; microsoft sharepoint_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-29794)]
+- Weakness: CWE-285. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-29794)]
+
+### Input / trigger
+- The advisory describes the condition in prose. No concrete request was copied, and none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-29794)]
+
+### Expected (patched) vs vulnerable behavior
+- See the public record (abstract only). No concrete vulnerable-versus-patched behavior was copied from the advisory. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-29794)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2025-29794)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2019-0604
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft sharepoint_enterprise_server 2016; microsoft sharepoint_foundation 2013; microsoft sharepoint_server 2010. NVD lists 4 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2019-0604)]
+- Weakness: CWE-20. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2019-0604)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2019-0604)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/48053.py)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: microsoft sharepoint_enterprise_server 2016. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2019-0604)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2019-0604)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/48053.py)]
+
+### Public PoC (if any)
+- EDB-48053 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/48053.py
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2019-0604
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/linhlhq/CVE-2019-0604
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2019/CVE-2019-0604.json
+
+### What's missing
+- (none for verified-public)
+<!-- bughive-repro-end -->

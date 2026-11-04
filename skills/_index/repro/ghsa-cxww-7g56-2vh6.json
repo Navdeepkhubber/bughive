@@ -1,0 +1,117 @@
+{
+  "cve": null,
+  "id": "ghsa-cxww-7g56-2vh6",
+  "fetched_at": "2026-11-04T16:49:17.706Z",
+  "repro": "partial",
+  "sources": {
+    "nvd": {
+      "status": null,
+      "url": null,
+      "vulnStatus": "",
+      "exploit_refs": [],
+      "rateLimited": false
+    },
+    "vendor": [],
+    "ghsa": {
+      "status": 200,
+      "ghsa_id": "GHSA-cxww-7g56-2vh6",
+      "html_url": "https://github.com/advisories/GHSA-cxww-7g56-2vh6",
+      "via": ""
+    },
+    "kev": {
+      "in_kev": null,
+      "dateAdded": "",
+      "knownRansomwareCampaignUse": ""
+    },
+    "exploitdb": [],
+    "poc_in_github": []
+  },
+  "references": [
+    {
+      "source": "nvd",
+      "url": null,
+      "gave": "no CVE id on this advisory; NVD not queried"
+    },
+    {
+      "source": "ghsa",
+      "url": "https://github.com/advisories/GHSA-cxww-7g56-2vh6",
+      "gave": "package range, first_patched_version, references"
+    },
+    {
+      "source": "cisa-kev",
+      "url": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
+      "gave": "no CVE id; KEV not applicable"
+    },
+    {
+      "source": "exploitdb",
+      "url": null,
+      "gave": "no CVE id; ExploitDB not queried"
+    },
+    {
+      "source": "poc-in-github",
+      "url": null,
+      "gave": "no CVE id; PoC-in-GitHub not queried"
+    }
+  ],
+  "section_markdown": "> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.\n\n### Prerequisites\n- GitHub Advisory package range: actions `actions/download-artifact` >= 4.0.0, < 4.1.3; first patched 4.1.3. [[ghsa](https://github.com/advisories/GHSA-cxww-7g56-2vh6)]\n\n### Input / trigger\n- Affected product and an abstract condition are public (path traversal). No concrete request or public PoC URL was found, so none is stated here. [[ghsa](https://github.com/advisories/GHSA-cxww-7g56-2vh6)]\n\n### Expected (patched) vs vulnerable behavior\n- Vulnerable builds match the cited range and GitHub Advisory characterizes the issue as path traversal. GHSA first patched version: 4.1.3. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[ghsa](https://github.com/advisories/GHSA-cxww-7g56-2vh6)]\n\n### How to confirm\n- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[ghsa](https://github.com/advisories/GHSA-cxww-7g56-2vh6)]\n\n### Public PoC (if any)\n- None found.\n\n### What's missing\n- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).\n- No concrete request or payload in the cited advisories. None was invented.\n",
+  "audit": {
+    "excerpts": [
+      {
+        "source": "ghsa",
+        "sha256": "76c67b5de93d8a5179f6e09f891e566769bd20fa7e5e85581aeb916ca08ddc7d",
+        "text": "### Impact\n\nVersions of `actions/download-artifact` before 4.1.3 are vulnerable to arbitrary file write when downloading and extracting a specifically crafted artifact that contains path traversal filenames.\n\n### Patches\n\nUpgrade to version 4.1.3 or higher. Alternatively use 'v4' tag which points to the latest and secure version.\n\n### References\n\n- https://snyk.io/research/zip-slip-vulnerability\n- https://github.com/actions/download-artifact/releases/tag/v4.1.3\n- https://github.com/actions/downl"
+      }
+    ]
+  },
+  "record": {
+    "id": "ghsa-cxww-7g56-2vh6",
+    "fetched_at": "2026-11-04T16:49:17.706Z",
+    "nvd": {
+      "status": null,
+      "queryUrl": null,
+      "detailUrl": null,
+      "description": "",
+      "products": [],
+      "exploitRefs": [],
+      "gave": "no CVE id on this advisory; NVD not queried"
+    },
+    "vendor": null,
+    "ghsa": {
+      "status": 200,
+      "ghsa_id": "GHSA-cxww-7g56-2vh6",
+      "html_url": "https://github.com/advisories/GHSA-cxww-7g56-2vh6",
+      "summary": "@actions/download-artifact has an Arbitrary File Write via artifact extraction",
+      "description": "### Impact\n\nVersions of `actions/download-artifact` before 4.1.3 are vulnerable to arbitrary file write when downloading and extracting a specifically crafted artifact that contains path traversal filenames.\n\n### Patches\n\nUpgrade to version 4.1.3 or higher. Alternatively use 'v4' tag which points to the latest and secure version.\n\n### References\n\n- https://snyk.io/research/zip-slip-vulnerability\n- https://github.com/actions/download-artifact/releases/tag/v4.1.3\n- https://github.com/actions/download-artifact/pull/299\n\n### CVE\n\nCVE-2024-42471\n\n### Credits\n\nJustin Taft from Google",
+      "withdrawn_at": null,
+      "packages": [
+        {
+          "ecosystem": "actions",
+          "name": "actions/download-artifact",
+          "range": ">= 4.0.0, < 4.1.3",
+          "patched": "4.1.3"
+        }
+      ],
+      "pocRefs": [],
+      "via": "",
+      "gave": "package range, first_patched_version, references"
+    },
+    "kev": {
+      "in_kev": null,
+      "url": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
+      "gave": "no CVE id; KEV not applicable"
+    },
+    "exploitdb": [],
+    "exploitdbError": "no CVE id; ExploitDB not queried",
+    "poc_in_github": {
+      "status": 0,
+      "top": [],
+      "gave": "no CVE id; PoC-in-GitHub not queried"
+    },
+    "h1": null,
+    "cited_as": [
+      "ghsa-cxww-7g56-2vh6"
+    ],
+    "repro": "partial",
+    "section_markdown": "> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.\n\n### Prerequisites\n- GitHub Advisory package range: actions `actions/download-artifact` >= 4.0.0, < 4.1.3; first patched 4.1.3. [[ghsa](https://github.com/advisories/GHSA-cxww-7g56-2vh6)]\n\n### Input / trigger\n- Affected product and an abstract condition are public (path traversal). No concrete request or public PoC URL was found, so none is stated here. [[ghsa](https://github.com/advisories/GHSA-cxww-7g56-2vh6)]\n\n### Expected (patched) vs vulnerable behavior\n- Vulnerable builds match the cited range and GitHub Advisory characterizes the issue as path traversal. GHSA first patched version: 4.1.3. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[ghsa](https://github.com/advisories/GHSA-cxww-7g56-2vh6)]\n\n### How to confirm\n- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[ghsa](https://github.com/advisories/GHSA-cxww-7g56-2vh6)]\n\n### Public PoC (if any)\n- None found.\n\n### What's missing\n- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).\n- No concrete request or payload in the cited advisories. None was invented.\n"
+  }
+}

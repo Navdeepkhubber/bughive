@@ -1,0 +1,20 @@
+{
+  "totalResults": 1,
+  "vulnerabilities": [
+    {
+      "cve": {
+        "id": "CVE-2024-99901",
+        "vulnStatus": "Analyzed",
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "ExampleApp before version 1.2.3 is affected by improper input validation that may allow access to data."
+          }
+        ],
+        "references": [
+          { "url": "https://example.invalid/vendor-note", "tags": ["Vendor Advisory"] }
+        ]
+      }
+    }
+  ]
+}

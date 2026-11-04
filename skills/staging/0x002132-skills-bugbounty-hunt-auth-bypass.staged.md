@@ -6,6 +6,61 @@ name: hunt-auth-bypass
 description: Hunting skill for auth bypass vulnerabilities. Built from 4 public bug bounty reports. Use when hunting auth bypass on any target.
 sources: github
 report_count: 4
+# bughive-repro-start
+cve:
+  - CVE-2020-0688
+  - CVE-2021-26855
+repro: verified-public
+references:
+  - source: nvd
+    id: CVE-2020-0688
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2020-0688"
+    gave: "descriptions, configurations, 4 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2020-0688
+    url: "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2020-0688"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2020-0688
+    url: "https://github.com/advisories/GHSA-4g56-8mc7-hpjq"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2020-0688
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2021-11-03, dueDate 2022-05-03, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2020-0688
+    url: "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/48168.rb"
+    gave: "public PoC (EDB-48168)"
+  - source: poc-in-github
+    id: CVE-2020-0688
+    url: "https://github.com/zcgonvh/CVE-2020-0688"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2021-26855
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2021-26855"
+    gave: "descriptions, configurations, 4 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2021-26855
+    url: "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-26855"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2021-26855
+    url: "https://github.com/advisories/GHSA-6784-2mh5-cq56"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2021-26855
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2021-11-03, dueDate 2022-05-03, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2021-26855
+    url: "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/49663.py"
+    gave: "public PoC (EDB-49663)"
+  - source: poc-in-github
+    id: CVE-2021-26855
+    url: "https://github.com/Flangvik/SharpProxyLogon"
+    gave: "public PoC repository"
+# bughive-repro-end
 ---
 
 ## Crown Jewel Targets
@@ -327,3 +382,64 @@ An e-commerce platform's partner/reseller portal issued authentication tokens th
 - **`hunt-sharepoint`** — The SP equivalent of the WordPress XMLRPC pattern lives here. Chain primitive: `/_vti_bin/Authentication.asmx` anonymous reachable + native Forms-auth credential accepted + zero rate limit = unlimited credential brute-force endpoint bypassing custom-branded `customlogin.aspx` protections → FedAuth cookie → full SharePoint farm access.
 - **`security-arsenal`** — Pull the JWT-attack payloads section (alg=none, kid path-traversal, JWK injection, RS256→HS256 key confusion) when JWT validation is the auth wall; pull the SAML signature-stripping section when the SP accepts unsigned assertions.
 - **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an "auth bypass" that only enumerates usernames or only reveals a 401-vs-403 differential. Username enumeration alone without lockout-amplification is consistently N/A or Informational on H1.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce — CVE-2020-0688
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft exchange_server 2010; microsoft exchange_server 2013; microsoft exchange_server 2016. NVD lists 4 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2020-0688)]
+- Weakness: CWE-287. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2020-0688)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2020-0688)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/48168.rb)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: microsoft exchange_server 2010. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2020-0688)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2020-0688)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/48168.rb)]
+
+### Public PoC (if any)
+- EDB-48168 (verified flag 1): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/48168.rb
+- EDB-48153 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/48153.py
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2020-0688
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/zcgonvh/CVE-2020-0688
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2020/CVE-2020-0688.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/156592/Microsoft-Exchange-2019-15.2.221.12-Remote-Code-Execution.html
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/156620/Exchange-Control-Panel-Viewstate-Deserialization.html
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2021-26855
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: microsoft exchange_server 2013; microsoft exchange_server 2016; microsoft exchange_server 2019. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-26855)]
+- Weakness: CWE-918. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-26855)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-26855)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/49663.py)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: microsoft exchange_server 2013. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-26855)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-26855)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/49663.py)]
+
+### Public PoC (if any)
+- EDB-49663 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/remote/49663.py
+- EDB-49637 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/webapps/49637.py
+- EDB-49879 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/webapps/49879.py
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-26855
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/Flangvik/SharpProxyLogon
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2021/CVE-2021-26855.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/161846/Microsoft-Exchange-2019-SSRF-Arbitrary-File-Write.html
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/161938/Microsoft-Exchange-ProxyLogon-Remote-Code-Execution.html
+
+### What's missing
+- (none for verified-public)
+<!-- bughive-repro-end -->

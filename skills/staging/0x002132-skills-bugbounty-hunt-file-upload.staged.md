@@ -4,6 +4,29 @@
 ---
 name: hunt-file-upload
 description: "Hunt file upload bugs — RCE via webshell, XSS via SVG/HTML, SSRF via XXE in DOCX, path traversal via filename. Bypass tables (10 techniques): double extension (shell.php.jpg if server checks last ext only), magic bytes spoofing (PNG header on PHP), null byte (shell.php\0.jpg), case (PHP, .Php, .pHP), .htaccess upload to enable execution, SVG with <script>, HTML/SVG XSS, DOCX with embedded XXE, ZIP slip (../../../etc/passwd in archive), polyglot files. Detection: any /upload, /avatar, /profile-picture, /attachment, /import endpoint. Test: upload PHP/JSP/ASPX shells, request via direct URL, check response. Validate: actual code execution (whoami output) for RCE; reflected XSS in profile-photo URL. Use when testing file upload features, avatar/attachment endpoints, import/export functions, XML/DOCX/ZIP processors. Real paid examples."
+# bughive-repro-start
+cve: CVE-2016-3714
+repro: verified-public
+references:
+  - source: nvd
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2016-3714"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    url: "https://imagetragick.com/"
+    gave: "advisory page fetched; no concrete input copied"
+  - source: ghsa
+    url: "https://github.com/advisories/GHSA-24cp-26gx-3pp4"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2024-09-09, dueDate 2024-09-30, knownRansomwareCampaignUse=Unknown"
+  - source: exploitdb
+    url: "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/dos/39767.txt"
+    gave: "public PoC (EDB-39767)"
+  - source: poc-in-github
+    url: "https://github.com/Hood3dRob1n/CVE-2016-3714"
+    gave: "public PoC repository"
+# bughive-repro-end
 ---
 
 ## 9. FILE UPLOAD
@@ -57,3 +80,33 @@ filename=shell.phtml, shell.pHp, shell.php5   → extension variants
 - **`hunt-ssrf`** — Image-processing libraries (ImageMagick, ffmpeg) fetch remote URLs from inside the uploaded file. Chain primitive: upload an SVG/MVG with `<image xlink:href="http://169.254.169.254/latest/meta-data/iam/security-credentials/">` or ffmpeg `concat:http://internal/...` → SSRF to AWS IMDS → cloud creds; the ImageTragick CVE-2016-3714 family is still alive on legacy farms.
 - **`security-arsenal`** — Reach for the file-upload bypass tree: 10-row extension/MIME/magic-byte bypass table (double-ext, null-byte, case variants, `.phtml`/`.phar`/`.php5`/`.pht`, `.htaccess` upload to re-enable handlers, `web.config` upload on IIS), SVG/MVG/SVGZ payloads, DOCX-XXE templates, ZIP-slip path traversal in archives, polyglot generators.
 - **`triage-validation`** — Apply the Reproducibility Gate. A file successfully uploaded but never served, never executed, never parsed by anything is not a finding — it's a write-only blob. Critical RCE requires the actual `whoami` round-trip from the uploaded shell; stored XSS requires the popup firing in a victim browser, not just the file existing on disk.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: imagemagick imagemagick <= 6.9.3-9; imagemagick imagemagick 7.0.0-0; imagemagick imagemagick 7.0.1-0. NVD lists 12 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2016-3714)]
+- Weakness: CWE-20. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2016-3714)]
+
+### Input / trigger
+- NVD characterizes the trigger as arbitrary code. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2016-3714)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/local/39791.rb)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as arbitrary code. Structured affected range: imagemagick imagemagick <= 6.9.3-9. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2016-3714)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2016-3714)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/local/39791.rb)]
+
+### Public PoC (if any)
+- EDB-39791 (verified flag 1): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/local/39791.rb
+- EDB-39767 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/dos/39767.txt
+- GHSA-listed: http://www.rapid7.com/db/modules/exploit/unix/fileformat/imagemagick_delegate
+- GHSA-listed: https://www.exploit-db.com/exploits/39767
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/Hood3dRob1n/CVE-2016-3714
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2016/CVE-2016-3714.json
+
+### What's missing
+- (none for verified-public)
+<!-- bughive-repro-end -->

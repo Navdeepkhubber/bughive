@@ -6,6 +6,386 @@ name: vmware-vcenter-attack
 description: VMware vSphere / vCenter Server external attack matrix — version fingerprinting, the high-impact CVE chain (CVE-2021-21972 vRealize unauth file upload, CVE-2021-21985 vSAN plugin RCE, CVE-2022-22954 Workspace ONE SSTI, CVE-2023-20887 Aria RCE, CVE-2024-37085 ESXi AD bypass, CVE-2024-22273 Aria SSRF), default credentials, SSO configuration disclosure, vmdir LDAP enumeration, ESXi Open SLP RCE history. ONLY for vCenter / Workspace ONE / Aria instances exposed to the internet — internal-network vCenter is out of scope per the external-only boundary. Use when recon shows port 443 with vCenter banner, `/ui` redirect, `/websso/SAML2/Metadata`, or VMware product fingerprints.
 sources: vmware-security-advisories, public-cve-databases, redteam-knowledge
 report_count: 0
+# bughive-repro-start
+cve:
+  - CVE-2021-21972
+  - CVE-2021-21985
+  - CVE-2022-22954
+  - CVE-2023-20887
+  - CVE-2024-37085
+  - CVE-2024-22273
+  - CVE-2024-22252
+  - CVE-2024-22253
+  - CVE-2023-34048
+  - CVE-2023-20892
+  - CVE-2022-31656
+  - CVE-2022-31659
+  - CVE-2021-22005
+  - CVE-2020-3992
+  - CVE-2019-5544
+repro: partial
+references:
+  - source: nvd
+    id: CVE-2021-21972
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2021-21972"
+    gave: "descriptions, configurations, 6 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2021-21972
+    url: "https://www.vmware.com/security/advisories/VMSA-2021-0002.html"
+    gave: "advisory page fetched; no concrete input copied"
+  - source: ghsa
+    id: CVE-2021-21972
+    url: "https://github.com/advisories/GHSA-c9cr-34rr-8gpr"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2021-21972
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2021-11-03, dueDate 2021-11-17, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2021-21972
+    url: "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50056.py"
+    gave: "public PoC (EDB-50056)"
+  - source: poc-in-github
+    id: CVE-2021-21972
+    url: "https://github.com/Schira4396/VcenterKiller"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2021-21985
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2021-21985"
+    gave: "descriptions, configurations, 2 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2021-21985
+    url: "https://www.vmware.com/security/advisories/VMSA-2021-0010.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2021-21985
+    url: "https://github.com/advisories/GHSA-rg6m-2r9v-c5fj"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2021-21985
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2021-11-03, dueDate 2021-11-17, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2021-21985
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2021-21985
+    url: "https://github.com/alt3kx/CVE-2021-21985_PoC"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2022-22954
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2022-22954"
+    gave: "descriptions, configurations, 2 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2022-22954
+    url: "https://www.vmware.com/security/advisories/VMSA-2022-0011.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2022-22954
+    url: "https://github.com/advisories/GHSA-q7xc-35g4-g566"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2022-22954
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2022-04-14, dueDate 2022-05-05, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2022-22954
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2022-22954
+    url: "https://github.com/Schira4396/VcenterKiller"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2023-20887
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2023-20887"
+    gave: "descriptions, configurations, 2 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2023-20887
+    url: "https://www.vmware.com/security/advisories/VMSA-2023-0012.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2023-20887
+    url: "https://github.com/advisories/GHSA-8vx8-r5j3-f2vf"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2023-20887
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2023-06-22, dueDate 2023-07-13, knownRansomwareCampaignUse=Unknown"
+  - source: exploitdb
+    id: CVE-2023-20887
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2023-20887
+    url: "https://github.com/sinsinology/CVE-2023-20887"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2024-37085
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2024-37085"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2024-37085
+    url: "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/24505"
+    gave: "advisory page fetched; no concrete input copied"
+  - source: ghsa
+    id: CVE-2024-37085
+    url: "https://github.com/advisories/GHSA-485m-923f-95wx"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2024-37085
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2024-07-30, dueDate 2024-08-20, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2024-37085
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2024-37085
+    url: "https://github.com/mahmutaymahmutay/CVE-2024-37085"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2024-22273
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2024-22273"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2024-22273
+    url: "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/24308"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2024-22273
+    url: "https://github.com/advisories/GHSA-9mq7-wpm3-gv26"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2024-22273
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2024-22273
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2024-22273
+    url: null
+    gave: "404 for master/2024/CVE-2024-22273.json"
+  - source: nvd
+    id: CVE-2024-22252
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2024-22252"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2024-22252
+    url: "https://www.vmware.com/security/advisories/VMSA-2024-0006.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2024-22252
+    url: "https://github.com/advisories/GHSA-4xp8-3mc6-r83c"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2024-22252
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2024-22252
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2024-22252
+    url: null
+    gave: "404 for master/2024/CVE-2024-22252.json"
+  - source: nvd
+    id: CVE-2024-22253
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2024-22253"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2024-22253
+    url: "https://www.vmware.com/security/advisories/VMSA-2024-0006.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2024-22253
+    url: "https://github.com/advisories/GHSA-57rg-p28x-x2f6"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2024-22253
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2024-22253
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2024-22253
+    url: null
+    gave: "404 for master/2024/CVE-2024-22253.json"
+  - source: nvd
+    id: CVE-2023-34048
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2023-34048"
+    gave: "descriptions, configurations, 1 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2023-34048
+    url: "https://www.vmware.com/security/advisories/VMSA-2023-0023.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2023-34048
+    url: "https://github.com/advisories/GHSA-87j2-5g9j-7jmv"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2023-34048
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2024-01-22, dueDate 2024-02-12, knownRansomwareCampaignUse=Unknown"
+  - source: exploitdb
+    id: CVE-2023-34048
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2023-34048
+    url: null
+    gave: "404 for master/2023/CVE-2023-34048.json"
+  - source: nvd
+    id: CVE-2023-20892
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2023-20892"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2023-20892
+    url: "https://www.vmware.com/security/advisories/VMSA-2023-0014.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2023-20892
+    url: "https://github.com/advisories/GHSA-vmcx-3r5m-96cr"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2023-20892
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2023-20892
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2023-20892
+    url: null
+    gave: "404 for master/2023/CVE-2023-20892.json"
+  - source: nvd
+    id: CVE-2022-31656
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2022-31656"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2022-31656
+    url: "https://www.vmware.com/security/advisories/VMSA-2022-0021.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2022-31656
+    url: "https://github.com/advisories/GHSA-hvqf-whpm-54wr"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2022-31656
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2022-31656
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2022-31656
+    url: null
+    gave: "404 for master/2022/CVE-2022-31656.json"
+  - source: nvd
+    id: CVE-2022-31659
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2022-31659"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2022-31659
+    url: "https://www.vmware.com/security/advisories/VMSA-2022-0021.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2022-31659
+    url: "https://github.com/advisories/GHSA-xpqf-h5q4-9r99"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2022-31659
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "not in KEV"
+  - source: exploitdb
+    id: CVE-2022-31659
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2022-31659
+    url: null
+    gave: "404 for master/2022/CVE-2022-31659.json"
+  - source: nvd
+    id: CVE-2021-22005
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2021-22005"
+    gave: "descriptions, configurations, 2 Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2021-22005
+    url: "https://www.vmware.com/security/advisories/VMSA-2021-0020.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2021-22005
+    url: "https://github.com/advisories/GHSA-9w75-994h-2j26"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2021-22005
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2021-11-03, dueDate 2021-11-17, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2021-22005
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2021-22005
+    url: "https://github.com/shmilylty/cve-2021-22005-exp"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2020-3992
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2020-3992"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2020-3992
+    url: "https://www.vmware.com/security/advisories/VMSA-2020-0023.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2020-3992
+    url: "https://github.com/advisories/GHSA-58ff-49fr-3jwf"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2020-3992
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2021-11-03, dueDate 2022-05-03, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2020-3992
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2020-3992
+    url: "https://github.com/dgh05t/VMware_ESXI_OpenSLP_PoCs"
+    gave: "public PoC repository"
+  - source: nvd
+    id: CVE-2019-5544
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2019-5544"
+    gave: "description, configurations; no Exploit-tagged refs"
+  - source: vendor
+    id: CVE-2019-5544
+    url: "http://www.vmware.com/security/advisories/VMSA-2019-0022.html"
+    gave: "not fetched; one request per host per run"
+  - source: ghsa
+    id: CVE-2019-5544
+    url: "https://github.com/advisories/GHSA-4734-5452-r5fh"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    id: CVE-2019-5544
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2021-11-03, dueDate 2022-05-03, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    id: CVE-2019-5544
+    url: null
+    gave: "no row with this CVE in codes"
+  - source: poc-in-github
+    id: CVE-2019-5544
+    url: "https://github.com/dgh05t/VMware_ESXI_OpenSLP_PoCs"
+    gave: "public PoC repository"
+# bughive-repro-end
 ---
 
 ## When to use
@@ -268,3 +648,380 @@ Internet-exposed vCenter is unfortunately common on the perimeter — and freque
 - **`enterprise-vpn-attack`** — VPN compromise + vCenter on internal-only is a natural post-VPN pivot, but external-only engagement scope sometimes forbids it. Chain primitive: VPN appliance CVE → foothold inside corp network → if scope permits, `vmware-vcenter-attack` becomes reachable on internal-only vCenter → datacenter takeover.
 - **`m365-entra-attack`** — Some VMware deployments federate vCenter SSO to Entra. Chain primitive: vCenter SSO discovery → AuthURL points to `login.microsoftonline.com` → `m365-entra-attack` Entra ATO on `administrator@vsphere.local` synced identity → SAML assertion → vCenter admin without ever brute-forcing vCenter SSO.
 - **`mid-engagement-ir-detection`** — VMware vSAN/vCenter alerting is sensitive; expect SOC to patch or block within hours of detection. Chain primitive: confirmed vCenter CVE → run `mid-engagement-ir-detection` baseline capture BEFORE attempting exploitation → if response patterns change mid-test, capture the SOC-patched state as a SECOND finding (defensive-action observed). Package both via `redteam-report-template`.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce — CVE-2021-21972
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware cloud_foundation >= 3.0, < 3.10.1.2; vmware cloud_foundation >= 4.0, < 4.2; vmware vcenter_server 6.5. NVD lists 5 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-21972)]
+- Weakness: CWE-22. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-21972)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-21972)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50056.py)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: vmware cloud_foundation >= 3.0, < 3.10.1.2. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-21972)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-21972)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50056.py)]
+
+### Public PoC (if any)
+- EDB-50056 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50056.py
+- EDB-49602 (verified flag 0): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/49602.py
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-21972
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/Schira4396/VcenterKiller
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2021/CVE-2021-21972.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/161590/VMware-vCenter-Server-7.0-Arbitrary-File-Upload.html
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/161695/VMware-vCenter-Server-File-Upload-Remote-Code-Execution.html
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2021-21985
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware vcenter_server 6.5; vmware vcenter_server 6.7; vmware vcenter_server 7.0. NVD lists 5 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-21985)]
+- Weakness: CWE-918, CWE-20, CWE-470. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-21985)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-21985)] [[nvd](http://packetstormsecurity.com/files/163487/VMware-vCenter-Server-Virtual-SAN-Health-Check-Remote-Code-Execution.html)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: vmware vcenter_server 6.5. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-21985)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-21985)] [[nvd](http://packetstormsecurity.com/files/163487/VMware-vCenter-Server-Virtual-SAN-Health-Check-Remote-Code-Execution.html)]
+
+### Public PoC (if any)
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-21985
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/alt3kx/CVE-2021-21985_PoC
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2021/CVE-2021-21985.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/163487/VMware-vCenter-Server-Virtual-SAN-Health-Check-Remote-Code-Execution.html
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2022-22954
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware identity_manager 3.3.3; vmware identity_manager 3.3.4; vmware identity_manager 3.3.5. NVD lists 11 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-22954)]
+- Weakness: CWE-94. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-22954)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-22954)] [[nvd](http://packetstormsecurity.com/files/166935/VMware-Workspace-ONE-Access-Template-Injection-Command-Execution.html)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: vmware identity_manager 3.3.3. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-22954)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-22954)] [[nvd](http://packetstormsecurity.com/files/166935/VMware-Workspace-ONE-Access-Template-Injection-Command-Execution.html)]
+
+### Public PoC (if any)
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2022-22954
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/Schira4396/VcenterKiller
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2022/CVE-2022-22954.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/166935/VMware-Workspace-ONE-Access-Template-Injection-Command-Execution.html
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2023-20887
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware aria_operations_for_networks >= 6.2.0, <= 6.10.0. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-20887)]
+- Weakness: CWE-77. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-20887)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-20887)] [[nvd](http://packetstormsecurity.com/files/173761/VMWare-Aria-Operations-For-Networks-Remote-Command-Execution.html)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: vmware aria_operations_for_networks >= 6.2.0, <= 6.10.0. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-20887)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-20887)] [[nvd](http://packetstormsecurity.com/files/173761/VMWare-Aria-Operations-For-Networks-Remote-Command-Execution.html)]
+
+### Public PoC (if any)
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2023-20887
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/sinsinology/CVE-2023-20887
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2023/CVE-2023-20887.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/173761/VMWare-Aria-Operations-For-Networks-Remote-Command-Execution.html
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2024-37085
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware cloud_foundation >= 4.0, < 5.2; vmware esxi 7.0; vmware esxi 8.0. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-37085)]
+- Weakness: CWE-287, CWE-305. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-37085)]
+
+### Input / trigger
+- NVD characterizes the trigger as authentication bypass. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-37085)] [[ghsa](https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-37085)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as authentication bypass. Structured affected range: vmware cloud_foundation >= 4.0, < 5.2. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-37085)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-37085)] [[ghsa](https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-37085)]
+
+### Public PoC (if any)
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2024-37085
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/mahmutaymahmutay/CVE-2024-37085
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2024/CVE-2024-37085.json
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2024-22273
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware cloud_foundation >= 4.0, < 5.1.1; vmware workstation >= 17.0.0, < 17.5.1; vmware esxi 7.0. NVD lists 5 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22273)]
+- Weakness: CWE-125, CWE-787. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22273)]
+
+### Input / trigger
+- Affected product and an abstract condition are public (denial of service). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22273)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as denial of service. Structured affected range: vmware cloud_foundation >= 4.0, < 5.1.1. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22273)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22273)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2024-22252
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware workstation >= 17.0.0, < 17.5.1; vmware esxi 7.0; vmware esxi 7.0.0. NVD lists 5 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22252)]
+- Weakness: CWE-416. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22252)]
+
+### Input / trigger
+- Affected product and an abstract condition are public (code execution). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22252)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as code execution. Structured affected range: vmware workstation >= 17.0.0, < 17.5.1. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22252)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22252)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2024-22253
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware cloud_foundation >= 4.0, <= 5.0; vmware workstation >= 17.0.0, < 17.5.1; vmware esxi 7.0. NVD lists 6 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22253)]
+- Weakness: CWE-416. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22253)]
+
+### Input / trigger
+- Affected product and an abstract condition are public (code execution). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22253)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as code execution. Structured affected range: vmware cloud_foundation >= 4.0, <= 5.0. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22253)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2024-22253)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2023-34048
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware vcenter_server >= 4.0, <= 5.5; vmware vcenter_server 7.0; vmware vcenter_server 8.0. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-34048)]
+- Weakness: CWE-787. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-34048)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-34048)] [[nvd](https://www.vicarius.io/vsociety/posts/understanding-cve-2023-34048-a-zero-day-out-of-bound-write-in-vcenter-server)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: vmware vcenter_server >= 4.0, <= 5.5. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-34048)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-34048)] [[nvd](https://www.vicarius.io/vsociety/posts/understanding-cve-2023-34048-a-zero-day-out-of-bound-write-in-vcenter-server)]
+
+### Public PoC (if any)
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2023-34048
+- NVD Exploit-tagged reference: https://www.vicarius.io/vsociety/posts/understanding-cve-2023-34048-a-zero-day-out-of-bound-write-in-vcenter-server
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2023-20892
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware vcenter_server < 7.0; vmware vcenter_server 7.0; vmware vcenter_server 8.0. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-20892)]
+- Weakness: CWE-787. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-20892)]
+
+### Input / trigger
+- Affected product and an abstract condition are public (arbitrary code). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-20892)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as arbitrary code. Structured affected range: vmware vcenter_server < 7.0. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-20892)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2023-20892)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2022-31656
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware identity_manager 3.3.4; vmware identity_manager 3.3.5; vmware identity_manager 3.3.6. NVD lists 12 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-31656)]
+
+### Input / trigger
+- Affected product and an abstract condition are public (authentication bypass). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-31656)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as authentication bypass. Structured affected range: vmware identity_manager 3.3.4. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-31656)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-31656)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2022-31659
+
+> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware identity_manager 3.3.4; vmware identity_manager 3.3.5; vmware identity_manager 3.3.6. NVD lists 12 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-31659)]
+- Weakness: CWE-89. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-31659)]
+
+### Input / trigger
+- Affected product and an abstract condition are public (remote code execution). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-31659)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: vmware identity_manager 3.3.4. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-31659)]
+
+### How to confirm
+- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-31659)]
+
+### Public PoC (if any)
+- None found.
+
+### What's missing
+- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
+- No concrete request or payload in the cited advisories. None was invented.
+
+## Steps to reproduce — CVE-2021-22005
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware cloud_foundation >= 3.0, < 5.0; vmware vcenter_server 6.5; vmware vcenter_server 6.7. NVD lists 4 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-22005)]
+- Weakness: CWE-22. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-22005)]
+
+### Input / trigger
+- No concrete request string is stated in the cited advisory text. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-22005)] [[nvd](http://packetstormsecurity.com/files/164439/VMware-vCenter-Server-Analytics-CEIP-Service-File-Upload.html)]
+
+### Expected (patched) vs vulnerable behavior
+- See the public record (abstract only). No concrete vulnerable-versus-patched behavior was copied from the advisory. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-22005)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-22005)] [[nvd](http://packetstormsecurity.com/files/164439/VMware-vCenter-Server-Analytics-CEIP-Service-File-Upload.html)]
+
+### Public PoC (if any)
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-22005
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/shmilylty/cve-2021-22005-exp
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2021/CVE-2021-22005.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/164439/VMware-vCenter-Server-Analytics-CEIP-Service-File-Upload.html
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2020-3992
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware cloud_foundation >= 3.0, < 3.10.1.2; vmware cloud_foundation >= 4.0, < 4.1.0.1; vmware esxi 6.5. NVD lists 5 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2020-3992)]
+- Weakness: CWE-416. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2020-3992)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2020-3992)] [[ghsa](https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2020-3992)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: vmware cloud_foundation >= 3.0, < 3.10.1.2. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2020-3992)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2020-3992)] [[ghsa](https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2020-3992)]
+
+### Public PoC (if any)
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2020-3992
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/dgh05t/VMware_ESXI_OpenSLP_PoCs
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2020/CVE-2020-3992.json
+
+### What's missing
+- (none for verified-public)
+
+## Steps to reproduce — CVE-2019-5544
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: vmware horizon_daas >= 8.0.0, < 9.0.0.0; vmware esxi 6.0; vmware esxi 6.5. NVD lists 24 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2019-5544)]
+- Weakness: CWE-787. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2019-5544)]
+
+### Input / trigger
+- No concrete request string is stated in the cited advisory text. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2019-5544)] [[ghsa](https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2019-5544)]
+
+### Expected (patched) vs vulnerable behavior
+- See the public record (abstract only). No concrete vulnerable-versus-patched behavior was copied from the advisory. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2019-5544)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2019-5544)] [[ghsa](https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2019-5544)]
+
+### Public PoC (if any)
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2019-5544
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/dgh05t/VMware_ESXI_OpenSLP_PoCs
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2019/CVE-2019-5544.json
+
+### What's missing
+- (none for verified-public)
+<!-- bughive-repro-end -->
