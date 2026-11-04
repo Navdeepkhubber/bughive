@@ -17,6 +17,29 @@ triggers:
   - code execution
   - ssti
 category: security
+# bughive-repro-start
+cve: CVE-2021-41773
+repro: verified-public
+references:
+  - source: nvd
+    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2021-41773"
+    gave: "descriptions, configurations, 12 Exploit-tagged refs"
+  - source: vendor
+    url: "https://httpd.apache.org/security/vulnerabilities_24.html"
+    gave: "affected range phrase plus advisory URL"
+  - source: ghsa
+    url: "https://github.com/advisories/GHSA-29h7-gr57-5f8r"
+    gave: "advisory text; no package range"
+  - source: cisa-kev
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    gave: "dateAdded 2021-11-03, dueDate 2021-11-17, knownRansomwareCampaignUse=Known"
+  - source: exploitdb
+    url: "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50383.sh"
+    gave: "public PoC (EDB-50383)"
+  - source: poc-in-github
+    url: "https://github.com/blasty/CVE-2021-41773"
+    gave: "public PoC repository"
+# bughive-repro-end
 ---
 # RCE Hunting Methodology
 
@@ -267,3 +290,35 @@ Before reporting RCE:
 - [ ] Determined user context (www-data, root, container)
 - [ ] For blind RCE: file write to web-accessible directory confirmed
 - [ ] Impact clearly described: "Attacker can execute arbitrary commands on the server"
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
+
+### Prerequisites
+- Affected product from NVD CPE: apache http_server 2.4.49; fedoraproject fedora 34; fedoraproject fedora 35. NVD lists 7 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-41773)]
+- Vendor advisory states the range `2.4.17 through 2.4.68`. [[vendor](https://httpd.apache.org/security/vulnerabilities_24.html)]
+- Weakness: CWE-22. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-41773)]
+
+### Input / trigger
+- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-41773)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50383.sh)]
+
+### Expected (patched) vs vulnerable behavior
+- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: apache http_server 2.4.49. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-41773)]
+
+### How to confirm
+- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-41773)] [[exploitdb](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50383.sh)]
+
+### Public PoC (if any)
+- EDB-50383 (verified flag 1): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50383.sh
+- EDB-50512 (verified flag 1): https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/50512.py
+- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2021-41773
+- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/blasty/CVE-2021-41773
+- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2021/CVE-2021-41773.json
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/164418/Apache-HTTP-Server-2.4.49-Path-Traversal-Remote-Code-Execution.html
+- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/164418/Apache-HTTP-Server-2.4.49-Path-Traversal.html
+
+### What's missing
+- (none for verified-public)
+<!-- bughive-repro-end -->

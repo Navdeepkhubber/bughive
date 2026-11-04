@@ -1,0 +1,117 @@
+{
+  "cve": null,
+  "id": "ghsa-hw6r-g8gj-2987",
+  "fetched_at": "2026-11-04T16:49:46.377Z",
+  "repro": "partial",
+  "sources": {
+    "nvd": {
+      "status": null,
+      "url": null,
+      "vulnStatus": "",
+      "exploit_refs": [],
+      "rateLimited": false
+    },
+    "vendor": [],
+    "ghsa": {
+      "status": 200,
+      "ghsa_id": "GHSA-hw6r-g8gj-2987",
+      "html_url": "https://github.com/advisories/GHSA-hw6r-g8gj-2987",
+      "via": ""
+    },
+    "kev": {
+      "in_kev": null,
+      "dateAdded": "",
+      "knownRansomwareCampaignUse": ""
+    },
+    "exploitdb": [],
+    "poc_in_github": []
+  },
+  "references": [
+    {
+      "source": "nvd",
+      "url": null,
+      "gave": "no CVE id on this advisory; NVD not queried"
+    },
+    {
+      "source": "ghsa",
+      "url": "https://github.com/advisories/GHSA-hw6r-g8gj-2987",
+      "gave": "package range, first_patched_version, references"
+    },
+    {
+      "source": "cisa-kev",
+      "url": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
+      "gave": "no CVE id; KEV not applicable"
+    },
+    {
+      "source": "exploitdb",
+      "url": null,
+      "gave": "no CVE id; ExploitDB not queried"
+    },
+    {
+      "source": "poc-in-github",
+      "url": null,
+      "gave": "no CVE id; PoC-in-GitHub not queried"
+    }
+  ],
+  "section_markdown": "> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.\n\n### Prerequisites\n- GitHub Advisory package range: actions `https://github.com/pytorch/pytorch/.github/actions/filter-test-configs` < 2.0.1. [[ghsa](https://github.com/advisories/GHSA-hw6r-g8gj-2987)]\n\n### Input / trigger\n- Affected product and an abstract condition are public (command execution). No concrete request or public PoC URL was found, so none is stated here. [[ghsa](https://github.com/advisories/GHSA-hw6r-g8gj-2987)]\n\n### Expected (patched) vs vulnerable behavior\n- Vulnerable builds match the cited range and GitHub Advisory characterizes the issue as command execution. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[ghsa](https://github.com/advisories/GHSA-hw6r-g8gj-2987)]\n\n### How to confirm\n- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[ghsa](https://github.com/advisories/GHSA-hw6r-g8gj-2987)]\n\n### Public PoC (if any)\n- None found.\n\n### What's missing\n- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).\n- No concrete request or payload in the cited advisories. None was invented.\n",
+  "audit": {
+    "excerpts": [
+      {
+        "source": "ghsa",
+        "sha256": "4cf1e96b6ebc2cade2f8e49b6f7b358e70dfb924e7d14b9be66baad3fa31a78e",
+        "text": "The `pytorch/pytorch` `filter-test-configs` workflow is vulnerable to an expression injection in Actions, allowing an attacker to potentially leak secrets and alter the repository using the workflow.\n\n### Details\n\nThe [`filter-test-configs`](https://github.com/pytorch/pytorch/blob/ec26947c586dd323d741da80008403664c533f65/.github/actions/filter-test-configs/action.yml) workflow is using the raw `github.event.workflow_run.head_branch` value inside the `filter` step:\n\n```yaml\n- name: Select all req"
+      }
+    ]
+  },
+  "record": {
+    "id": "ghsa-hw6r-g8gj-2987",
+    "fetched_at": "2026-11-04T16:49:46.377Z",
+    "nvd": {
+      "status": null,
+      "queryUrl": null,
+      "detailUrl": null,
+      "description": "",
+      "products": [],
+      "exploitRefs": [],
+      "gave": "no CVE id on this advisory; NVD not queried"
+    },
+    "vendor": null,
+    "ghsa": {
+      "status": 200,
+      "ghsa_id": "GHSA-hw6r-g8gj-2987",
+      "html_url": "https://github.com/advisories/GHSA-hw6r-g8gj-2987",
+      "summary": "Actions expression injection in `filter-test-configs` (`GHSL-2023-181`)",
+      "description": "The `pytorch/pytorch` `filter-test-configs` workflow is vulnerable to an expression injection in Actions, allowing an attacker to potentially leak secrets and alter the repository using the workflow.\n\n### Details\n\nThe [`filter-test-configs`](https://github.com/pytorch/pytorch/blob/ec26947c586dd323d741da80008403664c533f65/.github/actions/filter-test-configs/action.yml) workflow is using the raw `github.event.workflow_run.head_branch` value inside the `filter` step:\n\n```yaml\n- name: Select all requested test configurations\n  shell: bash\n  env:\n    GITHUB_TOKEN: ${{ inputs.github-token }}\n    JOB_NAME: ${{ steps.get-job-name.outputs.job-name }}\n  id: filter\n  run: |\n    ...\n    python3 \"${GITHUB_ACTION_PATH}/../../scripts/filter_test_configs.py\" \\\n      ...\n      --branch \"${{ github.event.workflow_run.head_branch }}\"\n```\n\nIn the event of a repository using `filter-test-configs` in a `pull_request_target`-triggered workflow, an attacker could use a malicious branch name to gain command execution in the step and potentially leak secrets.\n\n```yml\nname: Example\n\non: pull_request_target\n\njobs:\n  example:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Filter\n        uses: pytorch/pytorch/.github/actions/filter-test-configs@v2\n```\n\n#### Impact\n\nThis issue may lead to stealing workflow secrets.\n\n#### Remediation\n\n1. Use an intermediate environment variable for potentially attacker-controlled values such as `github.event.workflow_run.head_branch`:\n```yaml\n- name: Select all requested test configurations\n  shell: bash\n  env:\n    GITHUB_TOKEN: ${{ inputs.github-token }}\n    JOB_NAME: ${{ steps.get-job-name.outputs.job-name }}\n    HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}\n  id: filter\n  run: |\n    ...\n    python3 \"${GITHUB_ACTION_PATH}/../../scripts/filter_test_configs.py\" \\\n      ...\n      --branch \"$HEAD_BRANCH\"\n```\n\n#### Resources\n\n* [CodeQL for JavaScript - Expression injection in Actions](https://codeql.github.com/codeql-query-help/javascript/js-actions-command-injection/)\n* [Keeping your GitHub Actions and workflows secure Part 2: Untrusted input](https://securitylab.github.com/research/github-actions-untrusted-input/)\n* [Keeping your GitHub Actions and workflows secure Part 1: Preventing pwn requests](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/)\n",
+      "withdrawn_at": null,
+      "packages": [
+        {
+          "ecosystem": "actions",
+          "name": "https://github.com/pytorch/pytorch/.github/actions/filter-test-configs",
+          "range": "< 2.0.1",
+          "patched": ""
+        }
+      ],
+      "pocRefs": [],
+      "via": "",
+      "gave": "package range, first_patched_version, references"
+    },
+    "kev": {
+      "in_kev": null,
+      "url": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
+      "gave": "no CVE id; KEV not applicable"
+    },
+    "exploitdb": [],
+    "exploitdbError": "no CVE id; ExploitDB not queried",
+    "poc_in_github": {
+      "status": 0,
+      "top": [],
+      "gave": "no CVE id; PoC-in-GitHub not queried"
+    },
+    "h1": null,
+    "cited_as": [
+      "ghsa-hw6r-g8gj-2987"
+    ],
+    "repro": "partial",
+    "section_markdown": "> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.\n\n### Prerequisites\n- GitHub Advisory package range: actions `https://github.com/pytorch/pytorch/.github/actions/filter-test-configs` < 2.0.1. [[ghsa](https://github.com/advisories/GHSA-hw6r-g8gj-2987)]\n\n### Input / trigger\n- Affected product and an abstract condition are public (command execution). No concrete request or public PoC URL was found, so none is stated here. [[ghsa](https://github.com/advisories/GHSA-hw6r-g8gj-2987)]\n\n### Expected (patched) vs vulnerable behavior\n- Vulnerable builds match the cited range and GitHub Advisory characterizes the issue as command execution. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[ghsa](https://github.com/advisories/GHSA-hw6r-g8gj-2987)]\n\n### How to confirm\n- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[ghsa](https://github.com/advisories/GHSA-hw6r-g8gj-2987)]\n\n### Public PoC (if any)\n- None found.\n\n### What's missing\n- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).\n- No concrete request or payload in the cited advisories. None was invented.\n"
+  }
+}

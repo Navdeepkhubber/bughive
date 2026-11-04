@@ -16,6 +16,8 @@ triggers:
   - database testing
   - sqli payloads
 category: security
+kind: checklist
+repro: checklist
 ---
 
 # SQL Injection & NoSQL Injection Hunting

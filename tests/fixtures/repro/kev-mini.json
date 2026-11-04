@@ -1,0 +1,12 @@
+{
+  "catalogVersion": "test",
+  "vulnerabilities": [
+    {
+      "cveID": "CVE-2021-44228",
+      "dateAdded": "2021-12-10",
+      "dueDate": "2021-12-24",
+      "knownRansomwareCampaignUse": "Known",
+      "shortDescription": "SHOULD NOT BE A STEP"
+    }
+  ]
+}

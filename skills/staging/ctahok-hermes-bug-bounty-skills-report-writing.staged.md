@@ -16,6 +16,8 @@ triggers:
   - cvss scoring
   - write up finding
 category: security
+kind: checklist
+repro: checklist
 ---
 # Security Report Writing
 

@@ -1,0 +1,22 @@
+[
+  {
+    "ghsa_id": "GHSA-jfh8-c2jp-5v3q",
+    "cve_id": "CVE-2021-44228",
+    "html_url": "https://github.com/advisories/GHSA-jfh8-c2jp-5v3q",
+    "summary": "Remote code execution in Log4j",
+    "description": "JNDI lookup in log4j-core can execute arbitrary code.",
+    "withdrawn_at": null,
+    "source_code_location": "https://github.com/apache/logging-log4j2",
+    "references": [
+      "https://github.com/tangxiaofeng7/apache-log4j-poc",
+      "https://github.com/apache/logging-log4j2"
+    ],
+    "vulnerabilities": [
+      {
+        "package": { "ecosystem": "Maven", "name": "org.apache.logging.log4j:log4j-core" },
+        "vulnerable_version_range": ">= 2.0, < 2.15.0",
+        "first_patched_version": "2.15.0"
+      }
+    ]
+  }
+]
