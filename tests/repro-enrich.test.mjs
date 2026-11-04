@@ -4,6 +4,8 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { REPRO_STATES, assertReproState } from "../plugins/dsh-repro-steps/parse.js";
+import { enrichmentYaml } from "../scripts/enrich-repro.mjs";
 import {
   NVD_MIN_INTERVAL_MS,
   TIER_A_SKILLS,
@@ -415,6 +417,20 @@ test("applying enrichment is idempotent and checklists are reclassified without 
   assert.equal(checklist.includes("## Steps to reproduce"), false);
 });
 
+test("technique-authored is an accepted repro state", () => {
+  assert.equal(assertReproState("technique-authored"), "technique-authored");
+  assert.throws(() => assertReproState("invented"), /invalid repro state/);
+  const yaml = enrichmentYaml([{
+    id: "CVE-2024-99901",
+    repro: "technique-authored",
+    nvd: {},
+    ghsa: {},
+    kev: {},
+    exploitdb: [],
+  }], []);
+  assert.match(yaml, /^repro: technique-authored$/m);
+});
+
 test("tier, checklist, and keep lists do not overlap", () => {
   const tier = new Set(TIER_A_SKILLS);
   const checks = new Set(CHECKLIST_SKILLS);
@@ -430,9 +446,15 @@ test("tier, checklist, and keep lists do not overlap", () => {
 });
 
 test("smoke: each tier-a skill has repro and a cited Steps section; checklists are checklists; keep files are untouched", async () => {
+  const tierRepro = REPRO_STATES.filter((state) => state !== "checklist");
+  assert.ok(tierRepro.includes("technique-authored"));
+  const tierReproPattern = new RegExp(`^repro:\\s*(${tierRepro.join("|")})\\s*$`, "m");
+  assert.match("repro: technique-authored", tierReproPattern);
+  assert.equal(tierReproPattern.test("repro: checklist"), false);
+  assert.equal(tierReproPattern.test("repro: invented"), false);
   for (const rel of TIER_A_SKILLS) {
     const text = await readFile(join(ROOT, rel), "utf8");
-    assert.match(text, /^repro:\s*(verified-public|partial|unverified)\s*$/m, rel);
+    assert.match(text, tierReproPattern, rel);
     assert.match(text, /^## Steps to reproduce\b/m, rel);
     const start = text.indexOf(BODY_START);
     const end = text.indexOf("<!-- bughive-repro-end -->");

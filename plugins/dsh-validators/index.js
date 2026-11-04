@@ -301,7 +301,7 @@ export function decideRedirect(location, allowedHosts, status) {
   };
 }
 
-async function fetchSample(url, opts = {}, timeoutMs = 10000) {
+export async function fetchSample(url, opts = {}, timeoutMs = 10000) {
   const started = Date.now();
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -542,7 +542,7 @@ export function apply(ctx) {
         spec: {
           type: "string",
           description:
-            "JSON with the class-appropriate fields: {baselineUrl, probeUrl, injectedMs} timing; {baselineUrl,trueUrl,falseUrl} boolean; {url,allowedHosts} redirect; {token,interactions} oob; {url,marker,settleMs} xss.",
+            "JSON with the class-appropriate fields: {baselineUrl, probeUrl, injectedMs} timing; {baselineUrl,trueUrl,falseUrl} boolean; {url,allowedHosts} redirect; {token,interactions} oob; {url,marker,settleMs} xss. Authored repro: {steps|skillMarkdown, baseUrl, scope}.",
         },
       },
       required: ["bugClass", "spec"],
@@ -558,6 +558,29 @@ export function apply(ctx) {
         }
       }
       const c = String(args.bugClass || "").toLowerCase().replace(/[\s_]+/g, "-");
+      let reproNote = null;
+      if (spec && typeof spec === "object" && (spec.steps || spec.skillMarkdown || spec.skillBody)) {
+        const { runAuthoredSteps } = await import("../dsh-repro-steps/run.js");
+        const outcome = await runAuthoredSteps(spec.steps || spec.skillMarkdown || spec.skillBody, {
+          baseUrl: spec.baseUrl,
+          scope: spec.scope,
+        });
+        if (outcome.runnable) {
+          return JSON.stringify({
+            route: "execute_repro",
+            class: c,
+            validated: outcome.result === "confirmed",
+            result: outcome.result,
+            confidence: outcome.result === "confirmed" ? "high" : "none",
+            evidence: outcome.evidence,
+            reason: outcome.reason,
+            kept: outcome.result === "confirmed",
+            disposition: outcome.result === "confirmed" ? "confirm" : "lead",
+          });
+        }
+        reproNote = { result: outcome.result, runnable: false, reason: outcome.reason };
+      }
+      const pack = (obj) => JSON.stringify(reproNote ? { ...obj, repro: reproNote } : obj);
 
       // Classes this plugin can prove itself.
       if (/^(sqli|sql-injection|blind-sqli|time-based|cmdi|command-injection|rce)$/.test(c)) {
@@ -565,15 +588,15 @@ export function apply(ctx) {
           const res = await decideTimingCall(spec);
           const signals = [{ mode: "timing", validated: res.validated }];
           if (spec.secondSignal?.mode) signals.push({ mode: spec.secondSignal.mode, validated: spec.secondSignal.validated !== false });
-          return JSON.stringify({ route: "validate_timing", class: c, ...attachDisposition(c, res, signals) });
+          return pack({ route: "validate_timing", class: c, ...attachDisposition(c, res, signals) });
         }
         if (spec.baselineUrl && spec.trueUrl && spec.falseUrl) {
           const res = await booleanCall(spec);
           const signals = [{ mode: "boolean", validated: res.validated }];
           if (spec.secondSignal?.mode) signals.push({ mode: spec.secondSignal.mode, validated: spec.secondSignal.validated !== false });
-          return JSON.stringify({ route: "validate_boolean", class: c, ...attachDisposition(c, res, signals) });
+          return pack({ route: "validate_boolean", class: c, ...attachDisposition(c, res, signals) });
         }
-        return JSON.stringify({
+        return pack({
           validated: false,
           class: c,
           error: "need {baselineUrl,probeUrl,injectedMs} or {baselineUrl,trueUrl,falseUrl}",
@@ -581,10 +604,10 @@ export function apply(ctx) {
       }
       if (/^(open-redirect|unvalidated-redirect)$/.test(c)) {
         if (!spec.url || !spec.allowedHosts) {
-          return JSON.stringify({ validated: false, class: c, error: "need {url,allowedHosts}" });
+          return pack({ validated: false, class: c, error: "need {url,allowedHosts}" });
         }
         const res = await redirectCall(spec);
-        return JSON.stringify({
+        return pack({
           route: "validate_redirect",
           class: c,
           ...res,
@@ -595,18 +618,18 @@ export function apply(ctx) {
       }
       if (/^(ssrf|xxe|blind-xss|log4shell|jndi|blind-rce)$/.test(c)) {
         if (!spec.token || spec.interactions === undefined) {
-          return JSON.stringify({ validated: false, class: c, error: "need {token,interactions} from oob_wait/oob_poll" });
+          return pack({ validated: false, class: c, error: "need {token,interactions} from oob_wait/oob_poll" });
         }
         const proof = oobDecision(spec.token, spec.interactions);
         const kinds = proof.evidence?.kinds || [];
         const signals = kinds.map((k) => ({ mode: k === "dns" ? "dns" : "http-oob", validated: true }));
         if (spec.secondSignal?.mode) signals.push({ mode: spec.secondSignal.mode, validated: spec.secondSignal.validated !== false });
         if (!signals.length) signals.push({ mode: "oob", validated: proof.validated });
-        return JSON.stringify({ route: "validate_oob", class: c, ...attachDisposition(c, proof, signals) });
+        return pack({ route: "validate_oob", class: c, ...attachDisposition(c, proof, signals) });
       }
       if (/^(xss|reflected-xss|stored-xss|dom-xss)$/.test(c)) {
         if (!spec.url) {
-          return JSON.stringify({ validated: false, class: c, error: "need {url} containing the payload" });
+          return pack({ validated: false, class: c, error: "need {url} containing the payload" });
         }
         // Delegate to the browser plugin: only real execution proves XSS.
         try {
@@ -617,7 +640,7 @@ export function apply(ctx) {
           if (!tool) throw new Error("browser validator not registered");
           const out = JSON.parse(await tool.execute(spec));
           const marker = spec.marker ? assessMarker(spec.marker, spec.baselineBody || "", spec.probeBody || "") : null;
-          return JSON.stringify({
+          return pack({
             route: "validate_xss_browser",
             class: c,
             ...out,
@@ -626,7 +649,7 @@ export function apply(ctx) {
             marker,
           });
         } catch (e) {
-          return JSON.stringify({
+          return pack({
             validated: false,
             class: c,
             error: `browser delegation failed: ${e.message}`,
@@ -648,7 +671,7 @@ export function apply(ctx) {
           (Array.isArray(spec.signals) && spec.signals.length > 0);
         if (hasEvidence) {
           const matrix = assessClassMatrix("idor", spec);
-          return JSON.stringify({
+          return pack({
             validated: matrix.matrix_result === "confirm",
             class: c,
             route: "idor-identity",
@@ -658,7 +681,7 @@ export function apply(ctx) {
       }
       if (/^race/.test(c)) {
         const matrix = assessClassMatrix("race", spec);
-        return JSON.stringify({
+        return pack({
           validated: matrix.matrix_result === "confirm",
           class: c,
           route: "race-balance",
@@ -675,7 +698,7 @@ export function apply(ctx) {
           "subdomain-takeover": "requires actually serving content from the claimed host",
           "business-logic": "requires a state sequence, not a payload",
         }[c];
-        return JSON.stringify({
+        return pack({
           validated: false,
           class: c,
           route: "manual",
@@ -684,7 +707,7 @@ export function apply(ctx) {
         });
       }
 
-      return JSON.stringify({
+      return pack({
         validated: false,
         class: c,
         error: `no validator mapped for class "${args.bugClass}"`,
