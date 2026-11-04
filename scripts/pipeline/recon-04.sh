@@ -63,6 +63,23 @@ fi
 
 # grep -c exits 1 when the count is 0, so `|| echo` would append a second 0
 # and the numeric test would not see an empty host file.
+# Active tranche: probe only the current host. Passive discovery may have
+# listed every in-scope name; this phase must not touch the rest.
+if [ -n "${BUGHIVE_TRANCHE_HOSTS:-}" ] && [ -f "${BUGHIVE_TRANCHE_HOSTS}" ]; then
+  python3 - "$out/hosts.txt" "$BUGHIVE_TRANCHE_HOSTS" <<'PY'
+from pathlib import Path
+import sys
+hosts_path, allow_path = Path(sys.argv[1]), Path(sys.argv[2])
+allow = {h.strip().lower().rstrip(".") for h in allow_path.read_text().splitlines() if h.strip()}
+kept = []
+for line in hosts_path.read_text().splitlines():
+    host = line.strip()
+    if host.lower().rstrip(".") in allow:
+        kept.append(host)
+hosts_path.write_text("".join(f"{h}\n" for h in kept))
+PY
+fi
+
 host_count=$(grep -c . "$out/hosts.txt" 2>/dev/null || true)
 host_count=${host_count:-0}
 if [ "$host_count" -eq 0 ]; then

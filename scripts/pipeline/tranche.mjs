@@ -14,12 +14,15 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { registrableDomain } from "../../plugins/dsh-scope-intake/index.js";
+import { isLowProfile, lowProfileMap } from "./rate-profile.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DEFAULTS_PATH = join(HERE, "data", "batch-defaults.json");
 
-export const PASSIVE_STAGES = ["recon-01", "recon-02", "recon-04", "recon-09", "recon-07"];
-export const ACTIVE_STAGES = ["recon-05", "recon-03", "recon-14"];
+export const PASSIVE_STAGES = ["recon-01", "recon-02", "recon-09"];
+// HTTP probe and JS fetch run per host, with port scan before the probe
+// (recon-04 depends on recon-03) and nuclei after the probe has URLs.
+export const ACTIVE_STAGES = ["recon-03", "recon-04", "recon-05", "recon-07", "recon-14"];
 
 let cachedDefaults;
 
@@ -130,7 +133,20 @@ export function loadBatchConfig(env = process.env) {
     dnsPerQuerySeconds: intKnob(env, "BUGHIVE_DNS_PER_QUERY_SECONDS", d.BUGHIVE_DNS_PER_QUERY_SECONDS, { min: 1 }),
     trancheScanBudgetSeconds: intKnob(env, "BUGHIVE_TRANCHE_SCAN_BUDGET_SECONDS", d.BUGHIVE_TRANCHE_SCAN_BUDGET_SECONDS, { min: 1 }),
     maxSteps: intKnob(env, "BUGHIVE_BATCH_MAX_STEPS", d.BUGHIVE_BATCH_MAX_STEPS, { min: 1 }),
+    nmapTop: intKnob(env, "PORT_SCAN_TOP_PORTS", 150, { min: 1 }),
   };
+  if (isLowProfile(env)) {
+    const low = lowProfileMap(env);
+    cfg.rateProfile = "low";
+    cfg.httpx.rateLimit = low.BUGHIVE_HTTPX_RATE;
+    cfg.httpx.threads = low.BUGHIVE_HTTPX_THREADS;
+    cfg.nuclei.rateLimit = low.BUGHIVE_NUCLEI_RATE;
+    cfg.nuclei.concurrency = low.BUGHIVE_NUCLEI_CONCURRENCY;
+    cfg.nuclei.bulkSize = low.BUGHIVE_NUCLEI_BULK;
+    cfg.nmapTop = low.BUGHIVE_NMAP_TOP;
+  } else {
+    cfg.rateProfile = null;
+  }
   return cfg;
 }
 
@@ -500,7 +516,7 @@ export function initialBatchState(doneStages = []) {
 /** The next bounded unit. The tranche does not advance until findings emitted. */
 export function nextBatchUnit(state, plan) {
   const st = state || initialBatchState();
-  if (st.complete || st.phase === "done") return { kind: "done" };
+  if (st.complete || st.phase === "done" || st.phase === "stopped") return { kind: "done" };
   if (!st.phase || st.phase === "passive") {
     const index = st.passive_index || 0;
     if (index < PASSIVE_STAGES.length) {
@@ -522,6 +538,9 @@ export function nextBatchUnit(state, plan) {
   }
   if (!st.scanned) return { kind: "scan", tranche: tranche.index };
   if (!st.findings_emitted) return { kind: "emit", tranche: tranche.index };
+  // Pause after this host's findings. The next host stays untouched until
+  // `run.sh batch continue` sets confirmed.
+  if (!st.confirmed) return { kind: "await_confirm", tranche: tranche.index };
   return { kind: "advance", tranche: tranche.index };
 }
 
@@ -545,11 +564,17 @@ export function advanceBatchState(state, unit, { trancheCount = 0 } = {}) {
     st.scanned = true;
   } else if (unit.kind === "emit") {
     st.findings_emitted = true;
+    st.confirmed = false;
+    st.phase = "await_confirm";
+  } else if (unit.kind === "await_confirm") {
+    st.phase = "await_confirm";
+    st.confirmed = false;
   } else if (unit.kind === "advance") {
     st.tranche_index = (st.tranche_index || 0) + 1;
     st.active_index = 0;
     st.scanned = false;
     st.findings_emitted = false;
+    st.confirmed = false;
     st.phase = st.tranche_index >= trancheCount ? "done" : "tranche";
   } else if (unit.kind === "done") {
     st.phase = "done";

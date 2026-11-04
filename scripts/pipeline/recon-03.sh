@@ -27,7 +27,18 @@ def clamp_int(raw, default, lo, hi):
     return max(lo, min(hi, value))
 
 max_ips = clamp_int(os.environ.get("PORT_SCAN_MAX_IPS"), 16, 1, 20)
-top_ports = clamp_int(os.environ.get("PORT_SCAN_TOP_PORTS"), 150, 100, 200)
+# Low profile: BUGHIVE_LOW_NMAP_TOP wins (default 100). The 100–200 clamp is
+# the throughput default and must not raise a tighter low-profile cap.
+if str(os.environ.get("BUGHIVE_RATE_PROFILE") or "").strip().lower() == "low":
+    raw_top = (
+        os.environ.get("BUGHIVE_LOW_NMAP_TOP")
+        or os.environ.get("BUGHIVE_NMAP_TOP")
+        or os.environ.get("PORT_SCAN_TOP_PORTS")
+        or "100"
+    )
+    top_ports = clamp_int(raw_top, 100, 1, 65535)
+else:
+    top_ports = clamp_int(os.environ.get("PORT_SCAN_TOP_PORTS"), 150, 100, 200)
 per_ip = clamp_int(os.environ.get("PORT_SCAN_IP_TIMEOUT"), 60, 15, 90)
 budget = clamp_int(os.environ.get("PORT_SCAN_BUDGET"), 150, 30, 240)
 

@@ -49,7 +49,8 @@ for f in "$hd/recon/all_endpoints" \
   [ -f "$f" ] || continue
   grep -oiE 'https?://[^"'"'"' <>]+\.(js|mjs|html?)(\?[^"'"'"' <>]*)?' "$f" >> "$raw_urls" 2>/dev/null || true
 done
-python3 - "$raw_urls" "$urls" "$fetch" "$hd/scope.txt" "$out/asset_filter.json" "$script_dir" <<'PY'
+tranche_file="${BUGHIVE_TRANCHE_HOSTS:-}"
+python3 - "$raw_urls" "$urls" "$fetch" "$hd/scope.txt" "$out/asset_filter.json" "$script_dir" "$tranche_file" <<'PY'
 import json, sys
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -59,6 +60,10 @@ from _recon_safety import asset_filename, normalize_asset_url
 from _scope import scope_allows
 
 raw_path, urls_path, fetch_path, scope_path, meta_path = map(Path, sys.argv[1:6])
+tranche_path = Path(sys.argv[7]) if len(sys.argv) > 7 and sys.argv[7] else None
+allow = None
+if tranche_path is not None and tranche_path.is_file():
+    allow = {h.strip().lower().rstrip(".") for h in tranche_path.read_text().splitlines() if h.strip()}
 scope_text = scope_path.read_text() if scope_path.is_file() else ""
 seen = []
 dropped = 0
@@ -71,7 +76,7 @@ for line in raw_path.read_text(errors="ignore").splitlines():
         continue
     host = urlsplit(norm).hostname or ""
     ok, _reason = scope_allows(scope_text, host)
-    if not ok:
+    if not ok or (allow is not None and host.lower().rstrip(".") not in allow):
         dropped += 1
         continue
     seen.append(norm)

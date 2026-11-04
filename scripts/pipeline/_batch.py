@@ -123,11 +123,61 @@ def _shell_quote(value) -> str:
     return shlex.quote(str(value))
 
 
+def _low_profile() -> dict:
+    path = Path(__file__).with_name("data") / "rate-profiles.json"
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        raw = {}
+    low = raw.get("low") if isinstance(raw, dict) else {}
+    return low if isinstance(low, dict) else {}
+
+
+def _low_int(env_name: str, fallback: int) -> int:
+    raw = os.environ.get(env_name)
+    if raw not in (None, ""):
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            return int(fallback)
+    return int(fallback)
+
+
+def low_profile_active() -> bool:
+    return str(os.environ.get("BUGHIVE_RATE_PROFILE") or "").strip().lower() == "low"
+
+
+def low_overrides() -> dict:
+    """Effective low-profile knobs. A set BUGHIVE_LOW_* value wins."""
+    spec = _low_profile()
+    overrides = spec.get("overrides") if isinstance(spec.get("overrides"), dict) else {}
+    out = {}
+    for dest, env_name in overrides.items():
+        fallback = spec.get(dest, 0)
+        try:
+            fallback = int(fallback)
+        except (TypeError, ValueError):
+            fallback = 0
+        out[str(dest)] = _low_int(str(env_name), fallback)
+    return out
+
+
 def main(argv: list[str]) -> int:
     if len(argv) > 1 and argv[1] == "exports":
+        chosen_map = {}
         for key, value in defaults().items():
             current = os.environ.get(key)
-            chosen = current if current not in (None, "") else value
+            chosen_map[key] = current if current not in (None, "") else value
+        if low_profile_active():
+            low = low_overrides()
+            chosen_map.update({key: str(value) for key, value in low.items()})
+            chosen_map["BUGHIVE_RATE_PROFILE"] = "low"
+            if "BUGHIVE_NMAP_TOP" in low:
+                chosen_map["PORT_SCAN_TOP_PORTS"] = str(low["BUGHIVE_NMAP_TOP"])
+                chosen_map["BUGHIVE_NMAP_TOP"] = str(low["BUGHIVE_NMAP_TOP"])
+            if "BUGHIVE_NUCLEI_RATE" in low:
+                chosen_map["NUCLEI_RATE_LIMIT"] = str(low["BUGHIVE_NUCLEI_RATE"])
+        for key, chosen in chosen_map.items():
             print(f"{key}={_shell_quote(chosen)}")
         return 0
     if len(argv) > 1 and argv[1] == "apply-bounds":

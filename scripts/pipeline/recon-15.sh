@@ -35,9 +35,20 @@ fi
 
 if [ "$have_qsreplace" -eq 1 ] && [ "$have_httpx" -eq 1 ]; then
   tools_run+=("qsreplace" "httpx")
+  script_dir="$(cd "$(dirname "$0")" && pwd)"
+  eval "$(python3 "$script_dir/_batch.py" exports)"
+  # Low profile: BUGHIVE_LOW_HTTPX_* wins. Otherwise the BUGHIVE_HTTPX_* knobs,
+  # which this phase used to ignore.
+  if [ "${BUGHIVE_RATE_PROFILE:-}" = "low" ]; then
+    httpx_rate="${BUGHIVE_LOW_HTTPX_RATE:-5}"
+    httpx_threads="${BUGHIVE_LOW_HTTPX_THREADS:-2}"
+  else
+    httpx_rate="${BUGHIVE_HTTPX_RATE:-150}"
+    httpx_threads="${BUGHIVE_HTTPX_THREADS:-50}"
+  fi
 
   # XSS
-  timeout 300 bash -c "cat '$param_urls' | qsreplace '\"><bughive-xss-marker>' | httpx -ms '<bughive-xss-marker>' -silent -o '$out/vuln-xss'" 2>/dev/null || true
+  timeout 300 bash -c "cat '$param_urls' | qsreplace '\"><bughive-xss-marker>' | httpx -t '$httpx_threads' -rl '$httpx_rate' -ms '<bughive-xss-marker>' -silent -o '$out/vuln-xss'" 2>/dev/null || true
 
   # SSRF / blind classes need an out-of-band collaborator. Previously this phase simply
   # skipped them when BUGHIVE_COLLABORATOR_URL was unset, so blind SSRF/XXE/JNDI were
@@ -73,7 +84,7 @@ if [ "$have_qsreplace" -eq 1 ] && [ "$have_httpx" -eq 1 ]; then
   rm -f "$out/vuln-ssrf"
   if [ -n "$collab" ]; then
     mkdir -p "$out/provenance"
-    timeout 300 bash -c "cat '$param_urls' | qsreplace '$collab' | httpx -fr -silent -o '$out/provenance/ssrf-sent.txt'" 2>/dev/null || true
+    timeout 300 bash -c "cat '$param_urls' | qsreplace '$collab' | httpx -t '$httpx_threads' -rl '$httpx_rate' -fr -silent -o '$out/provenance/ssrf-sent.txt'" 2>/dev/null || true
     : > "$out/oob-hits"
     if [ -f "$oob_log" ]; then
       node "$oob_cli" poll --log "$oob_log" --format urls > "$out/oob-hits" 2>/dev/null || true
@@ -101,7 +112,7 @@ if [ "$have_qsreplace" -eq 1 ] && [ "$have_httpx" -eq 1 ]; then
   fi
 
   # SSTI
-  timeout 300 bash -c "cat '$param_urls' | qsreplace '{{4327*8191}}' | httpx -ms '35442497' -silent -o '$out/vuln-ssti'" 2>/dev/null || true
+  timeout 300 bash -c "cat '$param_urls' | qsreplace '{{4327*8191}}' | httpx -t '$httpx_threads' -rl '$httpx_rate' -ms '35442497' -silent -o '$out/vuln-ssti'" 2>/dev/null || true
 else
   [ "$have_qsreplace" -eq 1 ] || tools_skipped+=('{"tool":"qsreplace","reason":"not installed; python GET fallback used"}')
   [ "$have_httpx" -eq 1 ] || tools_skipped+=('{"tool":"httpx","reason":"not installed; python GET fallback used"}')

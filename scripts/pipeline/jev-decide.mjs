@@ -34,6 +34,11 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { CRITICAL_CLASSES } from "../../plugins/dsh-coverage/index.js";
 import { chainHypothesesFor } from "../../plugins/dsh-triage-gate/index.js";
 import { batchRequiredFromScope, loadBatchConfig } from "./tranche.mjs";
+import {
+  SKIP_SCAN_PHASES,
+  classifyPolicy,
+  lowProfilePrefix,
+} from "./rate-profile.mjs";
 import { refreshFrontier } from "./evidence-frontier.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -409,7 +414,17 @@ export async function huntSnapshot(domain) {
   }
   const reconMax = Number(process.env.BUGHIVE_RECON_MAX_SECONDS) || RECON_MAX_SECONDS;
 
-  let batch = { required: false, complete: false, phase: null, tranche: 0, findings_emitted: false };
+  let policyFlags = [];
+  try {
+    if (existsSync(join(hd, "program-scope.json"))) {
+      const program = JSON.parse(readFileSync(join(hd, "program-scope.json"), "utf8"));
+      policyFlags = classifyPolicy(program?.policy_flags).ids;
+    }
+  } catch {
+    policyFlags = [];
+  }
+
+  let batch = { required: false, complete: false, phase: null, tranche: 0, findings_emitted: false, await_confirm: false };
   try {
     const scopeText = existsSync(join(hd, "scope.txt")) ? readFileSync(join(hd, "scope.txt"), "utf8") : "";
     let discovered = 0;
@@ -421,10 +436,11 @@ export async function huntSnapshot(domain) {
     const required = batchRequiredFromScope(scopeText, discovered, loadBatchConfig(process.env), process.env);
     batch = {
       required,
-      complete: batchState?.complete === true || batchState?.phase === "done",
+      complete: batchState?.complete === true || batchState?.phase === "done" || batchState?.phase === "stopped",
       phase: batchState?.phase || null,
       tranche: batchState?.tranche_index || 0,
       findings_emitted: batchState?.findings_emitted === true,
+      await_confirm: batchState?.phase === "await_confirm",
     };
   } catch {
     /* scope or batch state unreadable: leave batching off */
@@ -481,6 +497,7 @@ export async function huntSnapshot(domain) {
     recon_elapsed_seconds: reconElapsed,
     recon_max_seconds: reconMax,
     batch,
+    policy_flags: policyFlags,
   };
 }
 
@@ -802,6 +819,15 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
     gatedBy = gatedBy || "human_review";
   }
 
+  // Per-domain safety clamp. It does not remove the confidence or human-review
+  // gates above. A no-disruption / critical-infrastructure / dos flag keeps the
+  // action that those gates left in place and selects the low rate profile.
+  // A ban on automated scanning does not stop the hunt: the volume phases are
+  // skipped for this domain only (see skip_recon_phase). A skipped recon-03 is
+  // still marked done, because recon-04 depends on it.
+  const policy = classifyPolicy(snap.policy_flags);
+  const rateProfile = policy.low ? "low" : null;
+
   // Recon exhaustion (the mirror image of the cold-start case above). Once every legal
   // phase is done, JEV's standing "deepen_recon" has nothing left to run -- it cannot
   // name a phase because there is none. That request then collides with the
@@ -879,7 +905,10 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   // A batch has its own passive/active/tranche cursor. Global phase markers can
   // say recon is complete while seven tranches remain. Advance that cursor before
   // generating more hypotheses, provided its recon budget has not expired.
-  if (snap.batch?.required && !snap.batch?.complete && !reconOverBudget &&
+  const awaitingConfirm = snap.batch?.await_confirm === true || snap.batch?.phase === "await_confirm";
+  // Do not auto-advance a batch that is paused between hosts. `batch continue`
+  // is the only way past await_confirm.
+  if (snap.batch?.required && !snap.batch?.complete && !awaitingConfirm && !reconOverBudget &&
       ["score_skills", "select_and_test", "deliver", "stop"].includes(action) &&
       next.confidence >= CONFIDENCE_FLOOR) {
     clamp("deepen_recon");
@@ -985,6 +1014,12 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
     action === "select_and_test" ? `Test method: ${testMethod}. ${TEST_METHODS[testMethod]}` : "",
     action === "select_and_test" && focusUrl !== "none" ? `Focus: ${focusUrl}.` : "",
     action === "deepen_recon" && reconPhase ? `Phase: ${reconPhase}.` : "",
+    rateProfile === "low"
+      ? `Rate profile: low. Caps: ${lowProfilePrefix(process.env)}. Do not raise them.`
+      : "",
+    policy.forbidScans
+      ? "Automated scanning is forbidden. Skip recon-03, recon-05, recon-14, and recon-15 for this domain only."
+      : "",
     reconOverBudget && clampedFrom === "deepen_recon"
       ? "Recon runtime budget is exhausted; do not start another recon phase."
       : "",
@@ -1022,6 +1057,12 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
     test_method_confidence: testConfidence,
     focus_url: focusUrl,
     focus_choice: focusLabel,
+    rate_profile: rateProfile,
+    policy_flags: policy.ids,
+    skip_recon_phase: Boolean(
+      policy.forbidScans && action === "deepen_recon" && reconPhase && SKIP_SCAN_PHASES.has(reconPhase),
+    ),
+    await_confirm: awaitingConfirm,
     instruction,
     usage: {
       routing: routing.usage,
@@ -1030,11 +1071,33 @@ export function applyPolicy({ snap, skills, routing, confirm }, { routingOnly = 
   };
 }
 
+function rateCommand(decision, command) {
+  if (decision.rate_profile !== "low") return command;
+  return `${lowProfilePrefix(process.env)} ${command}`;
+}
+
 export function buildExecutor(decision, domain) {
   const d = sanitizeDomain(domain);
   const after = `bash scripts/pipeline/run.sh decide ${d}`;
   const llm = `You are the executor. JEV already decided. Do not pick a different stage, skill, or test method. Run this executor, then ${after}.`;
   const action = decision.next_action;
+  // A host checkpoint is not a human_gate and not something --approve-gates may skip.
+  if (decision.await_confirm) {
+    return {
+      kind: "halt",
+      needs_llm: true,
+      stage: "await_confirm",
+      await_confirm: true,
+      file: `hunts/${d}/batch/state.json`,
+      resume_command: null,
+      after: "stop",
+      llm:
+        `Stop. The batch is paused after one host. ` +
+        `Run \`bash scripts/pipeline/run.sh batch continue ${d}\` to touch the next host, ` +
+        `or \`bash scripts/pipeline/run.sh batch stop ${d}\` to leave it untouched. ` +
+        `Do not start the next host yourself.`,
+    };
+  }
   // A wide VDP runs one bounded tranche unit instead of an unbounded recon phase.
   // Proof and coverage gates are unchanged; this only picks which command runs.
   if (action === "deepen_recon" && decision.batch_active) {
@@ -1042,14 +1105,31 @@ export function buildExecutor(decision, domain) {
       kind: "bash",
       needs_llm: false,
       stage: "batch-step",
-      command: `bash scripts/pipeline/run.sh batch step ${d}`,
+      command: rateCommand(decision, `bash scripts/pipeline/run.sh batch step ${d}`),
       after,
-      llm: `${llm} This step is one passive stage, the host ranking, one active stage, the proof-gated scan, or the findings emit. Do not start the next tranche until findings for the current tranche have been emitted.`,
+      llm: `${llm} This step is one passive stage, the host ranking, one active stage, the proof-gated scan, or the findings emit. Do not start the next host until findings for the current host have been emitted and the operator continues.`,
     };
   }
   if (action === "deepen_recon" && decision.recon_phase) {
     const stage = phaseRunId(decision.recon_phase);
-    return { kind: "bash", needs_llm: false, stage, command: `bash scripts/pipeline/run.sh ${stage} ${d}`, after, llm };
+    if (decision.skip_recon_phase) {
+      return {
+        kind: "bash",
+        needs_llm: false,
+        stage,
+        command: rateCommand(decision, `bash scripts/pipeline/run.sh mark-skipped ${d} ${stage}`),
+        after,
+        llm: `${llm} This phase is skipped because the program forbids automated scanning. Mark it done so a later phase that depends on it (recon-04 depends on recon-03) can run. Do not run the scanner.`,
+      };
+    }
+    return {
+      kind: "bash",
+      needs_llm: false,
+      stage,
+      command: rateCommand(decision, `bash scripts/pipeline/run.sh ${stage} ${d}`),
+      after,
+      llm,
+    };
   }
   if (action === "score_skills") {
     return { kind: "bash", needs_llm: false, stage: "skills", command: `bash scripts/pipeline/run.sh skills ${d}`, after, llm };
@@ -1350,7 +1430,7 @@ export async function decide(domain, { fetchImpl, planner } = {}) {
   const decision = applyPolicy({ snap, skills, routing, confirm });
   decision.planner = mode;
   decision.chain_hypotheses = chain_hypotheses;
-  if (snap.batch?.required && !snap.batch?.complete && decision.next_action === "deepen_recon") {
+  if (!decision.await_confirm && snap.batch?.required && !snap.batch?.complete && decision.next_action === "deepen_recon") {
     decision.batch_active = true;
   }
   return writeDecision(snap, decision, domain);

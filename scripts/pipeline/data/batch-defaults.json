@@ -1,7 +1,7 @@
 {
-  "note": "Defaults for the multi-domain tranche runner. Every key is an env var. An exported value replaces the default. Numbers are starting points from the 2026-10-24 batching brief, not hardware benchmarks.",
-  "BUGHIVE_BATCH_DOMAINS": 5,
-  "BUGHIVE_TRANCHE_HOST_CAP": 40,
+  "note": "Defaults for the multi-domain tranche runner. Every key is an env var. An exported value replaces the default. One host per tranche so a run pauses between hosts. Throughput tool rates live here; the low/no-disruption profile is data/rate-profiles.json.",
+  "BUGHIVE_BATCH_DOMAINS": 1,
+  "BUGHIVE_TRANCHE_HOST_CAP": 1,
   "BUGHIVE_PASSIVE_URL_CAP": 1500,
   "BUGHIVE_JS_FETCH_CAP": 50,
   "BUGHIVE_JS_FETCH_TOTAL": 0,
