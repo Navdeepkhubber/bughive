@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: cors
 ## Trigger Conditions
 API responses readable from a browser, especially with cookies or Authorization.
@@ -15,3 +22,12 @@ The server copies the request Origin into Access-Control-Allow-Origin and also s
 Reflected origin plus credentials is medium/high. `*` without credentials is not a finding.
 ## Example
 `ACAO: https://example.invalid` and `ACAC: true` on a credentialed API.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

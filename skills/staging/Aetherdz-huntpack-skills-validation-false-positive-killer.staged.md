@@ -4,6 +4,10 @@
 ---
 name: false-positive-killer
 description: "Proof-based finding validation. Re-tests from clean state, compares responses, eliminates theoretical bugs, assigns confidence scores. Use BEFORE triage-validation to protect N/A ratio. NOT for report writing (use report-writing after this gate passes)."
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # FALSE POSITIVE KILLER — Proof-Based Methodology
@@ -113,3 +117,12 @@ Load at START of any session. After confirmation, pass findings to `triage-valid
 ## FINAL GATE
 
 Before any report: 1) Do I have at least two independent signals? 2) Have I ruled out alternative explanations (WAF, CDN, SPA, caching)? 3) Can I reproduce from zero state? If no to any → kill.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

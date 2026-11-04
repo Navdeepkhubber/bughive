@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: ssti
 ## Trigger Conditions
 User text rendered into a server template (name, greeting, error, email body).
@@ -15,3 +22,12 @@ The template engine evaluates input instead of treating it as data.
 Confirmed evaluation is high. A reflected expression with no evaluation is not SSTI.
 ## Example
 `/render?name={{7*7}}` returns 49 and does not return the braces.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

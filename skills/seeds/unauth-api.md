@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: unauth-api
 ## Trigger Conditions
 APIs reachable without Authorization header / session cookie.
@@ -19,3 +26,12 @@ Case/encoding/path normalization · method override headers
 PII/financial Critical · Config leak High · Public data Low
 ## Example
 `GET /api/v1/users` no auth → 40K PII leak.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

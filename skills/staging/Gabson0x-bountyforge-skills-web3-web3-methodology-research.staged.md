@@ -4,6 +4,10 @@
 ---
 name: web3-methodology-research
 description: External research synthesis from Trail of Bits, SlowMist, ConsenSys, Immunefi, and Cyfrin. Use this for advanced audit methodology, Echidna/Medusa fuzzing setup, Slither custom detector writing, attack pattern deep dives, or the 4-phase learning roadmap.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # METHODOLOGY & RESEARCH SYNTHESIS
@@ -1216,3 +1220,12 @@ grep -rn "function update.*Id\|function modify.*Id" src/ --include="*.sol"
 ---
 
 → NEXT: [07-live-hunt-ern.md](07-live-hunt-ern.md)
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

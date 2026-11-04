@@ -4,6 +4,10 @@
 ---
 name: hackenproof-triage-marketplace
 description: HackenProof bug bounty triage workflow for Claude Code plugin marketplace operations. Use when analyzing security reports, validating scope and exploitability, assigning severity, detecting duplicates, setting report state, adding labels/comments, and preparing consistent triage decisions for HackenProof programs.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # HackenProof Triage Marketplace
@@ -83,3 +87,12 @@ Use `references/triage-comment-templates.md` for consistent responder tone and s
 - Keep comments short, specific, and actionable; state exactly what is missing when requesting more info.
 - Never guess exploitability when evidence is weak; request clarification instead.
 - Prefer reversible actions (`Need more info`) over premature invalidation when uncertainty is material.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

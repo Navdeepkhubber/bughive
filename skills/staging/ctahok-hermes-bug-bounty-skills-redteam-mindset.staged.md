@@ -16,6 +16,10 @@ triggers:
   - bug bounty vs red team
   - penetration testing mindset
 category: security
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 # Red Team Mindset
 
@@ -138,3 +142,12 @@ For every endpoint, ask:
 | Chained vs individual findings | Report the chain | Report the chain (pays more) |
 | Stop at PoC | Stop escalating, keep testing other classes | Stop escalating, move to validate |
 | Engagement length | Extended (days/weeks) | Per-target (hours) |
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

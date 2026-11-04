@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: jwt
 ## Vectors
 1. Sig not checked → modify payload
@@ -15,3 +22,12 @@
 python3 jwt_tool.py -M at -t "https://api.x/user/1" -rh "Authorization: Bearer <JWT>"
 ## Triage
 Sig bypass → Critical. alg confusion → Critical. kid injection → High/Critical.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

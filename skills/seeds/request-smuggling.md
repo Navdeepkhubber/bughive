@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: request-smuggling
 ## Trigger
 Any target behind a reverse proxy/load balancer/CDN (almost all of them).
@@ -23,3 +30,12 @@ Transfer-Encoding: chunked
 SMUGGLED
 ## Triage
 Confirmed, affects other users -> Critical. Timing-only detection -> High, needs manual confirm.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

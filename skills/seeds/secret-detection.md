@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: secret-detection
 ## Trigger Conditions
 Source, responses, or repos that may contain access keys.
@@ -15,3 +22,12 @@ AWS access key id shape `AKIA` plus 16 uppercase alphanumerics. Never treat `EXA
 Verified key is high. Unverified is a lead, not a confirmed finding. Allowlisted examples are noise.
 ## Example
 `AKIAIOSFODNN7EXAMPLE` is the AWS documentation key and is not reported.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

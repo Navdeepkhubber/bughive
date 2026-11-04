@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: google-dorks
 - [ ] site:target.com intitle:index.of
 - [ ] site:target.com ext:xml | ext:conf | ext:cnf | ext:ini | ext:cfg | ext:txt | ext:log | ext:sql | ext:bak | ext:old
@@ -10,3 +17,12 @@
 - [ ] inurl:app/kibana
 ## Triage
 Config/db/backup → High/Critical. Directory listing → Low.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

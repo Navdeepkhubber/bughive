@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: wordpress
 ## Recon
 wpscan --url https://target.com/
@@ -11,3 +18,12 @@ DoS: /wp-cron.php flood, /wp-admin/load-scripts.php?load=... (5MB/req)
 Files: /wp-config.php.bak/.old/.swp/.txt/~, /wp-content/debug.log, /wp-content/uploads/dump.sql, /wp-content/backups/
 ## Triage
 Plugin RCE → Critical. Auth bypass → High. Info leak → Low/Med.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

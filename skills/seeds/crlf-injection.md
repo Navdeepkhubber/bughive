@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: crlf-injection
 ## Trigger Params
 Anything user-controlled that gets written into an outbound header/request/
@@ -35,3 +42,12 @@ is parsed/executed unsafely downstream.
 ## Example
 curl --request-target $'/x HTTP/1.1\r\nHost: evil\r\n\r\nGET /y HTTP/1.1' \
   http://target/   (class: CURLOPT_REQUEST_TARGET CRLF, disclosed H1 #4121689)
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

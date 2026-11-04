@@ -4,6 +4,10 @@
 ---
 name: report-writing
 description: Writing structured bug bounty reports in Arabic and English. Use for drafting professional vulnerability reports with proof of concept, impact, and remediation. NOT for vulnerability discovery or testing.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # REPORT WRITING
@@ -33,3 +37,12 @@ Structured vulnerability report writing in Arabic and English. Professional temp
 | Platform-Specific Submission Formats | `reference/platform-submission-formats.md` |
 | CVSS 4.0 | `reference/cvss-4-0.md` |
 | Post-Submission Triager Playbook | `reference/post-submission-playbook.md` |
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

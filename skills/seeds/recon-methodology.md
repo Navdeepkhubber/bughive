@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: recon-methodology
 ## Triggers
 Every hunt, before any vuln class.
@@ -17,3 +24,12 @@ Every hunt, before any vuln class.
 2. Rank targets by: dynamic + authenticated + parameterized + recently changed.
 ## Triage
 Static content -> skip. Dynamic + params -> prime target.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

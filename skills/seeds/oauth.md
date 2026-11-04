@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: oauth
 ## Vectors
 1. redirect_uri → attacker.com
@@ -16,3 +23,12 @@ redirect_uri=https://target.com@attacker.com/cb
 redirect_uri=https://target.com/cb?next=https://attacker.com
 ## Triage
 redirect_uri → ATO → Critical. Missing state → High.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

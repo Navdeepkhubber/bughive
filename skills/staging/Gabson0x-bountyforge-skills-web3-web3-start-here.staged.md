@@ -4,6 +4,10 @@
 ---
 name: web3-start-here
 description: Master index for the web3 smart contract security knowledge base. Use this to navigate the skill chain. Read files in order — each ends with NEXT.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # WEB3 SKILLS — MASTER INDEX
@@ -66,3 +70,12 @@ This single rule explains 19% of all Critical findings.
 ---
 
 → NEXT: [01-foundation.md](01-foundation.md)
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

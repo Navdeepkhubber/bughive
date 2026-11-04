@@ -1,6 +1,10 @@
 ---
 name: tls-session-resumption-client-cert-bypass
 description: Hunt mTLS authentication bypass where TLS session resumption (session ID/ticket cache) is not bound to the client certificate used, so a resumed session inherits the identity established under a different or absent certificate — including certs installed dynamically via SSL_CTX callbacks. Use for libcurl client, mTLS service, or TLS session-cache audits.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # TLS Session Resumption Client Cert Bypass
@@ -55,3 +59,12 @@ WAFs see valid TLS and a valid or absent client cert — nothing to block. Bypas
 
 ## 8 Example
 An app loads a unique client cert per tenant inside `CURLOPT_SSL_CTX_FUNCTION`. The resumption guard reads only the primary cert field, which is empty, so session caching stays on. Tenant B's request reuses tenant A's cached TLS session; the server resumes it and skips the client-cert check, serving A's data to B. Fix: disable resumption whenever any client cert/key is in play and include cert/key identity in session and connection match keys. Mitigation: `CURLOPT_SSL_SESSIONID_CACHE=0L`.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

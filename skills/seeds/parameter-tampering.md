@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: parameter-tampering
 ## Payloads
 price=1&currency=INR&quantity=1
@@ -12,3 +19,12 @@ price=2000&quantity=0.001
 6. Free premium via account delete + reuse code
 ## Triage
 Financial loss → Critical. Free premium → High.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

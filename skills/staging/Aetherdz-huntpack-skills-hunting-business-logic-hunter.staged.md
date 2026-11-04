@@ -4,6 +4,10 @@
 ---
 name: business-logic-hunter
 description: "EXECUTION MATRIX for business logic bugs — highest bounty category. Each pattern has SIGNAL → TEST → CONFIRM → KILL + response-driven next actions + sibling analysis. No theory, just commands. Load after app-model built. NOT for OWASP vulns (use web2-vuln-classes)."
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # BUSINESS LOGIC HUNTER — EXECUTION MATRIX + RESPONSE-DRIVEN
@@ -100,3 +104,12 @@ Fuzz IDs: for i in {1..N}; do curl /api/resource/$i; done
 | Verification | `reference/verification.md` |
 | Wallet Manipulation | `reference/wallet-balance-manipulation.md` |
 | Workflow Bypass | `reference/workflow-bypass.md` |
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

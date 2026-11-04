@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: ratelimit
 ## Header bypass
 X-Originating-IP: 127.0.0.1
@@ -17,3 +24,12 @@ X-Forwared-Host: 127.0.0.1
 - Content-Type swap: multipart ↔ JSON ↔ x-www-form-urlencoded
 ## Triage
 2FA brute → High/Critical. Forgot-password spam → Med. DoS → Med/High.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->
