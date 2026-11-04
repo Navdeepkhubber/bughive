@@ -380,7 +380,7 @@ approved reports. Report the summary to the user.
 
 ## Weekly sync
 
-One workflow, `.github/workflows/sync-reports-and-skills.yml`. It runs on
+`.github/workflows/sync-reports-and-skills.yml` runs on
 Sunday 06:00 UTC (11:30 Asia/Calcutta) and on `workflow_dispatch`. The manual
 input `task` is `all`, `fetch`, `harvest`, or `ingest-skills`. `dry_run`
 prints the plan and does not commit. Jobs are sequential: fetch disclosed
@@ -400,6 +400,13 @@ seed is left alone. Files with no single class stay in staging and are
 listed in `skills/ingest-report.json`. A second run with the same inputs
 rewrites nothing. A scan attaches `coveredBy` from that report. It does not
 treat the skill text as proof.
+
+`.github/workflows/harvest-zero-wire.yml` is a separate schedule (every 6 hours
+and `workflow_dispatch`). `scripts/harvest-zero-wire.py` fetches the public
+Cloudflare Radar Zero Wire RSS feed, keeps an ETag in
+`skills/cloudflare-zero-wire/index.json`, and writes one unverified skill per
+item. A 304 does not change files. The workflow opens a pull request only when
+that directory changes. It does not push to the default branch.
 
 ## Model
 

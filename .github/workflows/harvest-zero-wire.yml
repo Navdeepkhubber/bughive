@@ -1,0 +1,43 @@
+name: Harvest Cloudflare Zero Wire
+
+on:
+  schedule:
+    # Every 6 hours.
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: harvest-cloudflare-zero-wire
+  cancel-in-progress: false
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Harvest Zero Wire feed
+        run: python3 scripts/harvest-zero-wire.py
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: zero-wire-harvest
+          delete-branch: true
+          add-paths: skills/cloudflare-zero-wire
+          commit-message: "Harvest Cloudflare Zero Wire briefings"
+          title: "Harvest Cloudflare Zero Wire briefings"
+          body: |
+            Updates skills harvested from the public Cloudflare Radar Zero Wire RSS feed.
+
+            Each skill stores the item title, link, CVE ids, tags, pubDate, a short derived summary, `repro: unverified`, and the CC BY-NC 4.0 attribution. Description and `content:encoded` bodies are not stored. Reproduction steps are not invented. A 304 leaves the tree unchanged.
+
+            This workflow opens a pull request only when files change. It does not push to the default branch.
+          author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+          committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>

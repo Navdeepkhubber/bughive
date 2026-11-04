@@ -1,0 +1,209 @@
+{
+  "feed": "https://radar.cloudflare.com/security/zero-wire/rss",
+  "etag": null,
+  "items": [
+    {
+      "slug": "linux-ipv4-tcp-use-after-free",
+      "name": "zero-wire-linux-ipv4-tcp-use-after-free",
+      "title": "Linux IPv4 TCP use-after-free",
+      "link": "https://radar.cloudflare.com/security/zero-wire/linux-ipv4-tcp-use-after-free",
+      "pubDate": "Sun, 01 Nov 2026 00:00:00 GMT",
+      "cves": [
+        "CVE-2026-98432"
+      ],
+      "tags": [
+        {
+          "term": "Needs attention"
+        },
+        {
+          "term": "Kernel",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/kernel"
+        },
+        {
+          "term": "MPTCP",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/mptcp"
+        },
+        {
+          "term": "Race condition",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/race-condition"
+        },
+        {
+          "term": "Memory corruption",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/memory-corruption"
+        },
+        {
+          "term": "RCE",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/rce"
+        }
+      ]
+    },
+    {
+      "slug": "php2shell",
+      "name": "zero-wire-php2shell",
+      "title": "php2shell",
+      "link": "https://radar.cloudflare.com/security/zero-wire/php2shell",
+      "pubDate": "Fri, 30 Oct 2026 00:00:00 GMT",
+      "cves": [
+        "CVE-2026-109618",
+        "CVE-2026-109619",
+        "CVE-2026-115560"
+      ],
+      "tags": [
+        {
+          "term": "Needs attention"
+        },
+        {
+          "term": "PHP",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/php"
+        },
+        {
+          "term": "Runtime",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/runtime"
+        },
+        {
+          "term": "Memory corruption",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/memory-corruption"
+        },
+        {
+          "term": "RCE",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/rce"
+        },
+        {
+          "term": "Session",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/session"
+        }
+      ]
+    },
+    {
+      "slug": "emudhra-certificate-compromise",
+      "name": "zero-wire-emudhra-certificate-compromise",
+      "title": "eMudhra certificate compromise",
+      "link": "https://radar.cloudflare.com/security/zero-wire/emudhra-certificate-compromise",
+      "pubDate": "Fri, 30 Oct 2026 00:00:00 GMT",
+      "cves": [],
+      "tags": [
+        {
+          "term": "Needs attention"
+        },
+        {
+          "term": "PKI",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/pki"
+        },
+        {
+          "term": "TLS",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/tls"
+        },
+        {
+          "term": "Certificates",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/certificates"
+        },
+        {
+          "term": "mTLS",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/mtls"
+        }
+      ]
+    },
+    {
+      "slug": "node2shell",
+      "name": "zero-wire-node2shell",
+      "title": "node2shell",
+      "link": "https://radar.cloudflare.com/security/zero-wire/node2shell",
+      "pubDate": "Sun, 25 Oct 2026 00:00:00 GMT",
+      "cves": [
+        "CVE-2026-111497"
+      ],
+      "tags": [
+        {
+          "term": "Needs attention"
+        },
+        {
+          "term": "Node.js",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/node-js"
+        },
+        {
+          "term": "Brotli",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/brotli"
+        },
+        {
+          "term": "Compression",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/compression"
+        },
+        {
+          "term": "Memory corruption",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/memory-corruption"
+        },
+        {
+          "term": "Runtime",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/runtime"
+        }
+      ]
+    },
+    {
+      "slug": "citrix-netscaler-command-execution",
+      "name": "zero-wire-citrix-netscaler-command-execution",
+      "title": "Citrix NetScaler command execution",
+      "link": "https://radar.cloudflare.com/security/zero-wire/citrix-netscaler-command-execution",
+      "pubDate": "Mon, 19 Oct 2026 00:00:00 GMT",
+      "cves": [
+        "CVE-2026-88771"
+      ],
+      "tags": [
+        {
+          "term": "Needs attention"
+        },
+        {
+          "term": "Gateway",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/gateway"
+        },
+        {
+          "term": "Appliance",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/appliance"
+        },
+        {
+          "term": "VPN",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/vpn"
+        },
+        {
+          "term": "RCE",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/rce"
+        }
+      ]
+    },
+    {
+      "slug": "wordpress-sql-injection-rce",
+      "name": "zero-wire-wordpress-sql-injection-rce",
+      "title": "WordPress SQL injection and RCE",
+      "link": "https://radar.cloudflare.com/security/zero-wire/wordpress-sql-injection-rce",
+      "pubDate": "Mon, 20 Jul 2026 00:00:00 GMT",
+      "cves": [
+        "CVE-2026-60137",
+        "CVE-2026-63030"
+      ],
+      "tags": [
+        {
+          "term": "Reference"
+        },
+        {
+          "term": "CMS",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/cms"
+        },
+        {
+          "term": "PHP",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/php"
+        },
+        {
+          "term": "SQL injection",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/sql-injection"
+        },
+        {
+          "term": "RCE",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/rce"
+        },
+        {
+          "term": "REST API",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/rest-api"
+        }
+      ]
+    }
+  ]
+}
