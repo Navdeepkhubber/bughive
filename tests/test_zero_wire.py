@@ -123,6 +123,27 @@ class ZeroWireHarvestTests(unittest.TestCase):
             self.assertEqual([row["slug"] for row in index["items"]], [item["slug"] for item in items])
             self.assertIsNone(index["etag"])
 
+    def test_generated_skills_omit_trimmed_fixture_bodies(self):
+        with open(FIXTURE, "rb") as handle:
+            bodies = feed_bodies(handle.read())
+        self.assertEqual(len(bodies), 12)
+        for blob in bodies:
+            self.assertIn("fixture body omitted", blob)
+        with tempfile.TemporaryDirectory() as out:
+            harvest.run(out, fixture=FIXTURE)
+            skills = []
+            for dirpath, _dirs, files in os.walk(out):
+                for name in files:
+                    if name != "SKILL.md":
+                        continue
+                    with open(os.path.join(dirpath, name), encoding="utf-8") as handle:
+                        skills.append(handle.read())
+            self.assertEqual(len(skills), 6)
+            for text in skills:
+                self.assertNotIn("fixture body omitted", text)
+                for blob in bodies:
+                    self.assertNotIn(blob, text)
+
     def test_second_fixture_run_is_idempotent(self):
         with tempfile.TemporaryDirectory() as out:
             first = harvest.run(out, fixture=FIXTURE)
