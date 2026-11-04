@@ -229,7 +229,11 @@ export function apply(ctx, config = {}) {
    * canvas instead of adding an image library or (worse) faking it with a byte hash that
    * would differ for visually identical screenshots.
    *
-   * Returns dHash and aHash as 64-bit hex strings.
+   * Returns dHash (horizontal and vertical gradients) and aHash as hex strings.
+   * Horizontal-only dHash collapses a flat light page and a flat dark page:
+   * screenshots differ by stacked bands, which are vertical gradients. Both
+   * directions keep a one-word edit within a small Hamming distance and a
+   * different layout far from it.
    */
   async function hashDataUrl(page, dataUrl, size = 16) {
     return page.evaluate(
@@ -238,11 +242,12 @@ export function apply(ctx, config = {}) {
         img.src = src;
         await img.decode();
         const c = document.createElement("canvas");
-        c.width = s + 1;
-        c.height = s;
+        const stride = s + 1;
+        c.width = stride;
+        c.height = stride;
         const ctx = c.getContext("2d");
-        ctx.drawImage(img, 0, 0, s + 1, s);
-        const d = ctx.getImageData(0, 0, s + 1, s).data;
+        ctx.drawImage(img, 0, 0, stride, stride);
+        const d = ctx.getImageData(0, 0, stride, stride).data;
         const gray = [];
         for (let i = 0; i < d.length; i += 4) gray.push(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
         const toHex = (bits) => {
@@ -255,9 +260,14 @@ export function apply(ctx, config = {}) {
         const avg = gray.reduce((a, b) => a + b, 0) / gray.length;
         for (let y = 0; y < s; y += 1) {
           for (let x = 0; x < s; x += 1) {
-            const px = gray[y * (s + 1) + x];
-            dbits += px < gray[y * (s + 1) + x + 1] ? "1" : "0";
+            const px = gray[y * stride + x];
+            dbits += px < gray[y * stride + x + 1] ? "1" : "0";
             abits += px < avg ? "1" : "0";
+          }
+        }
+        for (let y = 0; y < s; y += 1) {
+          for (let x = 0; x < s; x += 1) {
+            dbits += gray[y * stride + x] < gray[(y + 1) * stride + x] ? "1" : "0";
           }
         }
         return { dhash: toHex(dbits), ahash: toHex(abits) };

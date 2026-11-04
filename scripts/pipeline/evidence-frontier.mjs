@@ -154,7 +154,9 @@ export function buildFrontier({ recon = {}, scope = '', traffic = [], sourceHits
 }
 
 export function updateInventory(previous, current) {
-  const inventoryRoutes = current.routes.filter(r => r.eligible);
+  // Every in-scope route, not only ones already ranked eligible. A recorded
+  // status is an observation; dropping unranked routes hides 200 -> 403.
+  const inventoryRoutes = current.routes;
   const keys = inventoryRoutes.map(r => r.key).sort();
   const descriptors = Object.fromEntries(inventoryRoutes.map(r => [r.key, JSON.stringify({
     statuses: [...new Set(r.evidence.map(e => e.status).filter(x => x != null))].sort(),

@@ -277,7 +277,10 @@ export function apply(ctx, config = {}) {
       for (const a of matrix.assets) {
         for (const c of relevant) {
           const cell = matrix.cells[cellId(c, a)];
-          if (!cell || !CLEAN.has(cell.status)) {
+          // blocked/n/a with a reason are resolved. coverage_mark already
+          // refuses those statuses without a reason, so a blocked cell is not
+          // an untested hole. Gaps are cells that still have no disposition.
+          if (!cell || !RESOLVED.has(cell.status)) {
             (byAsset[a] ||= []).push(c);
             total += 1;
           }
@@ -376,7 +379,7 @@ export function apply(ctx, config = {}) {
           const cell = matrix.cells[cellId(c, a)];
           const status = cell?.status || "untested";
           counts[status] = (counts[status] || 0) + 1;
-          if (!CLEAN.has(status)) {
+          if (!RESOLVED.has(status)) {
             blocking.push({ asset: a, vuln_class: c, status: cell ? cell.status : "untested" });
           }
         }
@@ -395,8 +398,8 @@ export function apply(ctx, config = {}) {
         blocking: blocking.slice(0, 200),
         note:
           pct >= threshold
-            ? "All critical cells tested or not applicable. Report tested coverage separately."
-            : "Critical cells remain untested or blocked. Do NOT report a clean result; blocked cells require the missing access, scope, or a qualified incomplete conclusion.",
+            ? "All critical cells are resolved (tested, not applicable, or blocked with a reason). Report tested coverage separately from blocked cells."
+            : "Unresolved critical cells remain. Do NOT report a clean result; mark each one tested, n/a, or blocked with a reason.",
       });
     },
   });
