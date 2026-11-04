@@ -27,6 +27,12 @@ concurrency:
   group: sync-reports-and-skills
   cancel-in-progress: false
 
+# Checkout pins every job to the workflow SHA. fetch, harvest, and
+# ingest-skills each commit on that SHA and push the checked-out branch.
+# `needs:` orders the jobs, but it does not move the pin, so a later push
+# is not a fast-forward. scripts/push-ff.sh rebases onto the current tip
+# of that branch and retries.
+
 jobs:
   fetch:
     if: github.event_name == 'schedule' || inputs.task == 'all' || inputs.task == 'fetch'
@@ -70,7 +76,7 @@ jobs:
           git add -A reports/
           if ! git diff --staged --quiet; then
             git commit -m "Auto-update disclosed reports: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            git push
+            bash scripts/push-ff.sh
           fi
 
   harvest:
@@ -97,7 +103,7 @@ jobs:
           git add -A skills/staging skills/sources.txt
           if ! git diff --staged --quiet; then
             git commit -m "Harvest staged skills: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            git push
+            bash scripts/push-ff.sh
           fi
 
   ingest-skills:
@@ -124,5 +130,5 @@ jobs:
           git add -A skills/learned skills/seeds skills/ingest-report.json
           if ! git diff --staged --quiet; then
             git commit -m "Promote staged skills: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            git push
+            bash scripts/push-ff.sh
           fi
