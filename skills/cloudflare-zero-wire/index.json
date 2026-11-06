@@ -3,6 +3,45 @@
   "etag": null,
   "items": [
     {
+      "slug": "sshole",
+      "name": "zero-wire-sshole",
+      "title": "*sshole: OpenSSH password bypass on musl Linux",
+      "link": "https://radar.cloudflare.com/security/zero-wire/sshole",
+      "pubDate": "Thu, 05 Nov 2026 00:00:00 GMT",
+      "cves": [
+        "CVE-2026-123158"
+      ],
+      "tags": [
+        {
+          "term": "Needs attention"
+        },
+        {
+          "term": "SSH",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/ssh"
+        },
+        {
+          "term": "musl",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/musl"
+        },
+        {
+          "term": "Alpine",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/alpine"
+        },
+        {
+          "term": "Authentication bypass",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/authentication-bypass"
+        },
+        {
+          "term": "PAM",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/pam"
+        },
+        {
+          "term": "sshhole",
+          "domain": "https://radar.cloudflare.com/security/zero-wire/tag/sshhole"
+        }
+      ]
+    },
+    {
       "slug": "linux-ipv4-tcp-use-after-free",
       "name": "zero-wire-linux-ipv4-tcp-use-after-free",
       "title": "Linux IPv4 TCP use-after-free",
