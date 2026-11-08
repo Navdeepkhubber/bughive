@@ -1,11 +1,10 @@
-<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-triage-report/SKILL.md on 2026-10-23T20:17:17.064592+00:00 -->
-<!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
+<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-triage-report/SKILL.md on 2026-11-08T12:31:10.340502+00:00 -->
+<!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
+<!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: web3-triage-report
 description: Bug triage validation system, Immunefi report format, and 20 real paid bounty examples dissected. Use this when validating a finding before submitting, writing an Immunefi report, checking if a bug is actually valid, or studying real examples of paid vulnerabilities.
-kind: checklist
-repro: checklist
 ---
 
 # TRIAGE, REPORT WRITING & REAL EXAMPLES

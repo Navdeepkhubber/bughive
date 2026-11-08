@@ -1,5 +1,6 @@
 <!-- harvested: ctahok/hermes-bug-bounty-skills/bug-bounty-hunting/references/original-skill-index.md on 2026-10-23T20:17:12.990858+00:00 -->
-<!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
+<!-- license: unspecified; author: Ilkin Jamalli; commit: 9332d55c70a815441d35d7688791ce1f69b50e49; source repo license, not permission to load or promote -->
+<!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 # Original Claude-BugHunter Skill Index
 

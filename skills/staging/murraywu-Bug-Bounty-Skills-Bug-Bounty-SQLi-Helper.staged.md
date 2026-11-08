@@ -1,5 +1,6 @@
 <!-- harvested: murraywu/Bug-Bounty-Skills/Bug-Bounty-SQLi-Helper/SKILL.md on 2026-10-23T20:17:15.479833+00:00 -->
-<!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
+<!-- license: unspecified; author: murraywu; commit: df382e7429ce13ac66be91321c0f3a6bf58f10c0; source repo license, not permission to load or promote -->
+<!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 # Bug-Bounty-SQLi-Helper - SQL 注入助手
 

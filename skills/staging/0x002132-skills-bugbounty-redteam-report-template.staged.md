@@ -1,5 +1,6 @@
 <!-- harvested: 0x002132/skills-bugbounty/redteam-report-template/SKILL.md on 2026-10-23T20:17:14.017108+00:00 -->
-<!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
+<!-- license: unspecified; author: 0x002132; commit: 566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52; source repo license, not permission to load or promote -->
+<!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: redteam-report-template

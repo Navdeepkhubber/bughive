@@ -1,34 +1,12 @@
-<!-- harvested: 0x002132/skills-bugbounty/hunt-csrf/SKILL.md on 2026-10-23T20:17:14.016965+00:00 -->
-<!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
+<!-- harvested: 0x002132/skills-bugbounty/hunt-csrf/SKILL.md on 2026-11-08T12:31:10.340502+00:00 -->
+<!-- license: unspecified; author: 0x002132; commit: 566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52; source repo license, not permission to load or promote -->
+<!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: hunt-csrf
 description: Hunting skill for csrf vulnerabilities. Built from 10 public bug bounty reports. Use when hunting csrf on any target.
 sources: github, hackerone_public
 report_count: 10
-# bughive-repro-start
-cve: CVE-2022-21703
-repro: partial
-references:
-  - source: nvd
-    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2022-21703"
-    gave: "description, configurations; no Exploit-tagged refs"
-  - source: vendor
-    url: "https://grafana.com/blog/2022/02/08/grafana-7.5.15-and-8.3.5-released-with-moderate-severity-security-fixes/"
-    gave: "advisory page fetched; no concrete input copied"
-  - source: ghsa
-    url: "https://github.com/advisories/GHSA-cmf4-h3xc-jw8w"
-    gave: "package range, first_patched_version, references"
-  - source: cisa-kev
-    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
-    gave: "not in KEV"
-  - source: exploitdb
-    url: null
-    gave: "no row with this CVE in codes"
-  - source: poc-in-github
-    url: null
-    gave: "404 for master/2022/CVE-2022-21703.json"
-# bughive-repro-end
 ---
 
 ## Crown Jewel Targets
@@ -275,30 +253,3 @@ A POST endpoint accepting `application/json` was assumed CSRF-safe by developers
 - **`hunt-oauth`** — OAuth/SAML `state`/`RelayState` is structurally a CSRF token; missing validation here is account-linking CSRF. Chain primitive: attacker initiates OAuth on their account, sends victim the `/callback?code=X&state=` URL → victim's logged-in browser completes the link → attacker's social identity now controls victim's account.
 - **`security-arsenal`** — Reach for the CSRF PoC templates (form POST, `enctype=text/plain` JSON, sandboxed-iframe null-origin, base64 multipart bypass) before writing one from scratch; also the WAF-bypass header variants for Origin/Referer checks.
 - **`triage-validation`** — Run the Pre-Severity Gate before submitting CSRF on a logout endpoint or any action without state-change consequence — those are the canonical N/A traps. Confirm victim LOSES something concrete (account access, money, data), not just "a request executed."
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: partial` — every line below is backed by a cited reference. Nothing here was invented.
-
-### Prerequisites
-- Affected product from NVD CPE: grafana grafana >= 3.0.1, < 7.5.15; grafana grafana >= 8.0.0, < 8.3.5; grafana grafana 3.0.0. NVD lists 7 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-21703)]
-- GitHub Advisory package range: go `github.com/grafana/grafana/pkg/web` >= 3.0-beta1, < 7.5.15; first patched 7.5.15; go `github.com/grafana/grafana/pkg/web` >= 8.0.0, < 8.3.5; first patched 8.3.5. [[ghsa](https://github.com/advisories/GHSA-cmf4-h3xc-jw8w)]
-- Weakness: CWE-352. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-21703)]
-
-### Input / trigger
-- Affected product and an abstract condition are public (privilege escalation). No concrete request or public PoC URL was found, so none is stated here. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-21703)]
-
-### Expected (patched) vs vulnerable behavior
-- Vulnerable builds match the cited range and NVD characterizes the issue as privilege escalation. Structured affected range: grafana grafana >= 3.0.1, < 7.5.15. GHSA first patched version: 7.5.15. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-21703)] [[ghsa](https://github.com/advisories/GHSA-cmf4-h3xc-jw8w)]
-
-### How to confirm
-- Not possible from public sources beyond the affected-versus-patched range above. No concrete input was published, so none was invented. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-21703)]
-
-### Public PoC (if any)
-- None found.
-
-### What's missing
-- No public PoC (ExploitDB / PoC-in-GitHub / NVD Exploit-tagged refs / GHSA PoC refs empty).
-- No concrete request or payload in the cited advisories. None was invented.
-<!-- bughive-repro-end -->

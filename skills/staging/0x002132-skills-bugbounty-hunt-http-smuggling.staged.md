@@ -1,32 +1,10 @@
-<!-- harvested: 0x002132/skills-bugbounty/hunt-http-smuggling/SKILL.md on 2026-10-23T20:17:14.018088+00:00 -->
-<!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
+<!-- harvested: 0x002132/skills-bugbounty/hunt-http-smuggling/SKILL.md on 2026-11-08T12:31:10.340502+00:00 -->
+<!-- license: unspecified; author: 0x002132; commit: 566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52; source repo license, not permission to load or promote -->
+<!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: hunt-http-smuggling
 description: "Hunt HTTP request smuggling (CL.TE, TE.CL, H2.CL, H2.TE). Cause: front-end proxy and back-end server disagree on where one request ends and the next begins (Content-Length vs Transfer-Encoding header parsing inconsistency). CL.TE: front-end uses CL, back uses TE → smuggle by sending TE: chunked but with body that fits CL count. TE.CL: opposite. H2.CL: HTTP/2 downgrade, smuggle CL into HTTP/1.1 back-end. Detection tools: Burp HTTP Request Smuggler extension, smuggler.py, h2csmuggler. Confirm: time-delay technique (smuggled GET with 30s timeout) — if front-end returns slow on next victim request, smuggling works. Validate: cache poisoning chain (smuggle request that gets cached for victim), credential theft (smuggle X-Forwarded-For override that captures next user's cookies), bypass auth (smuggled internal-path request). Real paid examples from major CDN deployments. Use when hunting H1 paid programs running CDN+origin stacks, when targeting load balancer / WAF bypass."
-# bughive-repro-start
-cve: CVE-2021-40346
-repro: verified-public
-references:
-  - source: nvd
-    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2021-40346"
-    gave: "descriptions, configurations, 2 Exploit-tagged refs"
-  - source: vendor
-    url: "https://git.haproxy.org/?p=haproxy.git"
-    gave: "advisory page fetched; no concrete input copied"
-  - source: ghsa
-    url: "https://github.com/advisories/GHSA-jwmg-q4wv-f75h"
-    gave: "advisory text; no package range"
-  - source: cisa-kev
-    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
-    gave: "not in KEV"
-  - source: exploitdb
-    url: null
-    gave: "no row with this CVE in codes"
-  - source: poc-in-github
-    url: "https://github.com/knqyf263/CVE-2021-40346"
-    gave: "public PoC repository"
-# bughive-repro-end
 ---
 
 ## 17. HTTP REQUEST SMUGGLING
@@ -104,29 +82,4 @@ Tools that send HTTP/2 raw frames (Burp Pro's HTTP Request Smuggler extension, `
 - **`security-arsenal`** — Reach for the smuggling payload bank (CL.TE / TE.CL / TE.TE obfuscations, H2.CL downgrade probes, h2csmuggler one-liners, Burp HTTP Request Smuggler extension config) and the time-delay confirmation template before manual hex-editing.
 - **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical: the smuggled-request effect MUST land on a request issued by a different client/session, not your own follow-up. A timing delta in your own browser alone is parser disagreement, not exploitable smuggling.
 
-<!-- bughive-repro-start -->
-## Steps to reproduce
 
-> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
-
-### Prerequisites
-- Affected product from NVD CPE: haproxy haproxy >= 2.0.0, < 2.0.25; haproxy haproxy >= 2.2.0, < 2.2.17; haproxy haproxy >= 2.3.0, < 2.3.14. NVD lists 8 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-40346)]
-- Weakness: CWE-190. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-40346)]
-
-### Input / trigger
-- No concrete request string is stated in the cited advisory text. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-40346)] [[nvd](https://jfrog.com/blog/critical-vulnerability-in-haproxy-cve-2021-40346-integer-overflow-enables-http-smuggling/)]
-
-### Expected (patched) vs vulnerable behavior
-- See the public record (abstract only). No concrete vulnerable-versus-patched behavior was copied from the advisory. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-40346)]
-
-### How to confirm
-- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2021-40346)] [[nvd](https://jfrog.com/blog/critical-vulnerability-in-haproxy-cve-2021-40346-integer-overflow-enables-http-smuggling/)]
-
-### Public PoC (if any)
-- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/knqyf263/CVE-2021-40346
-- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2021/CVE-2021-40346.json
-- NVD Exploit-tagged reference: https://jfrog.com/blog/critical-vulnerability-in-haproxy-cve-2021-40346-integer-overflow-enables-http-smuggling/
-
-### What's missing
-- (none for verified-public)
-<!-- bughive-repro-end -->

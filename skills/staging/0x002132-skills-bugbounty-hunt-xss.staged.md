@@ -1,31 +1,12 @@
-<!-- harvested: 0x002132/skills-bugbounty/hunt-xss/SKILL.md on 2026-10-23T20:17:14.019126+00:00 -->
-<!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
+<!-- harvested: 0x002132/skills-bugbounty/hunt-xss/SKILL.md on 2026-11-08T12:31:10.340502+00:00 -->
+<!-- license: unspecified; author: 0x002132; commit: 566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52; source repo license, not permission to load or promote -->
+<!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: hunt-xss
 description: Hunting skill for xss vulnerabilities. Built from 174 public bug bounty reports. Use when hunting xss on any target.
 sources: github, hackerone_public
 report_count: 174
-# bughive-repro-start
-cve: CVE-2022-32209
-repro: verified-public
-references:
-  - source: nvd
-    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2022-32209"
-    gave: "descriptions, configurations, 2 Exploit-tagged refs"
-  - source: ghsa
-    url: "https://github.com/advisories/GHSA-pg8v-g4xq-hww9"
-    gave: "package range, first_patched_version, references"
-  - source: cisa-kev
-    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
-    gave: "not in KEV"
-  - source: exploitdb
-    url: null
-    gave: "no row with this CVE in codes"
-  - source: poc-in-github
-    url: null
-    gave: "404 for master/2022/CVE-2022-32209.json"
-# bughive-repro-end
 ---
 
 ## Crown Jewel Targets
@@ -357,29 +338,3 @@ A project management platform patched an XSS vulnerability in label color fields
 - **`hunt-http-smuggling`** — Smuggling delivers an XSS payload into the response queue of the NEXT victim's request, even on endpoints that sanitize their own inputs. Chain primitive: smuggle a request whose response (carrying attacker HTML) is served as the body of the next legitimate user's GET / → reflected XSS at every visitor without any URL parameter visible in their address bar.
 - **`security-arsenal`** — Reach for the XSS payload bank (SVG+style, math+style mXSS, CSP-bypass JSONP gadgets, HTML5 event handlers WAFs miss) before hand-crafting payloads; also the always-rejected list to confirm self-XSS / alert-only PoCs are not submittable.
 - **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on stored XSS that only fires in the attacker's own session, or before claiming reflected XSS where the canary appears HTML-encoded (`&lt;`) in the response body — those are the two most common downgrade-to-N/A traps.
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
-
-### Prerequisites
-- Affected product from NVD CPE: rubyonrails rails_html_sanitizers < 1.4.3; fedoraproject fedora 35; fedoraproject fedora 36. NVD lists 4 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-32209)]
-- GitHub Advisory package range: rubygems `rails-html-sanitizer` < 1.4.3; first patched 1.4.3. [[ghsa](https://github.com/advisories/GHSA-pg8v-g4xq-hww9)]
-- Weakness: CWE-79. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-32209)]
-
-### Input / trigger
-- NVD characterizes the trigger as cross-site scripting. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-32209)] [[nvd](https://hackerone.com/reports/1530898)]
-
-### Expected (patched) vs vulnerable behavior
-- Vulnerable builds match the cited range and NVD characterizes the issue as cross-site scripting. Structured affected range: rubyonrails rails_html_sanitizers < 1.4.3. GHSA first patched version: 1.4.3. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-32209)] [[ghsa](https://github.com/advisories/GHSA-pg8v-g4xq-hww9)]
-
-### How to confirm
-- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-32209)] [[nvd](https://hackerone.com/reports/1530898)]
-
-### Public PoC (if any)
-- NVD Exploit-tagged reference: https://hackerone.com/reports/1530898
-
-### What's missing
-- (none for verified-public)
-<!-- bughive-repro-end -->

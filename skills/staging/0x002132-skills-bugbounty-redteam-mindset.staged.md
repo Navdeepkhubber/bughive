@@ -1,34 +1,12 @@
-<!-- harvested: 0x002132/skills-bugbounty/redteam-mindset/SKILL.md on 2026-10-23T20:17:14.023256+00:00 -->
-<!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
+<!-- harvested: 0x002132/skills-bugbounty/redteam-mindset/SKILL.md on 2026-11-08T12:31:10.340502+00:00 -->
+<!-- license: unspecified; author: 0x002132; commit: 566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52; source repo license, not permission to load or promote -->
+<!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: redteam-mindset
 description: Red-team operator discipline — the mindset corrections that separate offensive testing from defensive WAPT. Built from authorized red-team work where conservative defaults caused multiple findings to be missed and one to be incorrectly retracted. Use at the START of any red-team engagement and again whenever feeling stuck or considering "stopping" on a defended target. The single most important skill to load when scope is "external red team" not "bug bounty / WAPT".
 sources: authorized-engagement
 report_count: 1
-# bughive-repro-start
-cve: CVE-2022-47966
-repro: verified-public
-references:
-  - source: nvd
-    url: "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2022-47966"
-    gave: "descriptions, configurations, 12 Exploit-tagged refs"
-  - source: vendor
-    url: "https://www.manageengine.com/security/advisory/CVE/cve-2022-47966.html"
-    gave: "advisory page fetched; no concrete input copied"
-  - source: ghsa
-    url: "https://github.com/advisories/GHSA-mqq7-v29v-25f6"
-    gave: "advisory text; no package range"
-  - source: cisa-kev
-    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
-    gave: "dateAdded 2023-01-23, dueDate 2023-02-13, knownRansomwareCampaignUse=Known"
-  - source: exploitdb
-    url: null
-    gave: "no row with this CVE in codes"
-  - source: poc-in-github
-    url: "https://github.com/horizon3ai/CVE-2022-47966"
-    gave: "public PoC repository"
-# bughive-repro-end
 ---
 
 ## When to use this skill
@@ -411,32 +389,3 @@ This skill is the operational discipline; those are the techniques.
 - **`redteam-report-template`** — Red-team deliverable is NOT a bug-bounty report; different audience, different tone, different cadence. Engagement flow: findings collected throughout engagement → at session close, package via `redteam-report-template` (Subject / Observations / Description / Impact / Recommendation / PoC) for client-facing DOCX, not `report-writing` which is for H1/Bugcrowd/Intigriti platforms.
 - **`triage-validation`** — Red-team mindset includes "don't retract too fast" — the 4 retractions from an authorized engagement were mindset failures, not validation failures. Engagement flow: every finding through `triage-validation` 7-Question Gate, but with the red-team adjustment that "exploitable only with chain" is still a finding, not a no-finding.
 - **`evidence-hygiene`** — Red-team engagements often span weeks; without disciplined evidence capture the deliverable suffers. Engagement flow: red-team mindset triggered → set up `evidence-hygiene` capture cadence (screenshots, request/response dumps, timestamped logs) at session start, not at session close.
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: verified-public` — every line below is backed by a cited reference. Nothing here was invented.
-
-### Prerequisites
-- Affected product from NVD CPE: zohocorp manageengine_access_manager_plus < 4.3; zohocorp manageengine_access_manager_plus 4.3; zohocorp manageengine_ad360 < 4.3. NVD lists 34 vulnerable CPE matches; showing 3. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-47966)]
-- Weakness: CWE-20. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-47966)]
-
-### Input / trigger
-- NVD characterizes the trigger as remote code execution. No concrete request string from the advisory was copied. The linked public PoC is the input source; its body was not copied into this skill. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-47966)] [[nvd](http://packetstormsecurity.com/files/170882/Zoho-ManageEngine-ServiceDesk-Plus-14003-Remote-Code-Execution.html)]
-
-### Expected (patched) vs vulnerable behavior
-- Vulnerable builds match the cited range and NVD characterizes the issue as remote code execution. Structured affected range: zohocorp manageengine_access_manager_plus < 4.3. Patched builds are those outside that range. The advisory text was paraphrased, not copied. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-47966)]
-
-### How to confirm
-- Against a disposable lab build inside the cited affected range, compare it with a build at the cited patched version by following the linked public PoC. Do not run untrusted PoC code against production. [[nvd](https://nvd.nist.gov/vuln/detail/CVE-2022-47966)] [[nvd](http://packetstormsecurity.com/files/170882/Zoho-ManageEngine-ServiceDesk-Plus-14003-Remote-Code-Execution.html)]
-
-### Public PoC (if any)
-- GHSA-listed: https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2022-47966
-- Highest-star PoC-in-GitHub repository (unvetted; not executed): https://github.com/horizon3ai/CVE-2022-47966
-- Additional repos indexed by PoC-in-GitHub for this id (unvetted): https://raw.githubusercontent.com/nomi-sec/PoC-in-GitHub/master/2022/CVE-2022-47966.json
-- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/170882/Zoho-ManageEngine-ServiceDesk-Plus-14003-Remote-Code-Execution.html
-- NVD Exploit-tagged reference: http://packetstormsecurity.com/files/170925/ManageEngine-ADSelfService-Plus-Unauthenticated-SAML-Remote-Code-Execution.html
-
-### What's missing
-- (none for verified-public)
-<!-- bughive-repro-end -->

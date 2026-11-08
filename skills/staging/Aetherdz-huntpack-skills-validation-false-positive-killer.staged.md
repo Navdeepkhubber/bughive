@@ -1,5 +1,6 @@
 <!-- harvested: Aetherdz/huntpack/skills/validation/false-positive-killer/SKILL.md on 2026-10-23T20:17:14.752405+00:00 -->
-<!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
+<!-- license: MIT; author: Aether-DZ; commit: f22ff6d30db803591ecad9eb91c619ddfadbbc9a; source repo license, not permission to load or promote -->
+<!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: false-positive-killer

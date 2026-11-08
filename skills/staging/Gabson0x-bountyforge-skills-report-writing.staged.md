@@ -1,11 +1,10 @@
-<!-- harvested: Gabson0x/bountyforge/skills/report-writing/SKILL.md on 2026-10-23T20:17:17.066922+00:00 -->
-<!-- STAGING ONLY -- condense to skills/_schema.md house style, verify the source repo's license, then promote to skills/seeds/ -->
+<!-- harvested: Gabson0x/bountyforge/skills/report-writing/SKILL.md on 2026-11-08T12:31:10.340502+00:00 -->
+<!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
+<!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: report-writing
 description: Bug bounty report writing for H1/Bugcrowd/Intigriti/Immunefi — report templates, human tone guidelines, impact-first writing, CVSS 3.1 scoring, title formula, impact statement formula, severity decision guide, downgrade counters, pre-submit checklist. Use after validating a finding and before submitting. Never use "could potentially" — prove it or don't report.
-kind: checklist
-repro: checklist
 ---
 
 # REPORT WRITING
