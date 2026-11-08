@@ -1,0 +1,17 @@
+{
+  "h1Id": 3920633,
+  "title": "Connector/ODBC: SqlwcsOctetLen sizes UTF-16 with a byte-oriented helper, reading past the caller's buffer and sending client memory to the server",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-04T12:36:07.961Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Out-of-bounds Read"
+  },
+  "cveIds": [],
+  "teamHandle": "mariadb",
+  "teamName": "MariaDB",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3920633",
+  "vulnerabilityInformation": "A buffer over-read vulnerability was identified in a database connector library's wide character string handling function. The function incorrectly sized UTF-16 strings by using a byte-oriented helper that inspected only the low byte of each code unit, causing the cursor to advance past the intended buffer boundary. This resulted in uninitialized memory being read and transmitted to the database server as part of SQL statements. The vulnerability affected the POSIX build and was triggered by ordinary characters from various languages. The memory disclosure was limited to 12-16 bytes per statement but occurred repeatedly during normal operation with affected character sets.",
+  "fetchedAt": "2026-11-08T12:31:00.567460+00:00"
+}

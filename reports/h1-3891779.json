@@ -1,0 +1,17 @@
+{
+  "h1Id": 3891779,
+  "title": "Connector/ODBC injects unquoted column names into positioned DELETE and UPDATE via MADB_DynStrGetWhere",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-04T12:35:31.047Z",
+  "weakness": null,
+  "cwe": {
+    "id": "SQL Injection"
+  },
+  "cveIds": [],
+  "teamHandle": "mariadb",
+  "teamName": "MariaDB",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3891779",
+  "vulnerabilityInformation": "A SQL injection vulnerability was discovered in the ODBC connector where unquoted column names were injected into positioned DELETE and UPDATE statements. The column values were properly escaped, but the column names were appended directly without any quoting or escaping. This allowed an attacker who could control a column or table name to execute arbitrary SQL on the application's connection with its privileges. When an application requested deletion of a single row, all rows in the table could be deleted instead. The vulnerability was present in versions 3.2.6 and 3.2.10, and affected both DELETE and UPDATE operations through positioned cursor operations.",
+  "fetchedAt": "2026-11-08T12:31:00.567575+00:00"
+}

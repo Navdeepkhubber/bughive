@@ -1,0 +1,17 @@
+{
+  "h1Id": 3941626,
+  "title": "Instamojo CampTix: fail-open MAC + webhook Credit without binding payment to order",
+  "severity": "High",
+  "disclosedAt": "2026-11-05T14:18:06.415Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "wordpress",
+  "teamName": "WordPress",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3941626",
+  "vulnerabilityInformation": "A payment binding vulnerability was identified in the Instamojo payment gateway addon for a ticketing system. The gateway failed to verify and bind Instamojo payments to specific ticket orders. Three attack paths were present: a draft order could be marked pending using only a payment token without Instamojo API verification, invalid webhook signatures were accepted and still marked orders as pending instead of rejecting them, and valid webhooks with credit status could complete orders without verifying the payment matched the order amount. The issue was noted as a logic error at the payment boundary that was not present in similar payment gateway implementations within the same codebase.",
+  "fetchedAt": "2026-11-08T12:31:00.567248+00:00"
+}

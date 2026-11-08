@@ -1,0 +1,17 @@
+{
+  "h1Id": 4029867,
+  "title": "WordCamp Meta gpre: password-protected event RSVP list readable without password via /gpre/v1/.../rsvp-responses",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-05T14:18:33.440Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "wordpress",
+  "teamName": "WordPress",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4029867",
+  "vulnerabilityInformation": "A password protection bypass was identified in a REST API wrapper for recurring events. The wrapper endpoint exposed RSVP attendee roster data without verifying password authentication, while the core API correctly enforced password gates. Unauthenticated requests could retrieve attendee names, user IDs, profile information, and comment details for password-protected events. The vulnerability was caused by the wrapper route using a permission callback that always returned true without checking password requirements.",
+  "fetchedAt": "2026-11-08T12:31:00.567134+00:00"
+}

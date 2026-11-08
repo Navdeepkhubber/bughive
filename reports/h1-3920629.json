@@ -1,0 +1,20 @@
+{
+  "h1Id": 3920629,
+  "title": "r2dbc-mariadb: server message accepted with no command in flight desynchronises the connection and serves one user's rows to another",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-04T12:35:53.044Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Information Disclosure"
+  },
+  "cveIds": [
+    "CVE-2026-55859",
+    "CVE-2026-55860"
+  ],
+  "teamHandle": "mariadb",
+  "teamName": "MariaDB",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3920629",
+  "vulnerabilityInformation": "A vulnerability was discovered in an open-source database connector library that caused desynchronization of request and response messages on database connections. When a packet arrived from the server while no command was outstanding, the driver buffered it and served it to the next unrelated statement without validating any correlation between requests and responses. This allowed an attacker positioned on the network path to inject a single malicious packet that permanently shifted all subsequent responses, causing one user's data to be returned to another user and causing write operation results to be misreported. The vulnerability persisted for the lifetime of the affected connection and could not be detected by the application layer. The issue was confirmed in version 1.4.1 and the development branch, affecting the default configuration of the driver. The vulnerability required the attacker to be able to inject bytes into the client-server communication stream.",
+  "fetchedAt": "2026-11-08T12:31:00.567510+00:00"
+}

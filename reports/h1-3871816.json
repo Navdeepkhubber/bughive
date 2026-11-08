@@ -1,0 +1,17 @@
+{
+  "h1Id": 3871816,
+  "title": "Unauthenticated private CSV export of Meetup organizer PII via broken authz check in WordCamp Reports",
+  "severity": "High",
+  "disclosedAt": "2026-11-05T13:59:32.634Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "wordpress",
+  "teamName": "WordPress",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3871816",
+  "vulnerabilityInformation": "A broken authorization check in a WordCamp plugin allowed unauthenticated attackers to export a private CSV file containing organizer personally identifiable information. The vulnerability was caused by an inverted logic operator in the security gate that verified nonce validity and user capabilities, resulting in the protection being bypassed for users without authentication or valid nonces. The exported data included email addresses, physical addresses, messaging handles, usernames, and notes.",
+  "fetchedAt": "2026-11-08T12:31:00.567301+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "h1Id": 3890329,
+  "title": "Connector/C++ ignores allowMultiQueries and injects savepoint names into SQL",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-04T11:40:48.361Z",
+  "weakness": null,
+  "cwe": {
+    "id": "SQL Injection"
+  },
+  "cveIds": [],
+  "teamHandle": "mariadb",
+  "teamName": "MariaDB",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3890329",
+  "vulnerabilityInformation": "Connector/C++ contained two SQL injection vulnerabilities in statement building. The driver ignored the allowMultiQueries configuration setting and passed a hardcoded flag to the database connection function, which caused stacked statements to be accepted on every connection regardless of the configuration. Additionally, savepoint names were concatenated directly into SQL statements without quoting or validation, allowing arbitrary SQL injection through the setSavepoint and releaseSavepoint methods. These defects were demonstrated to result in arbitrary DDL execution on a running database server.",
+  "fetchedAt": "2026-11-08T12:31:00.567743+00:00"
+}

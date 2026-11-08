@@ -1,0 +1,19 @@
+{
+  "h1Id": 4077800,
+  "title": "Unescaped consent-prompt renderer (HTML()) enables concealed-approval OS command injection in strands-agents/tools use_computer \u2014 RCE",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-06T14:33:16.953Z",
+  "weakness": null,
+  "cwe": {
+    "id": "OS Command Injection"
+  },
+  "cveIds": [
+    "CVE-2026-18733"
+  ],
+  "teamHandle": "aws_vdp",
+  "teamName": "AWS VDP",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4077800",
+  "vulnerabilityInformation": "A vulnerability was discovered in an agent tool framework where user consent prompts were rendered without proper escaping. Markup embedded in tool arguments was interpreted rather than displayed, allowing attackers to conceal malicious commands within prompts that appeared benign to operators. When combined with unsanitized command execution sinks in the application focus feature, this enabled arbitrary operating system command execution on the agent host after operator approval. The vulnerability affected multiple tools and consent surfaces through the same unescaped rendering mechanism. The issue was confirmed through proof-of-concept demonstrations showing command execution and concealment techniques using the prompt rendering parser.",
+  "fetchedAt": "2026-11-08T12:31:00.567004+00:00"
+}

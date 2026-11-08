@@ -1,0 +1,17 @@
+{
+  "h1Id": 3719670,
+  "title": "`monero-wallet-rpc::rescan_spent` accepts daemon-supplied spent-status from an untrusted daemon, enabling ring-intersection attack on transactions",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-02T18:43:38.813Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Information Disclosure"
+  },
+  "cveIds": [],
+  "teamHandle": "monero",
+  "teamName": "Monero",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3719670",
+  "vulnerabilityInformation": "A vulnerability was discovered in the wallet RPC server's rescan spent handler, which failed to verify daemon trustworthiness before accepting spent-status information. The handler invoked the rescan spent function without checking the is_trusted_daemon flag, unlike all other callers of the same function. This allowed a malicious daemon to return incorrect spent status for outputs, causing the wallet to mark previously spent outputs as unspent. When a user subsequently initiated a transaction, the input selector could reuse the marked output as an available input, resulting in the construction of a new ring signature around the same key image. This created two separate ring signatures over identical key images that could be analyzed through ring intersection attacks to compromise transaction privacy.",
+  "fetchedAt": "2026-11-08T12:31:00.567953+00:00"
+}

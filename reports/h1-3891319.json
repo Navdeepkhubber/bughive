@@ -1,0 +1,17 @@
+{
+  "h1Id": 3891319,
+  "title": "Stack buffer overflow in 9 of 10 Connector/ODBC catalog functions via unbounded name",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-04T12:34:42.667Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Stack Overflow"
+  },
+  "cveIds": [],
+  "teamHandle": "mariadb",
+  "teamName": "MariaDB",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3891319",
+  "vulnerabilityInformation": "A stack buffer overflow vulnerability was discovered in nine of ten catalog functions in a database connector driver. The affected functions failed to validate the length of application-supplied identifiers before escaping them into a fixed-size stack buffer. Identifiers longer than 256 bytes could overflow the 513-byte buffer with attacker-controlled data. The overflow occurred during query string assembly before communication with the server, requiring no database privileges or server cooperation. One catalog function properly validated identifier length and rejected oversized input, while the other nine did not perform this validation consistently.",
+  "fetchedAt": "2026-11-08T12:31:00.567690+00:00"
+}

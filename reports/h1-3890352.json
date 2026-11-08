@@ -1,0 +1,17 @@
+{
+  "h1Id": 3890352,
+  "title": "Connector/C++ aborts client process on server session-tracking packet via std::stoi",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-04T11:40:31.252Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Uncontrolled Resource Consumption"
+  },
+  "cveIds": [],
+  "teamHandle": "mariadb",
+  "teamName": "MariaDB",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3890352",
+  "vulnerabilityInformation": "A flaw was discovered in the Connector/C++ driver where the QueryProtocol::handleStateChange function improperly processed session-tracking packets from a server. The code attempted to parse a session variable name as an integer using std::stoi, which caused an std::invalid_argument exception to be thrown. This exception type was not caught by the driver's error handling or by standard application exception handlers, resulting in an unhandled exception that terminated the client process. The vulnerability was triggered whenever a server sent a session-state-changed status flag with a SESSION_TRACK_SYSTEM_VARIABLES entry for auto_increment_increment. The root cause was that the code retrieved only the variable name from the packet instead of the corresponding value before attempting the conversion.",
+  "fetchedAt": "2026-11-08T12:31:00.567794+00:00"
+}

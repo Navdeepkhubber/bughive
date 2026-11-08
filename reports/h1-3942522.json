@@ -1,0 +1,17 @@
+{
+  "h1Id": 3942522,
+  "title": "wordpress.org Rosetta: invite stores unvalidated role \u2014 Editor can assign site Administrator despite editable_roles",
+  "severity": "High",
+  "disclosedAt": "2026-11-05T14:18:24.953Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "wordpress",
+  "teamName": "WordPress",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3942522",
+  "vulnerabilityInformation": "A privilege escalation vulnerability was found in a wordpress.org custom mu-plugin used on locale team sites. The vulnerability allowed authenticated editors to assign the administrator role to users during the account invitation process, despite administrator being explicitly removed from the editable roles list. The role parameter was accepted directly from user input without validation against the permitted roles before the invitation was stored. When the invitation was accepted, the stored role was applied without re-validation, resulting in unauthorized administrator access being granted. The issue affected the invite persistence mechanism which failed to enforce role restrictions that were properly implemented elsewhere in the codebase.",
+  "fetchedAt": "2026-11-08T12:31:00.567190+00:00"
+}

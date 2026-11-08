@@ -1,0 +1,17 @@
+{
+  "h1Id": 3954327,
+  "title": "Unauthenticated access to Checkout Blocks employee-only endpoints exposed merchant metadata",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-03T21:22:41.283Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Missing Authentication for Critical Function"
+  },
+  "cveIds": [],
+  "teamHandle": "shopify",
+  "teamName": "Shopify",
+  "bountyAmount": 3100,
+  "reportUrl": "https://hackerone.com/reports/3954327",
+  "vulnerabilityInformation": "A missing authentication vulnerability was discovered in an employee-only internal API endpoint. The endpoint was protected by an edge rule that only checked the URL path, but the underlying framework served the same content at an alternate URL structure that bypassed this protection. Unauthenticated users could access merchant installation data including store identifiers, installation dates, and feature flags. The vulnerability was remediated by implementing authentication checks in the application code itself rather than relying solely on edge-level protection.",
+  "fetchedAt": "2026-11-08T12:31:00.567900+00:00"
+}

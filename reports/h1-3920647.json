@@ -1,0 +1,17 @@
+{
+  "h1Id": 3920647,
+  "title": "Connector/ODBC: MADB_Stmt::ArrayOffset is not reset when an exception unwinds out of MADB_StmtExecute, so the next paramset reads out of bounds",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-04T12:36:47.062Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Out-of-bounds Read"
+  },
+  "cveIds": [],
+  "teamHandle": "mariadb",
+  "teamName": "MariaDB",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3920647",
+  "vulnerabilityInformation": "A vulnerability was identified in the Connector/ODBC library where an exception during parameter-array execute operations left the ArrayOffset variable in a stale state. When a server-reported error interrupted a parameter array, the ArrayOffset was not reset, causing the next paramset operation on the same statement handle to read from an incorrect memory location. This resulted in out-of-bounds reads that could either cause process crashes or silently drop rows from batches. The issue affected both scenarios where the application had or had not set the SQL_ATTR_PARAM_OPERATION_PTR attribute.",
+  "fetchedAt": "2026-11-08T12:31:00.567410+00:00"
+}

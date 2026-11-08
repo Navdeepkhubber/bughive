@@ -1,0 +1,17 @@
+{
+  "h1Id": 4152553,
+  "title": "Unauthenticated Disclosure of Private, Draft, and Password-Protected Post Content via Core Read-Permission Bypass in SCF Reference Fields",
+  "severity": "High",
+  "disclosedAt": "2026-11-05T19:56:29.233Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Information Disclosure"
+  },
+  "cveIds": [],
+  "teamHandle": "wordpress",
+  "teamName": "WordPress",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4152553",
+  "vulnerabilityInformation": "A vulnerability was discovered in a WordPress plugin's reference field functionality that allowed unauthenticated users to access non-public post content through a permission bypass. The issue existed in the post retrieval function, which did not enforce read permission checks when retrieving posts with any status, including private, draft, and password-protected posts. Sensitive post data including full content, excerpts, author information, timestamps, and plaintext passwords were exposed to unauthorized users. The vulnerability affected multiple code paths including render functions and JSON-LD formatters. An attacker could submit multiple post IDs in a single request to exfiltrate bulk unpublished content at scale due to the absence of pagination limits.",
+  "fetchedAt": "2026-11-08T12:31:00.567073+00:00"
+}

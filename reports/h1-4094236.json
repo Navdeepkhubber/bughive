@@ -1,0 +1,19 @@
+{
+  "h1Id": 4094236,
+  "title": " Billion laughs entity expansion in Qt .ts discovery: a crafted ~950 KB file forces ~55 MB of XML expansion per parse, cost scales with crafted file c",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-07T07:46:29.524Z",
+  "weakness": null,
+  "cwe": {
+    "id": "XML Entity Expansion"
+  },
+  "cveIds": [
+    "CVE-2026-62326"
+  ],
+  "teamHandle": "weblate",
+  "teamName": "Weblate",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4094236",
+  "vulnerabilityInformation": "An XML entity expansion vulnerability was discovered in the Qt translation discovery backend of a software component. The vulnerability existed in a function that parsed Qt .ts files using default entity processing without proper restrictions. An attacker could craft malicious .ts files with internal entity declarations that, while staying within the parser's amplification ratio limits, could force significant XML expansion. A file just under 1 megabyte in size could expand to approximately 55 megabytes during parsing. The expansion work was paid before any early abort mechanism could take effect, as entity expansion occurred during attribute value normalization. Multiple crafted files could be used to scale the attack linearly, with each file triggering a full parse operation. The measured impact showed approximately 145 times the CPU cost compared to benign files of the same size. The vulnerability was present in released versions and the current development branch. A fix was proposed involving registration of an entity declaration handler that rejects all entity declarations, reducing the processing time from 0.866 seconds to 0.006 seconds for affected files.",
+  "fetchedAt": "2026-11-08T12:31:00.566919+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "h1Id": 3890289,
+  "title": "Connector/C++ string escaper re-escapes its own output, enabling SQL injection",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-04T11:39:07.315Z",
+  "weakness": null,
+  "cwe": {
+    "id": "SQL Injection"
+  },
+  "cveIds": [],
+  "teamHandle": "mariadb",
+  "teamName": "MariaDB",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3890289",
+  "vulnerabilityInformation": "A string escaping vulnerability was discovered in the database connector's utility function that processed identifiers and literals for information schema queries. The escaper's inner loop advanced its search cursor incorrectly, causing it to re-escape characters it had already inserted. This resulted in runs of escape characters with odd lengths that left live escape characters to consume closing quotes. The vulnerability affected multiple metadata methods and identifier-quoting APIs, allowing SQL injection through untrusted table, schema, or column names. An independent defect in three sibling helper functions caused inconsistent escaping behavior, with two functions hardcoding an incorrect flag that disabled backslash escaping against default server configurations. Both defects were confirmed through testing against 336 payload shapes, with the escaping logic flaw alone closing all injection vectors. The vulnerability enabled unauthorized data access across database boundaries and boolean-based information extraction.",
+  "fetchedAt": "2026-11-08T12:31:00.567845+00:00"
+}

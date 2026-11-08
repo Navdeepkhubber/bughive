@@ -1,0 +1,17 @@
+{
+  "h1Id": 3891337,
+  "title": "Connector/ODBC SQLGetDescRec treats descriptor handle as statement handle, heap OOB write on every call",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-04T12:35:06.161Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Type Confusion"
+  },
+  "cveIds": [],
+  "teamHandle": "mariadb",
+  "teamName": "MariaDB",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3891337",
+  "vulnerabilityInformation": "A heap buffer overflow vulnerability was discovered in the ODBC driver's SQLGetDescRec and SQLGetDescRecW functions. These functions incorrectly used a statement handle macro on a descriptor handle, causing writes 13 bytes past the end of a 720-byte descriptor allocation. On standard builds, this memory corruption was sufficient to trigger heap consistency checks and crash the process. Additionally, a portion of the buffer was filled with server-supplied version information, which allowed a network attacker to influence the offset of a secondary write operation. The vulnerability affected the current master branch of the driver and was confirmed to cause crashes and memory corruption.",
+  "fetchedAt": "2026-11-08T12:31:00.567641+00:00"
+}

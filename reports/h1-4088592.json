@@ -1,0 +1,17 @@
+{
+  "h1Id": 4088592,
+  "title": "CPU-based Denial of Service in translation-finder via O(N\u00b2) per-result wildcard mask matching",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-05T09:51:14.811Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Uncontrolled Resource Consumption"
+  },
+  "cveIds": [],
+  "teamHandle": "weblate",
+  "teamName": "Weblate",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4088592",
+  "vulnerabilityInformation": "A CPU-based denial of service vulnerability was identified in a translation file discovery library. The vulnerability resulted from inefficient algorithmic complexity in wildcard mask matching operations. When processing directories or archives containing multiple files sharing the same suffix, the discovery function performed on the order of N squared fnmatch operations. This was caused by bucket-scanning logic that was repeated once per discovered result rather than being performed once per mask. The vulnerability affected properties-style and JSON file backends but not Gettext format files. The inefficiency persisted even when discovery produced zero results, making pre-filtering ineffective as a mitigation. Processing 4,000 files took approximately 11 seconds of CPU time, while 8,000 files required around 46 seconds. The vulnerability was exploitable through the library's public discovery interface when integrated into web applications that executed the discovery process synchronously within request handling.",
+  "fetchedAt": "2026-11-08T12:31:00.567353+00:00"
+}
