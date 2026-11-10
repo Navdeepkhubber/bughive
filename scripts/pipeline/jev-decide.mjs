@@ -133,7 +133,7 @@ const NEXT_ACTIONS = {
   select_and_test: "Build the hypothesis prompt and check selected skills against concrete recon evidence, prioritizing JEV's chosen skill.",
   prefilter: "Call pre_validation_filter on each hypothesis. Write hypotheses-pass.json.",
   falsify: "Spawn the falsifier subagent on hypotheses-pass.json. Write hypotheses-real.json.",
-  prove: "Prove each real hypothesis with the validator for its bug class: validate_by_class (timing/boolean/redirect/OOB/browser-XSS, or execute_repro when the skill authored runnable Steps). The generic validate_finding only records a response difference and never confirms a vulnerability. Doc-only Steps are inconclusive. Write validated.json only for class-specific proof or an execute_repro confirmation.",
+  prove: "Prove each real hypothesis with the validator for its bug class: validate_by_class (timing/boolean/redirect/OOB/browser-XSS, or execute_repro when the skill authored runnable Steps). Blind SSRF/XXE/JNDI polls the self-hosted collaborator (BUGHIVE_COLLABORATOR_URL) through validate_oob; one HTTP or DNS callback stays a lead until two independent non-DNS signals agree. The generic validate_finding only records a response difference and never confirms a vulnerability. Doc-only Steps are inconclusive. Write validated.json only for class-specific proof or an execute_repro confirmation.",
   chain: "Call build_chain on validated.json. Write chains.json.",
   report: "Call write_report once per validated finding. Write reports/report-<id>.md.",
   quality: "Spawn the quality-gate subagent. Copy passing reports to reports/approved/.",
@@ -1185,7 +1185,7 @@ export function buildExecutor(decision, domain) {
       fallback_plugin: "validate_finding",
       repro_route: "execute_repro",
       plugin_note:
-        "Call validate_by_class with {bugClass, spec}. When the loaded skill has a steps field, pass it as spec.steps (or spec.skillMarkdown) with spec.baseUrl and spec.scope so execute_repro runs the authored request. Runnable Steps are confirmed only when route is execute_repro and result is confirmed. A doc-only block or a missing machine-checkable condition is inconclusive and must not be written into validated.json. A class reported as 'manual' (IDOR/CSRF/ATO/takeover) needs independent proof. validate_finding records observedDifference only and must never populate validated.json by itself.",
+        "Call validate_by_class with {bugClass, spec}. When the loaded skill has a steps field, pass it as spec.steps (or spec.skillMarkdown) with spec.baseUrl and spec.scope so execute_repro runs the authored request. Runnable Steps are confirmed only when route is execute_repro and result is confirmed. A doc-only block or a missing machine-checkable condition is inconclusive and must not be written into validated.json. For blind SSRF, XXE, or JNDI, oob_mint against BUGHIVE_COLLABORATOR_URL (self-hosted Interactsh only; public oast.* hosts and ProjectDiscovery Cloud are refused) and pass spec.session so this gate polls validate_oob. Do not invent interactions. One HTTP or DNS callback stays a lead; disposition confirm needs two independent non-DNS signals. A class reported as 'manual' (IDOR/CSRF/ATO/takeover) needs independent proof. validate_finding records observedDifference only and must never populate validated.json by itself.",
       input: `hunts/${d}/hypotheses-real.json`,
       write: `hunts/${d}/validated.json`,
       after,

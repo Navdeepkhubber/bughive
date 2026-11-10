@@ -67,7 +67,48 @@ if [ "$have_qsreplace" -eq 1 ] && [ "$have_httpx" -eq 1 ]; then
   trap cleanup_oob EXIT
 
   collab="${BUGHIVE_COLLABORATOR_URL:-}"
-  if [ -z "$collab" ] && command -v node >/dev/null 2>&1 && [ -f "$oob_cli" ]; then
+  oob_session="$out/oob-session.json"
+  oob_remote=0
+  collab_refused=0
+  # Coarse refuse before any client dial. The node guard is the precise check.
+  case "$collab" in
+    *oast.pro*|*oast.live*|*oast.site*|*oast.online*|*oast.fun*|*oast.me*|*projectdiscovery.io*|*interact.sh*)
+      collab_refused=1
+      ;;
+  esac
+  if [ "$collab_refused" -eq 1 ]; then
+    printf 'status=skipped\nhits=0\nreason=public-collaborator-refused\n' > "$out/ssrf-status.txt"
+    tools_skipped+=('{"tool":"ssrf-check","reason":"BUGHIVE_COLLABORATOR_URL points at a public OAST or ProjectDiscovery Cloud host. Refused before any request."}')
+    collab=""
+  elif [ -n "$collab" ] && command -v node >/dev/null 2>&1 && [ -f "$oob_cli" ]; then
+    guard_json="$(node "$oob_cli" guard --server "$collab" 2>/dev/null || printf '%s\n' '{"allowed":false,"reason":"guard-error"}')"
+    guard_allowed="$(printf '%s' "$guard_json" | python3 -c 'import json,sys; print("yes" if json.load(sys.stdin).get("allowed") else "no")' 2>/dev/null || echo no)"
+    if [ "$guard_allowed" != "yes" ]; then
+      collab_refused=1
+      printf 'status=skipped\nhits=0\nreason=public-collaborator-refused\n' > "$out/ssrf-status.txt"
+      tools_skipped+=('{"tool":"ssrf-check","reason":"BUGHIVE_COLLABORATOR_URL was refused by the self-hosted collaborator guard. No request was sent."}')
+      collab=""
+    else
+      token_args=()
+      if [ -n "${BUGHIVE_COLLABORATOR_TOKEN:-}" ]; then
+        token_args=(--token "$BUGHIVE_COLLABORATOR_TOKEN")
+      fi
+      mint_json="$(node "$oob_cli" interactsh-mint --server "$collab" "${token_args[@]}" --session "$oob_session" 2>/dev/null || true)"
+      mint_url="$(printf '%s' "$mint_json" | python3 -c 'import json,sys
+try:
+    data=json.load(sys.stdin)
+except Exception:
+    data={}
+print(data.get("url","") if data.get("ok") else "")' 2>/dev/null || true)"
+      if [ -n "$mint_url" ]; then
+        collab="$mint_url"
+        oob_remote=1
+        tools_run+=("interactsh")
+        log "self-hosted interactsh payload planted (candidate only; prove still requires two non-DNS signals)"
+      fi
+    fi
+  fi
+  if [ "$collab_refused" -eq 0 ] && [ -z "$collab" ] && command -v node >/dev/null 2>&1 && [ -f "$oob_cli" ]; then
     node "$oob_cli" serve --port "$oob_port" --log "$oob_log" >/dev/null 2>&1 &
     oob_pid=$!
     sleep 1
@@ -81,12 +122,17 @@ if [ "$have_qsreplace" -eq 1 ] && [ "$have_httpx" -eq 1 ]; then
 
   # httpx -fr records the payloaded requests that were SENT, not OOB callbacks.
   # A stale vuln-ssrf from an earlier run must not be promoted either.
+  # status=confirmed here is a recon candidate. The prove gate still demands two
+  # independent non-DNS signals before a blind class is a finding.
   rm -f "$out/vuln-ssrf"
   if [ -n "$collab" ]; then
     mkdir -p "$out/provenance"
     timeout 300 bash -c "cat '$param_urls' | qsreplace '$collab' | httpx -t '$httpx_threads' -rl '$httpx_rate' -fr -silent -o '$out/provenance/ssrf-sent.txt'" 2>/dev/null || true
     : > "$out/oob-hits"
-    if [ -f "$oob_log" ]; then
+    if [ "$oob_remote" -eq 1 ] && [ -f "$oob_session" ]; then
+      node "$oob_cli" interactsh-poll --session "$oob_session" --format urls > "$out/oob-hits" 2>/dev/null || true
+      node "$oob_cli" interactsh-deregister --session "$oob_session" >/dev/null 2>&1 || true
+    elif [ -f "$oob_log" ]; then
       node "$oob_cli" poll --log "$oob_log" --format urls > "$out/oob-hits" 2>/dev/null || true
     fi
     # One integer. grep -c already prints 0 when nothing matches; do not
@@ -106,7 +152,7 @@ if [ "$have_qsreplace" -eq 1 ] && [ "$have_httpx" -eq 1 ]; then
     fi
     cleanup_oob
     oob_pid=""
-  else
+  elif [ "$collab_refused" -eq 0 ]; then
     printf 'status=skipped\nhits=0\n' > "$out/ssrf-status.txt"
     tools_skipped+=('{"tool":"ssrf-check","reason":"no collaborator available: node or oob-cli missing and BUGHIVE_COLLABORATOR_URL unset. Blind SSRF/XXE/JNDI were NOT tested."}')
   fi

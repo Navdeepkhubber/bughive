@@ -8,6 +8,10 @@
  *   node oob-cli.mjs serve --port 8787 [--dns-port 5353] [--log /path/oob.jsonl]
  *   node oob-cli.mjs poll  --log /path/oob.jsonl [--token TOKEN] [--format json|urls]
  *   node oob-cli.mjs tokens --log /path/oob.jsonl
+ *   node oob-cli.mjs guard --server URL
+ *   node oob-cli.mjs interactsh-mint --server URL [--token T] [--session FILE]
+ *   node oob-cli.mjs interactsh-poll --session FILE [--format json|urls|jsonl]
+ *   node oob-cli.mjs interactsh-deregister --session FILE
  *
  * `serve` runs in the foreground (background it with `&` from bash) and appends one JSON
  * line per interaction. Loopback-only by default: a loopback collaborator catches SSRF that
@@ -18,7 +22,8 @@
 import { createServer } from "node:http";
 import { createSocket } from "node:dgram";
 import { randomBytes } from "node:crypto";
-import { appendFileSync, readFileSync, existsSync, writeFileSync } from "node:fs";
+import { appendFileSync, readFileSync, existsSync, writeFileSync, writeSync } from "node:fs";
+import { assertSelfHostedCollaborator, InteractshClient } from "./interactsh.js";
 
 const argv = process.argv.slice(2);
 const cmd = argv[0] || "help";
@@ -53,7 +58,64 @@ function parseDnsQuestion(buf) {
   }
 }
 
-if (cmd === "serve") {
+function emit(code, obj) {
+  writeSync(1, `${JSON.stringify(obj)}\n`);
+  process.exit(code);
+}
+
+async function interactshCli() {
+  if (cmd === "guard") {
+    try {
+      const pinned = assertSelfHostedCollaborator(flag("server", ""));
+      emit(0, { allowed: true, host: pinned.hostname, server_root: pinned.serverRoot });
+    } catch (error) {
+      emit(3, { allowed: false, reason: error.message });
+    }
+  }
+  if (cmd === "interactsh-mint") {
+    const server = flag("server", "");
+    try {
+      const pinned = assertSelfHostedCollaborator(server);
+      if (!pinned.serverRoot) emit(0, { ok: false, reason: "not-a-server-root" });
+      const client = new InteractshClient({ serverUrl: server, token: flag("token", "") });
+      await client.register();
+      const planted = client.mintPayload();
+      const sessionPath = flag("session");
+      if (sessionPath) writeFileSync(sessionPath, JSON.stringify(client.session()), { mode: 0o600 });
+      emit(0, { ok: true, url: planted.url, token: planted.token, dns_name: planted.dnsName });
+    } catch (error) {
+      emit(0, { ok: false, reason: error.message });
+    }
+  }
+  if (cmd === "interactsh-poll") {
+    const sessionPath = flag("session");
+    const session = JSON.parse(readFileSync(sessionPath, "utf8"));
+    const client = InteractshClient.resume(session);
+    const items = await client.poll();
+    const fmt = flag("format", "json");
+    if (fmt === "urls") {
+      const lines = items.map((item) => `${item.kind}\t${item.path || item.full_id || ""}\t${item.source_ip || ""}`).join("\n");
+      writeSync(1, lines.length ? `${lines}\n` : "");
+    } else if (fmt === "jsonl") {
+      writeSync(1, items.map((item) => JSON.stringify(item)).join("\n") + (items.length ? "\n" : ""));
+    } else {
+      writeSync(1, `${JSON.stringify({ count: items.length, interactions: items })}\n`);
+    }
+    process.exit(0);
+  }
+  if (cmd === "interactsh-deregister") {
+    const session = JSON.parse(readFileSync(flag("session"), "utf8"));
+    const client = InteractshClient.resume(session);
+    await client.deregister();
+    emit(0, { ok: true });
+  }
+}
+
+if (cmd === "guard" || cmd === "interactsh-mint" || cmd === "interactsh-poll" || cmd === "interactsh-deregister") {
+  interactshCli().catch((error) => {
+    emit(1, { ok: false, allowed: false, reason: error.message });
+  });
+} else if (cmd === "serve") {
   writeFileSync(logPath, "");
   const token = randomBytes(8).toString("hex");
   const record = (obj) => appendFileSync(logPath, JSON.stringify(obj) + "\n");
@@ -155,7 +217,7 @@ if (cmd === "serve") {
   );
 } else {
   process.stdout.write(
-    "usage: oob-cli.mjs serve|poll|tokens [--port N] [--dns-port N] [--log FILE] [--token T] [--public-host H] [--bind H]\n"
+    "usage: oob-cli.mjs serve|poll|tokens|guard|interactsh-mint|interactsh-poll|interactsh-deregister [--port N] [--dns-port N] [--log FILE] [--token T] [--public-host H] [--bind H] [--server URL] [--session FILE]\n"
   );
   process.exit(2);
 }
