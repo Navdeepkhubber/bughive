@@ -26,6 +26,7 @@
  */
 
 import { createHash } from "node:crypto";
+import { InteractshClient } from "../dsh-oob/interactsh.js";
 
 export const name = "validators";
 export const inject = ["tools"];
@@ -616,16 +617,63 @@ export function apply(ctx) {
           tag: res.validated ? "needs_chain" : null,
         });
       }
-      if (/^(ssrf|xxe|blind-xss|log4shell|jndi|blind-rce)$/.test(c)) {
-        if (!spec.token || spec.interactions === undefined) {
-          return pack({ validated: false, class: c, error: "need {token,interactions} from oob_wait/oob_poll" });
+      if (/^(ssrf|blind-ssrf|xxe|blind-xss|log4shell|jndi|blind-rce)$/.test(c)) {
+        let token = spec.token;
+        let interactions = spec.interactions;
+        let polled = false;
+        if (spec.session) {
+          try {
+            const client = InteractshClient.resume(spec.session);
+            interactions = await client.poll();
+            if (spec.token && spec.token !== client.correlationId) {
+              return pack({
+                validated: false,
+                class: c,
+                route: "validate_oob",
+                error: "token does not match interactsh session",
+                interaction_recorded: false,
+              });
+            }
+            token = token || client.correlationId;
+            polled = true;
+          } catch (error) {
+            return pack({
+              validated: false,
+              class: c,
+              route: "validate_oob",
+              error: `interactsh poll failed: ${error.message}`,
+              interaction_recorded: false,
+            });
+          }
         }
-        const proof = oobDecision(spec.token, spec.interactions);
+        if (!token || interactions === undefined) {
+          return pack({
+            validated: false,
+            class: c,
+            error: "need {token,interactions} from oob_wait/oob_poll or {token,session} to poll a self-hosted collaborator",
+          });
+        }
+        const proof = oobDecision(token, interactions);
         const kinds = proof.evidence?.kinds || [];
-        const signals = kinds.map((k) => ({ mode: k === "dns" ? "dns" : "http-oob", validated: true }));
+        const signals = kinds.map((k) => ({ mode: k === "dns" ? "dns" : k, validated: true }));
         if (spec.secondSignal?.mode) signals.push({ mode: spec.secondSignal.mode, validated: spec.secondSignal.validated !== false });
         if (!signals.length) signals.push({ mode: "oob", validated: proof.validated });
-        return pack({ route: "validate_oob", class: c, ...attachDisposition(c, proof, signals) });
+        const attached = attachDisposition(c, proof, signals);
+        const recorded = (attached.evidence?.interaction_count || 0) > 0;
+        if (attached.disposition !== "confirm") {
+          attached.validated = false;
+          if (recorded) {
+            attached.confidence = "low";
+            attached.note = `${attached.signal_gate?.reason || "not confirmed"}. Interaction was recorded and is not a finding.`;
+          }
+        }
+        return pack({
+          route: "validate_oob",
+          class: c,
+          ...attached,
+          interaction_recorded: recorded,
+          polled,
+        });
       }
       if (/^(xss|reflected-xss|stored-xss|dom-xss)$/.test(c)) {
         if (!spec.url) {

@@ -20,11 +20,17 @@
  * Binds to 127.0.0.1 by default. Reaching the internet requires an operator to bind a
  * public interface or front it with a tunnel, and to supply the externally reachable host
  * in `publicHost`. It never sends traffic to a target itself.
+ *
+ * When `BUGHIVE_COLLABORATOR_URL` (or oob_mint serverUrl) is an Interactsh server root,
+ * mint/poll/wait use plugins/dsh-oob/interactsh.js against that host only. A public
+ * oast.* or ProjectDiscovery Cloud host is refused. Payload URLs (a path other than
+ * `/`) stay on the local listener; recon-15 plants those strings itself.
  */
 
 import { createServer } from "node:http";
 import { createSocket } from "node:dgram";
 import { randomBytes } from "node:crypto";
+import { assertSelfHostedCollaborator, InteractshClient } from "./interactsh.js";
 
 export const name = "oob";
 export const inject = ["tools"];
@@ -50,7 +56,39 @@ export function parseDnsQuestion(buf) {
   }
 }
 
-/** Extract a minted token from a hostname, path, header value or DNS query. */
+/** Ephemeral loopback collaborator. Scan rules plant `url` and match on `hits`. */
+export async function listenLoopback() {
+  const hits = [];
+  const interactions = [];
+  const token = randomBytes(8).toString("hex");
+  const server = createServer((req, res) => {
+    const path = req.url || "/";
+    interactions.push({
+      kind: "http",
+      token,
+      path,
+      source_ip: req.socket.remoteAddress || "",
+      ts: new Date().toISOString(),
+      recorded: true,
+    });
+    hits.push(path);
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("ok");
+  });
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const { port } = server.address();
+  return {
+    url: `http://127.0.0.1:${port}/${token}`,
+    hits,
+    interactions,
+    token,
+    close: () => new Promise((resolve) => server.close(() => resolve())),
+  };
+}
+
 export function extractToken(text, tokens) {
   if (!text) return null;
   const hay = String(text).toLowerCase();
@@ -77,6 +115,7 @@ export function apply(ctx, config = {}) {
     tokens: new Map(), // token -> {note, createdAt}
     interactions: [],
     startedAt: null,
+    remote: null,
   };
 
   const baseUrl = () => `http://${cfg.publicHost || cfg.bindHost}:${cfg.httpPort}`;
@@ -186,13 +225,47 @@ export function apply(ctx, config = {}) {
   ctx.tools.register({
     name: "oob_mint",
     description:
-      "Mint a unique callback token and its URLs. Plant the returned url/dnsName in the payload under test (SSRF parameter, XXE SYSTEM entity, JNDI string, XSS payload), then use oob_wait to confirm.",
+      "Mint a unique callback token and its URLs. Plant the returned url/dnsName in the payload under test (SSRF parameter, XXE SYSTEM entity, JNDI string, XSS payload), then use oob_wait to confirm. When serverUrl or BUGHIVE_COLLABORATOR_URL is a self-hosted Interactsh root, the token is registered there and session is returned for validate_by_class to poll. Public oast.* and ProjectDiscovery Cloud hosts are refused.",
     parameters: {
       type: "object",
       properties: { note: { type: "string", description: "What this token is being planted in." } },
     },
     output: { schema: { type: "string" }, render: (_a, v) => [{ type: "text", text: v }] },
     async execute(args) {
+      const requested = args.serverUrl || cfg.collaboratorUrl || process.env.BUGHIVE_COLLABORATOR_URL || "";
+      if (requested) {
+        let pinned;
+        try {
+          pinned = assertSelfHostedCollaborator(requested);
+        } catch (error) {
+          return JSON.stringify({ ok: false, collaborator: "refused", error: error.message });
+        }
+        if (pinned.serverRoot) {
+          try {
+            if (!state.remote || state.remote.apiBase !== pinned.origin) {
+              const client = new InteractshClient({
+                serverUrl: `${pinned.origin}/`,
+                token: args.token || process.env.BUGHIVE_COLLABORATOR_TOKEN || "",
+              });
+              await client.register();
+              state.remote = client;
+            }
+            const planted = state.remote.mintPayload();
+            return JSON.stringify({
+              ok: true,
+              collaborator: "interactsh",
+              token: planted.token,
+              note: args.note || "",
+              url: planted.url,
+              urlHostOnly: planted.dnsName || new URL(planted.url).host,
+              dnsName: planted.dnsName,
+              session: state.remote.session(),
+            });
+          } catch (error) {
+            return JSON.stringify({ ok: false, collaborator: "interactsh", error: error.message });
+          }
+        }
+      }
       await startListener();
       const token = randomBytes(8).toString("hex");
       state.tokens.set(token, { note: args.note || "", createdAt: new Date().toISOString() });
@@ -219,6 +292,29 @@ export function apply(ctx, config = {}) {
     },
     output: { schema: { type: "string" }, render: (_a, v) => [{ type: "text", text: v }] },
     async execute(args) {
+      if (state.remote && (!args.token || args.token === state.remote.correlationId)) {
+        try {
+          let items = await state.remote.poll();
+          if (args.token) items = items.filter((i) => i.token === args.token);
+          if (args.since) items = items.filter((i) => i.ts > args.since);
+          return JSON.stringify({
+            listening: true,
+            collaborator: "interactsh",
+            started_at: state.startedAt,
+            total_recorded: items.length,
+            matching: items.length,
+            interactions: items.slice(-100),
+          });
+        } catch (error) {
+          return JSON.stringify({
+            listening: false,
+            collaborator: "interactsh",
+            error: error.message,
+            interactions: [],
+            matching: 0,
+          });
+        }
+      }
       let items = state.interactions;
       if (args.token) items = items.filter((i) => i.token === args.token);
       if (args.since) items = items.filter((i) => i.ts > args.since);
@@ -251,8 +347,11 @@ export function apply(ctx, config = {}) {
       const pollMs = Number.isFinite(args.pollMs) ? args.pollMs : 500;
       const deadline = Date.now() + timeoutMs;
       const found = [];
+      const remote = state.remote && args.token === state.remote.correlationId;
       while (Date.now() < deadline) {
-        const hits = state.interactions.filter((i) => i.token === args.token);
+        const hits = remote
+          ? await state.remote.poll().catch(() => [])
+          : state.interactions.filter((i) => i.token === args.token);
         if (hits.length) {
           found.push(...hits);
           break;
@@ -281,10 +380,19 @@ export function apply(ctx, config = {}) {
     output: { schema: { type: "string" }, render: (_a, v) => [{ type: "text", text: v }] },
     async execute() {
       const summary = {
-        tokens_minted: state.tokens.size,
+        tokens_minted: state.tokens.size + (state.remote ? 1 : 0),
         interactions: state.interactions.length,
         by_kind: state.interactions.reduce((a, i) => ((a[i.kind] = (a[i.kind] || 0) + 1), a), {}),
       };
+      if (state.remote) {
+        try {
+          await state.remote.deregister();
+          summary.interactsh = "deregistered";
+        } catch (error) {
+          summary.interactsh = error.message;
+        }
+        state.remote = null;
+      }
       await stopListener();
       return JSON.stringify({ stopped: true, ...summary });
     },

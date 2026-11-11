@@ -19,13 +19,13 @@ import { existsSync, readFileSync, writeFileSync, mkdtempSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import http from "node:http";
 import https from "node:https";
-import { createServer } from "node:http";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import tls from "node:tls";
 
+import { listenLoopback } from "../dsh-oob/index.js";
 import { scopeAllows } from "../dsh-scope-guard/index.js";
 import { decideTiming } from "../dsh-validators/index.js";
 import { PACK } from "./pack.js";
@@ -427,25 +427,6 @@ function adoptRecord(record) {
   return finding;
 }
 
-async function listenOob() {
-  const hits = [];
-  const server = createServer((req, res) => {
-    hits.push(req.url || "/");
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("ok");
-  });
-  await new Promise((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", resolve);
-  });
-  const { port } = server.address();
-  return {
-    url: `http://127.0.0.1:${port}/bughive-oob`,
-    hits,
-    close: () => new Promise((resolve) => server.close(() => resolve())),
-  };
-}
-
 async function scanSecrets(rule, paths) {
   const findings = [];
   const checks = [];
@@ -667,7 +648,7 @@ export async function runScan(opts = {}) {
   let oob = null;
   const needsOob = rules.some((rule) => JSON.stringify(rule.requests || []).includes("{{oob_url}}"));
   if (needsOob && base) {
-    oob = await listenOob();
+    oob = await listenLoopback();
     vars.oob_url = oob.url;
   }
 
