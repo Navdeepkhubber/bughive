@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: sca-advisory
 ## Trigger Conditions
 A lockfile or package manifest pins a dependency version.
@@ -14,3 +21,12 @@ None. This is a version check, not an exploit.
 Advisory id returned for the pinned version is a confirmed dependency finding.
 ## Example
 lodash 4.17.20 is inside published GHSA ranges fixed in 4.17.21.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

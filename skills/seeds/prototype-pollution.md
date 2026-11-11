@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: prototype-pollution
 ## Trigger
 Deep-merge/clone/extend functions, recursive JSON/query-string parsing.
@@ -20,3 +27,12 @@ Deep-merge/clone/extend functions, recursive JSON/query-string parsing.
 ?a[__proto__][polluted]=yes
 ## Triage
 RCE/authz bypass -> Critical. Pollution w/o clear sink -> Medium.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

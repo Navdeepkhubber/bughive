@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: nosql
 ## Trigger Conditions
 JSON or query objects passed into a document query (Mongo-style).
@@ -15,3 +22,12 @@ Operator keys from the client (`$ne`, `$gt`, `$where`) reach the matcher.
 Operator accepted and extra rows returned is high. A quoted operator that is searched as text is not.
 ## Example
 `/api/search?q[$ne]=x` returns every user; `q=nobody` returns none.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

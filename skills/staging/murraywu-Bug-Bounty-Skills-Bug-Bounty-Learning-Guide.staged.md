@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 <!-- harvested: murraywu/Bug-Bounty-Skills/Bug-Bounty-Learning-Guide/SKILL.md on 2026-10-23T20:17:15.480671+00:00 -->
 <!-- license: unspecified; author: murraywu; commit: df382e7429ce13ac66be91321c0f3a6bf58f10c0; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
@@ -480,3 +487,12 @@
 ---
 
 *Skill 版本：1.0 | 基于 Bug Bounty 课程提取 | 2026-04-02*
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

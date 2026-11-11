@@ -5,6 +5,10 @@
 ---
 name: application-archetypes
 description: "Instant recognition of any target's category (E-commerce, SaaS, Fintech, Social, Marketplace, CMS, Admin Panel) plus ready-made assets, roles, workflows, top logic bugs, and attack chains for each type. Load BEFORE starting any target. Integrates with app-model-builder and business-logic-hunter."
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # APPLICATION ARCHETYPES
@@ -54,3 +58,12 @@ Identify archetype → know assets, roles, workflows, and top bugs before sendin
 | `reference/hybrid-target-mapping.md` | Hybrid: أهداف متعددة الأركيتايبز |
 | `reference/first-5-tests-per-archetype.md` | أول 5 اختبارات لكل أركيتايب |
 | `reference/bounty-range-per-archetype.md` | نطاق الباونتي المتوقع لكل أركيتايب |
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

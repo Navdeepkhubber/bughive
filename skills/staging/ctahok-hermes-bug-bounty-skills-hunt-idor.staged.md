@@ -18,6 +18,10 @@ triggers:
   - vertical privilege escalation
   - object level authorization
 category: security
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 # IDOR / Broken Object Level Authorization Hunting
 
@@ -283,3 +287,12 @@ Before reporting an IDOR:
 - [ ] For modification IDOR: confirmed the change persisted after refresh
 - [ ] For UUID: documented whether enumeration is practical
 - [ ] Impact clearly quantified: "Attacker can read X records of type Y belonging to any user"
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

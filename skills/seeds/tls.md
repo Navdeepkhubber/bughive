@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: tls
 ## Trigger Conditions
 HTTPS host in scope.
@@ -16,3 +23,12 @@ None. Passive handshake plus the verifier's own output.
 Confirmed only from the verifier text or the TLS alert. Do not infer revocation from the hostname.
 ## Example
 expired.badssl.com fails verification with certificate has expired.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

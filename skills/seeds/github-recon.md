@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: github-recon
 ## Keywords to grep
 PASSWORD, PWD, APIKEY, API_KEY, TOKEN, ACCESS_TOKEN, SECRETKEY, CLIENT_SECRET, DB_PASSWORD, ROOT_PASSWORD, JDBC_PASSWORD, JIRA_PASSWORD, MAILGUN_KEY, FIREBASE_KEY, SECRET, @target.com, JENKINS, SSH, FTP, AWS, BUCKET, GITHUB_TOKEN, OAUTH, AUTHORIZATION, LDAP
@@ -9,3 +16,12 @@ PASSWORD, PWD, APIKEY, API_KEY, TOKEN, ACCESS_TOKEN, SECRETKEY, CLIENT_SECRET, D
 5. 2FA bypass: github.com/xYantix/snowdump
 ## Triage
 AWS/DB creds → Critical. Live API key → Med/High.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: cache-poisoning
 ## Trigger
 Any response passing through a shared cache (CDN, reverse proxy) where
@@ -23,3 +30,12 @@ every later visitor of that cache key.
 ## Triage
 Poisoned response served to others (XSS/redirect/leak) -> Critical/High.
 Key confusion, no attacker content -> Medium.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

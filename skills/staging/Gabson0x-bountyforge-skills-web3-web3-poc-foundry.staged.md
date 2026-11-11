@@ -5,6 +5,10 @@
 ---
 name: web3-poc-foundry
 description: Complete Foundry PoC writing guide + all cheatcodes + DeFiHackLabs reproduction patterns. Use this when building a proof of concept exploit, setting up a fork test, using Foundry cheatcodes, or reproducing a known DeFi hack for learning.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # PoC WRITING + FOUNDRY COMPLETE REFERENCE
@@ -1140,3 +1144,12 @@ address constant ETH_USD_FEED = 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
 ---
 
 → NEXT: [05-triage-report-examples.md](05-triage-report-examples.md)
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

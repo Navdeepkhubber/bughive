@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: 2fa-bypass
 ## Triggers
 Login has a 2FA step (OTP, TOTP, SMS, email).
@@ -20,3 +27,12 @@ Client trust, missing rate limit, non-expiring tokens, response manipulation.
 14. DoS: register as attacker, enable 2FA, change email to victim's
 ## Triage
 Full bypass -> Critical. Brute force / response manipulation -> High.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

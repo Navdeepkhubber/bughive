@@ -5,6 +5,10 @@
 ---
 name: web2-recon
 description: Web2 recon pipeline — subdomain enum, URL crawling, JS analysis, temp emails, directory fuzzing. Trust-first asset discovery.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # WEB2 RECON — Trust-First Asset Discovery
@@ -198,3 +202,12 @@ If a target shows nothing interesting after 5 minutes, move on. Don't burn hours
 **< 4:** Skip | **4-5:** If nothing better | **6-8:** 1-3 days | **>= 9:** Up to 1 week
 
 Next step: [[Trust Map]] → [[Methodology]]
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

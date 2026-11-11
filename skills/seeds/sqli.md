@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: sqli
 ## Trigger Conditions
 DB-backed inputs: search, filters, sort, ids, login.
@@ -19,3 +26,12 @@ Inline `/**/` · case mix · whitespace alt · encoding chains
 Data extraction Critical · Blind time High · Auth bypass Critical
 ## Example
 Sort param concatenated → boolean SQLi → admin creds dump.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

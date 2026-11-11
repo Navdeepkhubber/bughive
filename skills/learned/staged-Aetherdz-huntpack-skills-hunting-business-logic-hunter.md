@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: business-logic
 ## Trigger Conditions
 A multi-step flow.
@@ -140,3 +147,11 @@ Fuzz IDs: for i in {1..N}; do curl /api/resource/$i; done
 | Wallet Manipulation | `reference/wallet-balance-manipulation.md` |
 | Workflow Bypass | `reference/workflow-bypass.md` |
 
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

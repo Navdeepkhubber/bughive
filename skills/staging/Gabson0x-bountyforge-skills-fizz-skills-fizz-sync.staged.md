@@ -5,6 +5,10 @@
 ---
 name: fizz-sync
 description: Reconcile an existing Fizz harness with a changed source tree. Detects added/removed/changed contract functions, quarantines stale properties, regenerates drifted handler stubs, and refreshes the snapshot. Trigger on "fizz-sync", "resync fuzzing", "sync fuzz harness", "refresh fuzzing properties", "fuzzing drift check".
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # Fizz Sync Skill — fizz-sync
@@ -330,3 +334,12 @@ Tell the user:
 - Never flip a `[ ]` or `[-]` checkbox to `[x]` in this skill. Only `[x] → [~]` for quarantining is allowed.
 - Always back up files before destructive edits. The `.pre-sync.bak` files are the user's safety net.
 - Always refresh the snapshot at the end of a successful `--apply` run, and NEVER refresh it mid-run before Step 6 passes — that would bake in the broken state.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

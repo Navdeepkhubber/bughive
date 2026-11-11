@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: bughunter (master)
 Hunt for real, exploitable bugs. Quality > quantity.
 
@@ -12,3 +19,12 @@ Hunt for real, exploitable bugs. Quality > quantity.
 
 Never: submit unvalidated findings, test out of scope, exceed budget,
 auto-escalate without approval.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

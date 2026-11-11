@@ -5,6 +5,10 @@
 ---
 name: web3-bug-classes
 description: Complete reference for all 10 DeFi smart contract bug classes. Use this when hunting for specific vulnerability types, need attack patterns for accounting desync, access control, incomplete path, off-by-one, oracle manipulation, ERC4626 vaults, reentrancy, flash loans, signature replay, or proxy/upgrade bugs.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # BUG CLASSES — DeFi Smart Contract Vulnerabilities
@@ -1124,3 +1128,12 @@ grep -rn "slot\|__gap\|ERC1967Storage" contracts/
 ---
 
 → NEXT: [03-grep-arsenal.md](03-grep-arsenal.md)
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

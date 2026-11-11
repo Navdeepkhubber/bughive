@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: password-reset-flow
 ## Triggers
 Forgot-password / reset-password endpoints.
@@ -21,3 +28,12 @@ Forgot-password / reset-password endpoints.
 {"username":" victim ","email":"attacker@x"}
 ## Triage
 Reset-token takeover -> Critical. Email-enumeration leak -> Low/Medium.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

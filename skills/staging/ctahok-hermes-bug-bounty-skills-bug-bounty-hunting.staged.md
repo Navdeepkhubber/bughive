@@ -20,6 +20,10 @@ triggers:
   - look for bugs in
   - assess the security of
 category: security
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 # Bug Bounty Hunting — Master Orchestrator
 
@@ -352,3 +356,12 @@ For Immunefi: PoC-first — working code is primary deliverable.
 - **`redteam-mindset`** — Red team discipline, self-throttling anti-patterns, engagement cadence
 - **`references/original-skill-index.md`** — Full index of all 51 original skills, with adaptation status
 - Each `hunt-*` skill — per-class methodology, detection patterns, payloads, bypass tables
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

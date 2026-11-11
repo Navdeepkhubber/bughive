@@ -5,6 +5,10 @@
 ---
 name: bountyforge
 description: Bug bounty and security audit engine — trust-first iterative hunting. The "3rd eye" for pentesting.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # BountyForge — The 3rd Eye
@@ -102,3 +106,12 @@ Full detail: [[Methodology]]
 - **1-HOUR RULE** — stuck with no progress? Switch context
 - **20-MINUTE ROTATION** — "Am I making progress?" every 20 min
 - **No map → no hunt** — understand the target before attacking. See [[Methodology]]
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

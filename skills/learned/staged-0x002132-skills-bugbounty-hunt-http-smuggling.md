@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: request-smuggling
 ## Trigger Conditions
 A front-end and back-end that disagree on request length.
@@ -36,3 +43,12 @@ The local fixture returns a different saved response for the probe than for the 
   "staged": "0x002132-skills-bugbounty-hunt-http-smuggling.staged.md"
 }
 ```
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

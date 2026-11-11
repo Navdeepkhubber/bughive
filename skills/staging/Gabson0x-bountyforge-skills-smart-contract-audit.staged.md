@@ -5,6 +5,10 @@
 ---
 name: smart-contract-audit
 description: Comprehensive smart contract security audit framework with multi-expert analysis. Use for full audits of Ethereum / EVM Solidity and Vyper, Solana / SVM Anchor Rust, TON / FunC / Tact, or Sui / Move projects.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # Smart Contract Security Audit Framework
@@ -366,3 +370,12 @@ Read `$SKILL_DIR/triager.md` via bash before starting triager validation.
 ## 7. Report Generation
 
 Read `$SKILL_DIR/report-template.md` via bash before generating the final report.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

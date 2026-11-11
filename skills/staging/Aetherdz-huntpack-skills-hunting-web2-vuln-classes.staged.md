@@ -5,6 +5,10 @@
 ---
 name: web2-vuln-classes
 description: Complete reference for 24 web2 bug classes — root causes, detection patterns, bypass tables, exploit techniques, and real paid examples. Covers IDOR, auth bypass, XSS, SSRF (11 bypass methods), SQLi, business logic, race conditions, OAuth/OIDC, file upload (10 bypasses), GraphQL, LLM/AI, SSTI, subdomain takeover, API misconfig (mass assignment, JWT, prototype pollution, CORS), ATO taxonomy, HTTP smuggling, cache poisoning, MFA bypass, SAML, error disclosure/debug endpoints, CSS injection, LFI→RCE (php://filter, iconv chains, log poisoning, .user.ini), and insecure deserialization (PHP phar chains, Java ysoserial, Python pickle, Node node-serialize). Use when hunting a specific vuln class or studying what makes bugs pay.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # WEB2 BUG CLASSES — 24 Classes
@@ -59,3 +63,12 @@ Root cause, pattern, bypass table, chaining opportunity, real paid examples.
 | 24. Insecure Deserialization | `reference/24-insecure-deserialization.md` |
 | False Positive Guidance Per Class | `reference/false-positive-guidance.md` |
 | Report Templates Per Class | `reference/report-templates.md` |
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

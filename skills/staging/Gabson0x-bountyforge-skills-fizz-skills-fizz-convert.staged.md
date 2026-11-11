@@ -5,6 +5,10 @@
 ---
 name: fizz-convert
 description: Convert English-language properties in PROPERTIES.md (produced by the Fizz skill) into Solidity assertions inside the existing fuzz harness, then flip their checkboxes. Trigger on "fizz-convert", "convert properties", "implement properties from PROPERTIES.md", "convert PROPERTIES.md to Solidity".
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # Property Conversion Skill — fizz-convert
@@ -226,3 +230,12 @@ Build: PASS / FAIL
 ```
 
 Do NOT mark a property `[x]` unless its Solidity exists, the build passes, and (for SP-*) it is actually called from a handler.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

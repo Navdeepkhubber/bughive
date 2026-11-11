@@ -5,6 +5,10 @@
 ---
 name: web2-recon
 description: Web2 recon pipeline — subdomain enumeration (subfinder, Chaos API, assetfinder), live host discovery (dnsx, httpx), URL crawling (katana, waybackurls, gau), directory fuzzing (ffuf), JS analysis (LinkFinder, SecretFinder), continuous monitoring (new subdomain alerts, JS change detection, GitHub commit watch). Use when starting recon on any web2 target or when asked about asset discovery, subdomain enum, or attack surface mapping.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # WEB2 RECON PIPELINE
@@ -37,3 +41,12 @@ If a target shows nothing interesting after 5 minutes of recon, move on. See `re
 | **Subdomain Boost** (alterx + puredns) | `reference/subdomain-boost.md` |
 | **SSL + Favicon Recon** (tlsx + shodan) | `reference/ssl-favicon-recon.md` |
 | **HTTP Smuggling Check** (في الـ recon) | `reference/http-smuggling-check.md` |
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

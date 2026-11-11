@@ -18,6 +18,10 @@ triggers:
   - security payloads
   - testing payloads
 category: security
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 # Security Arsenal — Payload Library
 
@@ -509,3 +513,12 @@ Check /forgot-password flow — does it bypass MFA?
 ```
 Initiate login with MFA → intercept → remove MFA requirement from request
 ```
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

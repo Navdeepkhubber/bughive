@@ -17,6 +17,10 @@ triggers:
   - unrestricted file upload
   - test upload functionality
 category: security
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 # File Upload Vulnerability Hunting
 
@@ -186,3 +190,12 @@ Before reporting:
 - [ ] For ZIP slip: path traversal to sensitive file confirmed
 - [ ] File persists after page refresh (not temp/transient)
 - [ ] Impact clearly described
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

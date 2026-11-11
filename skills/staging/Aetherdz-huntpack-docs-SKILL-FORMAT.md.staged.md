@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 <!-- harvested: Aetherdz/huntpack/docs/SKILL-FORMAT.md on 2026-10-23T20:17:14.753083+00:00 -->
 <!-- license: MIT; author: Aether-DZ; commit: f22ff6d30db803591ecad9eb91c619ddfadbbc9a; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
@@ -65,3 +72,12 @@ python3 scripts/validate-skills.py skills/<category>/<skill-name>
 ```
 
 CI runs this on every PR. See `CONTRIBUTING.md` for the submission process.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

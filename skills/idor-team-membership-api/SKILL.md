@@ -1,6 +1,10 @@
 ---
 name: idor-team-membership-api
 description: Hunt and validate IDOR where team, group, or workspace membership data is returned at the API level by ID without an ownership or membership check. Use when the target has teams, organizations, workspaces, projects, or groups and an API returns members, roles, or invites keyed by an identifier, or the user mentions IDOR, object-level authorization, broken access control, or team member enumeration.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # IDOR: Team Membership Returned by API ID
@@ -58,3 +62,12 @@ The handler authorizes the *caller* (valid session) but not the *object*. It loa
 
 ## 8 Example
 Nextcloud, HackerOne #3484601 (Low, IDOR). Team membership information was returned at the API level based on the team ID. Authenticated user sent a team-scoped API request with a foreign team ID and received that team's membership data because the endpoint never verified the caller belonged to the team. Fix: enforce membership on every object read, not just on writes.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

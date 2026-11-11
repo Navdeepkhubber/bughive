@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: csrf-token-bypass
 ## Vectors
 1. Remove entire param + value; remove only the value (csrf=)
@@ -19,3 +26,12 @@
 15. Static+dynamic token part; logout CSRF chained with forum/social action
 ## Triage
 Sensitive action -> High/Critical. Logout only -> Low.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

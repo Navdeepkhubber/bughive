@@ -17,6 +17,10 @@ triggers:
   - auth bypass techniques
   - bypass authentication
 category: security
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 # Authentication Bypass Hunting
 
@@ -203,3 +207,12 @@ Before reporting auth bypass:
 - [ ] Bypass works from incognito / different browser
 - [ ] Bypass grants access to authenticated data or functionality
 - [ ] Impact clear: "Attacker can access admin panel without authentication"
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE/target in skill; needs teardown or stays unverified
+<!-- bughive-repro-end -->

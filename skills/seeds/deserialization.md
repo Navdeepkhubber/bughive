@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 # SKILL: deserialization
 ## Trigger
 Base64/binary blobs in cookies/hidden fields/API bodies that look like
@@ -22,3 +29,12 @@ a dangerous side effect on construction (gadget chain).
 ## Triage
 Confirmed RCE -> Critical, always. Gadget-shaped input on an old lib
 version, unconfirmed -> High.
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

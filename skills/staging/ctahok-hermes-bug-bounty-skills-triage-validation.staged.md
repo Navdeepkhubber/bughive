@@ -16,6 +16,10 @@ triggers:
   - check if this is a real bug
   - what severity is this
 category: security
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 # Triage & Validation — The 7-Question Gate
 
@@ -211,3 +215,12 @@ If you can't build the chain today → **KILL IT.**
 - Stack traces in debug mode
 - Information disclosure of non-sensitive data
 - Clickjacking on non-sensitive pages
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

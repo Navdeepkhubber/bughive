@@ -1,3 +1,10 @@
+---
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
+---
+
 <!-- harvested: Gabson0x/bountyforge/skills/godmod/SKILL.md on 2026-10-23T20:17:17.066629+00:00 -->
 <!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
@@ -63,3 +70,12 @@ See also: [[Methodology]], [[Wild Mode]], [[Trust Map]], [[A→B Chains]]
 - If asked to audit, check the spec AND the implementation AND the tests.
 - If something looks fine on the surface, check the edge cases: overflow, underflow, reentrancy, replay, race condition, integer coercion.
 EOF
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

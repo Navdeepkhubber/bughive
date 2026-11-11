@@ -6,6 +6,10 @@
 name: web3-case-study-role-misconfig
 description: Case study - role misconfiguration bug class applied to a yield aggregator protocol. Use as a template for applying all 10 bug classes to a single target.
 Contains: architecture walkthrough, all bug class verdicts, 2 findings (DISTRIBUTOR_ROLE never granted, dust harvest DoS), complete PoC templates, report drafts, validation steps.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # CASE STUDY: ROLE MISCONFIGURATION IN A YIELD AGGREGATOR
@@ -347,3 +351,12 @@ grep -r "grantRole" ./src/
 ---
 
 → NEXT: [08-ai-tools.md](08-ai-tools.md)
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

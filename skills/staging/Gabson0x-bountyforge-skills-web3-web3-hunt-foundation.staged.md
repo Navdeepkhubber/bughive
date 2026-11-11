@@ -6,6 +6,10 @@
 name: web3-hunt-foundation
 description: Hunter mindset, recon setup, and target scoring for Web3 bug bounty. Use at the START of any new protocol hunt - scoring targets, setting up environment, understanding architecture.
 Contains: attack/triage mental models, 10-point scorecard (score ≥6 to proceed), crown jewels approach, static analysis setup, recon checklist.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # WEB3 HUNT FOUNDATION
@@ -287,3 +291,12 @@ STAKING / RESTAKING:
 ---
 
 → NEXT: [02-bug-classes.md](02-bug-classes.md)
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->

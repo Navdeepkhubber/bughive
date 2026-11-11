@@ -5,6 +5,10 @@
 ---
 name: web3-solidity-audit-mcp
 description: MCP server integrating Slither + Aderyn + SWC patterns into Claude Code for smart contract auditing. Use when analyzing Solidity files, running DeFi-specific detectors, or generating invariants. 10 MCP tools, 86 SWC detectors, DeFi preset pack, CI/CD workflow.
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # SOLIDITY AUDIT MCP
@@ -402,3 +406,12 @@ run_tests(projectRoot: ".", contractName: "ErnVault")
 ---
 
 → NEXT: [00-START-HERE.md](00-START-HERE.md)
+
+<!-- bughive-repro-start -->
+## Steps to reproduce
+
+> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
+
+### What's missing
+- no CVE mapped
+<!-- bughive-repro-end -->
