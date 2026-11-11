@@ -1,8 +1,5 @@
 ---
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
+repro: technique-authored
 ---
 
 # SKILL: idor
@@ -29,11 +26,35 @@ id, uid, user, userid, email, username
 ## Triage
 PII → High. Auth bypass → Critical.
 
-<!-- bughive-repro-start -->
 ## Steps to reproduce
 
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
 
-### What's missing
-- no CVE/target in skill; needs teardown or stays unverified
-<!-- bughive-repro-end -->
+> Status: `repro: technique-authored` — authored and reviewed for correctness against the IDOR/BOLA class. Not executed against a live host; live confirmation needs an in-scope target.
+
+
+### Preconditions
+- An object-scoped endpoint keys access on an identifier in the path/query/body (see `## Params`: `id`, `uid`, `user`, `userid`, etc.).
+- You control two distinct test identities: attacker account A (its session/token) and victim account B (you know B's object identifier and its expected private data).
+
+
+### Steps
+1. As account B, access one of B's own objects and record its identifier and a piece of data unique to B (e.g. B's email).
+2. As account A, replay the exact same request but substitute B's identifier, keeping A's own authenticated session/token.
+3. Compare the response: does A receive B's data?
+
+
+Example request (placeholder host `TARGET`; `A.session`/`A.token` are account A's own credentials, `B_OBJECT_ID` is B's object):
+```
+GET /api/v1/users/B_OBJECT_ID/profile HTTP/1.1 Host: TARGET Authorization: Bearer A.token
+
+
+```
+(also test the array/object-wrap, HPP, method-swap, and `.json`-suffix variants in `## Bypass techniques`.)
+
+
+### Success condition (machine-checkable)
+- Response status is 200 AND the body contains data belonging to account B (the unique field recorded in step 1, e.g. B's email/PII), while the request carried only account A's credentials. Cross-tenant data return under A's auth confirms IDOR/BOLA.
+
+
+### False-positive guard
+- NOT a finding if the endpoint returns 401/403/404, returns A's own object (server ignored the swapped id and scoped to the session), returns empty/redacted data, or returns only non-sensitive data that is intentionally public. Also confirm the identifier truly belongs to B and not to A — verify against the baseline from step 1.
