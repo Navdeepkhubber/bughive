@@ -1,23 +1,23 @@
 ---
 name: zero-wire-php2shell
-description: php2shell is a Cloudflare Radar Zero Wire briefing covering CVE-2026-109618, CVE-2026-109619, CVE-2026-115560, published Fri, 30 Oct 2026 00:00:00 GMT. Tags: Needs attention, PHP, Runtime, Memory corruption, RCE, Session.
+description: php2shell is a Cloudflare Radar Zero Wire briefing covering CVE-2026-109618, CVE-2026-109619, CVE-2026-115560, published Tue, 03 Nov 2026 00:00:00 GMT. Tags: Needs attention, Memory corruption, PHP, RCE, Runtime, Session.
 repro: unverified
 ---
 
 # php2shell
 
-php2shell is a Cloudflare Radar Zero Wire briefing covering CVE-2026-109618, CVE-2026-109619, CVE-2026-115560, published Fri, 30 Oct 2026 00:00:00 GMT.
-Tags: Needs attention, PHP, Runtime, Memory corruption, RCE, Session.
+php2shell is a Cloudflare Radar Zero Wire briefing covering CVE-2026-109618, CVE-2026-109619, CVE-2026-115560, published Tue, 03 Nov 2026 00:00:00 GMT.
+Tags: Needs attention, Memory corruption, PHP, RCE, Runtime, Session.
 
 - CVE IDs: CVE-2026-109618, CVE-2026-109619, CVE-2026-115560
-- Link: https://radar.cloudflare.com/security/zero-wire/php2shell
-- Tags: Needs attention, PHP (https://radar.cloudflare.com/security/zero-wire/tag/php), Runtime (https://radar.cloudflare.com/security/zero-wire/tag/runtime), Memory corruption (https://radar.cloudflare.com/security/zero-wire/tag/memory-corruption), RCE (https://radar.cloudflare.com/security/zero-wire/tag/rce), Session (https://radar.cloudflare.com/security/zero-wire/tag/session)
-- Published: Fri, 30 Oct 2026 00:00:00 GMT
+- Link: https://radar.cloudflare.com/zero-wire/php2shell
+- Tags: Needs attention, Memory corruption (https://radar.cloudflare.com/zero-wire/tag/memory-corruption), PHP (https://radar.cloudflare.com/zero-wire/tag/php), RCE (https://radar.cloudflare.com/zero-wire/tag/rce), Runtime (https://radar.cloudflare.com/zero-wire/tag/runtime), Session (https://radar.cloudflare.com/zero-wire/tag/session)
+- Published: Tue, 03 Nov 2026 00:00:00 GMT
 
 ## Steps to reproduce
 
-Reproduction: not verified — from Cloudflare Radar Zero Wire brief https://radar.cloudflare.com/security/zero-wire/php2shell.
+Reproduction: not verified — from Cloudflare Radar Zero Wire brief https://radar.cloudflare.com/zero-wire/php2shell.
 
 Verified reproduction requires a teardown.
 
-Source: Cloudflare Radar Zero Wire, CC BY-NC 4.0 https://radar.cloudflare.com/security/zero-wire/php2shell
+Source: Cloudflare Radar Zero Wire, CC BY-NC 4.0 https://radar.cloudflare.com/zero-wire/php2shell
