@@ -1,0 +1,19 @@
+{
+  "h1Id": 3929216,
+  "title": "Cross-agency delivery rule set creation",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-11T10:49:04.629Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Insecure Direct Object Reference (IDOR)"
+  },
+  "cveIds": [
+    "CVE-2026-82978"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3929216",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-15T13:14:27.057409+00:00"
+}

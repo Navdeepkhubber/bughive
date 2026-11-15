@@ -1,0 +1,19 @@
+{
+  "h1Id": 3958112,
+  "title": "Missing campaign ownership check in zone bulk linking",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-11T10:46:30.585Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Insecure Direct Object Reference (IDOR)"
+  },
+  "cveIds": [
+    "CVE-2026-68486"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3958112",
+  "vulnerabilityInformation": "A missing campaign ownership check was identified in the bulk-linking operation of a zone management file. The single-link operation and XML-RPC API were also affected by this issue. An authorized user with zone-linking permissions could associate another agency's campaign with their own zone. The unauthorized association could expose the foreign campaign's name, type and identifier in the linked-campaign listing. Campaign ownership validation was added to the bulk-linking and single-link operations and in the XML-RPC campaign-linking method to resolve this issue.",
+  "fetchedAt": "2026-11-15T13:14:27.057996+00:00"
+}

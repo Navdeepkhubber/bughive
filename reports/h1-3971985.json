@@ -1,0 +1,19 @@
+{
+  "h1Id": 3971985,
+  "title": "Reflected XSS in popup invocation options",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-11T10:46:38.141Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Cross-site Scripting (XSS) - Reflected"
+  },
+  "cveIds": [
+    "CVE-2026-108565"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3971985",
+  "vulnerabilityInformation": "A reflected cross-site scripting vulnerability was found in popup invocation options. Request parameters for top, left, timeout, and delay were included in HTML attributes without proper encoding. Popup option values were subsequently HTML-encoded when included in invocation-option form fields to resolve the issue.",
+  "fetchedAt": "2026-11-15T13:14:27.057922+00:00"
+}

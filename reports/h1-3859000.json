@@ -1,0 +1,19 @@
+{
+  "h1Id": 3859000,
+  "title": "Formula injection in conversion tracking report export",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-11T10:48:17.864Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Code Injection"
+  },
+  "cveIds": [
+    "CVE-2026-108563"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3859000",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-15T13:14:27.057682+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "h1Id": 3883840,
+  "title": "Cross-agency disclosure in website listing",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-11T10:48:54.566Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Insecure Direct Object Reference (IDOR)"
+  },
+  "cveIds": [
+    "CVE-2026-68485"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3883840",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-15T13:14:27.057494+00:00"
+}

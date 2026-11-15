@@ -1,0 +1,17 @@
+{
+  "h1Id": 3417759,
+  "title": "Broken Access Control on **healthwatch.trellix.com** Leading to Unauthorized Access and Sensitive Data Exposure",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-08T22:22:01.915Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "trellix",
+  "teamName": "Trellix",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3417759",
+  "vulnerabilityInformation": "A broken access control vulnerability was discovered on a health monitoring platform. The vulnerability consisted of three chained security flaws: insufficient email domain validation during account registration allowed attackers to register accounts with external email addresses, a password reset mechanism could be exploited to activate accounts pending administrator approval, and an improperly secured API endpoint lacked authorization controls, allowing enumerated retrieval of complete customer business information and internal employee contact details. The vulnerabilities combined enabled unauthorized application access and sensitive organizational data exposure.",
+  "fetchedAt": "2026-11-15T13:14:27.058816+00:00"
+}

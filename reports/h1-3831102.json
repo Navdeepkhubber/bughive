@@ -1,0 +1,19 @@
+{
+  "h1Id": 3831102,
+  "title": "Access control bypass due to request precedence issue in global input registration",
+  "severity": "High",
+  "disclosedAt": "2026-11-11T10:43:46.710Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Insecure Direct Object Reference (IDOR)"
+  },
+  "cveIds": [
+    "CVE-2026-107247"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3831102",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-15T13:14:27.058320+00:00"
+}

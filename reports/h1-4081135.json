@@ -1,0 +1,17 @@
+{
+  "h1Id": 4081135,
+  "title": "Privilege escalation via unfiltered role restoration in project backup import",
+  "severity": "Critical",
+  "disclosedAt": "2026-11-15T05:16:50.749Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Privilege Escalation"
+  },
+  "cveIds": [],
+  "teamHandle": "weblate",
+  "teamName": "Weblate",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4081135",
+  "vulnerabilityInformation": "A privilege escalation vulnerability was discovered in project backup import functionality. When restoring access-control teams from backup files, roles carrying global site-wide permissions were not validated and could be attached to project-scoped teams without proper filtering. This allowed users with limited backup import privileges to gain unauthorized site-wide permissions. Additionally, a separate issue in the permissions collection logic failed to exclude project-scoped team memberships when determining global permissions, allowing the escalated privileges to take effect across the entire site. The vulnerability was confirmed through multiple reproduction tests demonstrating that low-privilege users could obtain administrative capabilities after importing a crafted backup file.",
+  "fetchedAt": "2026-11-15T13:14:27.056860+00:00"
+}

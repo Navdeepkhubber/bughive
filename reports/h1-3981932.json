@@ -1,0 +1,19 @@
+{
+  "h1Id": 3981932,
+  "title": "CSRF in tracker invocation page",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-11T10:49:17.699Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Cross-Site Request Forgery (CSRF)"
+  },
+  "cveIds": [
+    "CVE-2026-77168"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3981932",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-15T13:14:27.057330+00:00"
+}

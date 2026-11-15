@@ -1,0 +1,17 @@
+{
+  "h1Id": 4059744,
+  "title": "Anonymous API Rate Limit Bypass via X-Forwarded-For",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-15T07:28:45.634Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Uncontrolled Resource Consumption"
+  },
+  "cveIds": [],
+  "teamHandle": "weblate",
+  "teamName": "Weblate",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4059744",
+  "vulnerabilityInformation": "Weblate's anonymous API rate limiting was found to be vulnerable to bypass through manipulation of proxy headers. The affected throttling class did not properly override client identification, allowing it to inherit Django REST Framework's default behavior which was influenced by untrusted request headers. An unauthenticated client could supply different proxy header values between requests to obtain separate rate-limit buckets instead of being associated with a single client identity. This weakness was observed across multiple anonymous API endpoints and allowed more requests than the configured per-client limit. A fix was proposed that explicitly uses server-side client address information for throttle identity instead of allowing request headers to determine anonymous rate-limit buckets.",
+  "fetchedAt": "2026-11-15T13:14:27.056644+00:00"
+}

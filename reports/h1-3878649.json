@@ -1,0 +1,19 @@
+{
+  "h1Id": 3878649,
+  "title": "Reflected XSS via wrong permission check in conversion statistics",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-11T10:47:18.543Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Cross-site Scripting (XSS) - Reflected"
+  },
+  "cveIds": [
+    "CVE-2026-108558"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3878649",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-15T13:14:27.057843+00:00"
+}

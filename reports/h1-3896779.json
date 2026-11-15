@@ -1,0 +1,19 @@
+{
+  "h1Id": 3896779,
+  "title": "Blind SQL injection due to request precedence issue in global input registration",
+  "severity": "High",
+  "disclosedAt": "2026-11-11T10:37:02.906Z",
+  "weakness": null,
+  "cwe": {
+    "id": "SQL Injection"
+  },
+  "cveIds": [
+    "CVE-2026-107662"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3896779",
+  "vulnerabilityInformation": "A blind SQL injection vulnerability was discovered in administration pages for banner zones and campaign zones. The vulnerability resulted from a request precedence issue where permission checks and database queries used different values for the same request parameter. This mismatch could have been exploited by a restricted manager to extract arbitrary database values, including password hashes and session identifiers. The issue was resolved by standardizing input handling to ensure both permission checks and database queries read from the same request sources in a consistent order.",
+  "fetchedAt": "2026-11-15T13:14:27.058395+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "h1Id": 4075098,
+  "title": "Unauthenticated reflected XSS in update history",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-11T10:46:22.491Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Cross-site Scripting (XSS) - Reflected"
+  },
+  "cveIds": [
+    "CVE-2026-108560"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4075098",
+  "vulnerabilityInformation": "A reflected cross-site scripting vulnerability was found in the update history functionality. Attacker-controlled values were included in XML command attributes without proper encoding, allowing malicious input to inject executable code into responses. The vulnerability was accessible without authentication through GET requests, and authenticated administrators could also be affected. The issue was resolved by applying session validation to both GET and POST requests and encoding XML attribute values in response serializers.",
+  "fetchedAt": "2026-11-15T13:14:27.058156+00:00"
+}

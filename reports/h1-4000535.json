@@ -1,0 +1,17 @@
+{
+  "h1Id": 4000535,
+  "title": "Burp Community OpenAPI site-map action reads a local schema example through $id rebasing",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-13T10:31:44.748Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Path Traversal"
+  },
+  "cveIds": [],
+  "teamHandle": "portswigger",
+  "teamName": "PortSwigger Web Security",
+  "bountyAmount": 1000,
+  "reportUrl": "https://hackerone.com/reports/4000535",
+  "vulnerabilityInformation": "A local resource restriction bypass was discovered in Burp Community's OpenAPI site-map action. The vulnerability resulted from a validator and click parser selecting different OpenAPI objects from the same HTTP response. A nested OpenAPI 3.0 object made the action available, while the click handler parsed a top-level OpenAPI 3.1 object. In the 3.1 schema, a local file URL in an identifier field was used as the base for a fragment-only reference, bypassing external API definition checks. The local JSON schema was opened and its selected example value was copied into the generated request body. The issue was reproduced on two stable builds through the standard user interface in fresh temporary projects. Community did not send the generated request automatically, and disclosure to the server required a later explicit send by the user.",
+  "fetchedAt": "2026-11-15T13:14:27.057057+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "h1Id": 3908050,
+  "title": "Reflected XSS via invocation iFrame size fields",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-11T10:46:19.405Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Cross-site Scripting (XSS) - Reflected"
+  },
+  "cveIds": [
+    "CVE-2026-108559"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3908050",
+  "vulnerabilityInformation": "A reflected cross-site scripting vulnerability was discovered in iframe invocation options. The frame width and height parameters were included in HTML attributes without proper encoding when generating invocation tags for any-size zones. This vulnerability was resolved by implementing HTML encoding for width and height values in invocation-option form fields.",
+  "fetchedAt": "2026-11-15T13:14:27.058239+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "h1Id": 3826207,
+  "title": "Stored XSS via unescaped tracker name in append-code check",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-11T10:48:08.604Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Cross-site Scripting (XSS) - Stored"
+  },
+  "cveIds": [
+    "CVE-2026-108562"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3826207",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-15T13:14:27.057762+00:00"
+}

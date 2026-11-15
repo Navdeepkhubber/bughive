@@ -1,0 +1,17 @@
+{
+  "h1Id": 4152726,
+  "title": "Blind SQL Injection \u2014 IBM Training Course Search API",
+  "severity": "Critical",
+  "disclosedAt": "2026-11-10T15:05:41.660Z",
+  "weakness": null,
+  "cwe": {
+    "id": "SQL Injection"
+  },
+  "cveIds": [],
+  "teamHandle": "ibm",
+  "teamName": "IBM",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4152726",
+  "vulnerabilityInformation": "A blind SQL injection vulnerability was identified in a training course search API. The vulnerability was reported by an external security researcher, analyzed, and subsequently remediated.",
+  "fetchedAt": "2026-11-15T13:14:27.058476+00:00"
+}

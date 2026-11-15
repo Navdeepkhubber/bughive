@@ -1,0 +1,17 @@
+{
+  "h1Id": 4175245,
+  "title": "Cross-account stored XSS on app.basecamp.com leads to persistent administrator takeover",
+  "severity": "High",
+  "disclosedAt": "2026-11-13T13:07:18.553Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Cross-site Scripting (XSS) - Stored"
+  },
+  "cveIds": [],
+  "teamHandle": "basecamp",
+  "teamName": "Basecamp",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4175245",
+  "vulnerabilityInformation": "A cross-account stored cross-site scripting vulnerability was discovered in a project collaboration application. An outside collaborator could store a message containing malicious HTML within an attachment content attribute that appeared as a normal embed when viewed. When an account administrator opened the message's edit form, the stored HTML was normalized by the editor, exposing data attributes that survived sanitization. A legacy behavior was triggered that fetched attacker-controlled HTML and wrote it using innerHTML. The injected content included a cross-origin frame that was loaded by the application's frame handler, which propagated the victim's content security policy nonce to embedded scripts. This resulted in arbitrary JavaScript execution in the authenticated administrator's session. The executed script read the administrator's CSRF token and made authenticated requests to grant administrator privileges to the attacker's account. The attacker gained persistent administrative access to the victim account without compromising passwords or identity credentials.",
+  "fetchedAt": "2026-11-15T13:14:27.056966+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "h1Id": 3908163,
+  "title": "HTTPS Agent reuses TLS authentication state across distinct secureContext policies",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-12T14:13:08.242Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Certificate Validation"
+  },
+  "cveIds": [
+    "CVE-2026-123877"
+  ],
+  "teamHandle": "nodejs",
+  "teamName": "Node.js",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3908163",
+  "vulnerabilityInformation": "A flaw in TLS hostname handling was identified that allowed HTTPS Agent to reuse TLS authentication state across distinct secureContext policies. The vulnerability affected multiple versions of a JavaScript runtime environment.",
+  "fetchedAt": "2026-11-15T13:14:27.057237+00:00"
+}

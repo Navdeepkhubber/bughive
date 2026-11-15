@@ -1,0 +1,19 @@
+{
+  "h1Id": 4110110,
+  "title": "HTTP/2 stream teardown can send freed response memory to the peer",
+  "severity": "High",
+  "disclosedAt": "2026-11-12T15:46:51.489Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Use After Free"
+  },
+  "cveIds": [
+    "CVE-2026-123866"
+  ],
+  "teamHandle": "nodejs",
+  "teamName": "Node.js",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4110110",
+  "vulnerabilityInformation": "A flaw in HTTP/2 stream teardown was identified that could result in freed response memory being sent to peers. This vulnerability affected multiple versions of the Node.js runtime.",
+  "fetchedAt": "2026-11-15T13:14:27.057147+00:00"
+}

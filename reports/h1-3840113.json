@@ -1,0 +1,17 @@
+{
+  "h1Id": 3840113,
+  "title": "Mass PII Exposure: 120,000+ Consumer Email Addresses Leaked via Author Enumeration on \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+  "severity": "Critical",
+  "disclosedAt": "2026-11-10T07:41:33.343Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Information Disclosure"
+  },
+  "cveIds": [],
+  "teamHandle": "essity",
+  "teamName": "Essity",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3840113",
+  "vulnerabilityInformation": "A WordPress loyalty program was found to expose approximately 121,000 consumer email addresses through user enumeration. The email addresses were configured as display names and became publicly visible through author archive pages, REST API endpoints, and RSS feeds. The affected pages were not protected by noindex directives or robots.txt restrictions, making them indexable by search engines. Sequential user IDs could be enumerated without rate limiting, allowing for mass enumeration of the database. The exposure affected European Union consumers and potentially violated data protection regulations.",
+  "fetchedAt": "2026-11-15T13:14:27.058640+00:00"
+}

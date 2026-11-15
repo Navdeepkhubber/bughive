@@ -1,0 +1,19 @@
+{
+  "h1Id": 4116433,
+  "title": "Stored XSS in report date selection",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-11T10:46:25.154Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Cross-site Scripting (XSS) - Stored"
+  },
+  "cveIds": [
+    "CVE-2026-108561"
+  ],
+  "teamHandle": "revive_adserver",
+  "teamName": "Revive Adserver",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4116433",
+  "vulnerabilityInformation": "A stored cross-site scripting vulnerability was discovered in the date-selection controls of standard reports. A crafted period preset value could be saved in a user's session and inserted into JavaScript without proper encoding, allowing malicious code to execute during report views. The vulnerability was resolved by implementing JSON encoding for date-selection values in their JavaScript context, with the same encoding applied to audit date-selection fields.",
+  "fetchedAt": "2026-11-15T13:14:27.058074+00:00"
+}
