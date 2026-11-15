@@ -1,14 +1,10 @@
-<!-- harvested: Aetherdz/huntpack/skills/reporting/report-writing/SKILL.md on 2026-10-23T20:17:14.751909+00:00 -->
+<!-- harvested: Aetherdz/huntpack/skills/reporting/report-writing/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: MIT; author: Aether-DZ; commit: f22ff6d30db803591ecad9eb91c619ddfadbbc9a; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: report-writing
 description: Writing structured bug bounty reports in Arabic and English. Use for drafting professional vulnerability reports with proof of concept, impact, and remediation. NOT for vulnerability discovery or testing.
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # REPORT WRITING
@@ -38,12 +34,3 @@ Structured vulnerability report writing in Arabic and English. Professional temp
 | Platform-Specific Submission Formats | `reference/platform-submission-formats.md` |
 | CVSS 4.0 | `reference/cvss-4-0.md` |
 | Post-Submission Triager Playbook | `reference/post-submission-playbook.md` |
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE/target in skill; needs teardown or stays unverified
-<!-- bughive-repro-end -->

@@ -1,4 +1,4 @@
-<!-- harvested: 0x002132/skills-bugbounty/hunt-oauth/SKILL.md on 2026-10-23T20:17:14.021736+00:00 -->
+<!-- harvested: 0x002132/skills-bugbounty/hunt-oauth/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: 0x002132; commit: 566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
@@ -7,10 +7,6 @@ name: hunt-oauth
 description: Hunting skill for oauth vulnerabilities. Built from 10 public bug bounty reports. Use when hunting oauth on any target.
 sources: github, hackerone_public
 report_count: 10
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 ## Crown Jewel Targets
@@ -324,12 +320,3 @@ A server-side prefix-match flaw on `redirect_uri` is **necessary but not suffici
 - **`hunt-saml`** — When OAuth is layered atop a SAML IdP, the IdP-level XSW becomes the OAuth ATO path. Chain primitive: SAML SP that issues OAuth tokens after assertion-validation + XSW attack on the assertion alters `NameID` to admin user → SP issues OAuth token bearing admin identity → OAuth-scoped APIs grant admin access.
 - **`security-arsenal`** — Pull the OAuth `redirect_uri` Bypass Table (host-confusion `legit.com@evil.com`, `legit.com.evil.com`, path-traversal, parameter pollution, encoded-slash `%2F`, fragment-injection `#legit.com`) and the open-redirect chain catalog when exact-match validation forces you to find an open-redirect on the whitelisted domain first.
 - **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an OAuth "open redirect" that doesn't actually leak a token (only the `state` param, or the callback page doesn't include credentials in URL). State-only leakage is Low; token/code leakage with successful exchange demonstration is Critical. The exchange-the-code step is non-negotiable.
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

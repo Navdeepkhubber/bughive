@@ -1,14 +1,10 @@
-<!-- harvested: 0x002132/skills-bugbounty/bb-methodology/SKILL.md on 2026-10-23T20:17:14.019284+00:00 -->
+<!-- harvested: 0x002132/skills-bugbounty/bb-methodology/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: 0x002132; commit: 566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: bb-methodology
 description: Use at the START of any bug bounty hunting session, when switching targets, or when feeling lost about what to do next. Master orchestrator that combines the 5-phase non-linear hunting workflow with the critical thinking framework (developer psychology, anomaly detection, What-If experiments). Routes to all other skills based on current hunting phase. Also use when asking "what should I do next" or "where am I in the process."
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # Bug Bounty Methodology: Workflow + Mindset
@@ -518,12 +514,3 @@ The discipline rules in this file — OOB Gate, Marker Discipline, Body-Diff Rul
 
 Verified across Phase 2D's hardened-lab campaign: 8/8 discipline rules fired correctly against fake-bug-shaped behavior (URL echo dressed as XSS, word collision dressed as reflection, status-code-only "bypasses" with byte-identical bodies, 200-OK leak-claims with no actual leak data). Validation rates fall sharply when these rules get skipped. The friction is the feature — if a rule feels obstructive, that's it doing its job. The findings it kills are the half that would have come back N/A anyway.
 - **`evidence-hygiene`** — When Phase 5 is collecting PoC screenshots / HARs. Workflow primitive: before any cookie / PII appears in a screenshot, hand off to `evidence-hygiene` for the redaction protocol.
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

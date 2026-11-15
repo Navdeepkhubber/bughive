@@ -1,14 +1,10 @@
-<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-bug-classes/SKILL.md on 2026-10-23T20:17:17.065944+00:00 -->
+<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-bug-classes/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: web3-bug-classes
 description: Complete reference for all 10 DeFi smart contract bug classes. Use this when hunting for specific vulnerability types, need attack patterns for accounting desync, access control, incomplete path, off-by-one, oracle manipulation, ERC4626 vaults, reentrancy, flash loans, signature replay, or proxy/upgrade bugs.
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # BUG CLASSES — DeFi Smart Contract Vulnerabilities
@@ -1128,12 +1124,3 @@ grep -rn "slot\|__gap\|ERC1967Storage" contracts/
 ---
 
 → NEXT: [03-grep-arsenal.md](03-grep-arsenal.md)
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

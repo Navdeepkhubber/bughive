@@ -1,14 +1,10 @@
-<!-- harvested: Aetherdz/huntpack/skills/understand/application-archetypes/SKILL.md on 2026-10-23T20:17:14.752544+00:00 -->
+<!-- harvested: Aetherdz/huntpack/skills/understand/application-archetypes/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: MIT; author: Aether-DZ; commit: f22ff6d30db803591ecad9eb91c619ddfadbbc9a; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: application-archetypes
 description: "Instant recognition of any target's category (E-commerce, SaaS, Fintech, Social, Marketplace, CMS, Admin Panel) plus ready-made assets, roles, workflows, top logic bugs, and attack chains for each type. Load BEFORE starting any target. Integrates with app-model-builder and business-logic-hunter."
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # APPLICATION ARCHETYPES
@@ -58,12 +54,3 @@ Identify archetype → know assets, roles, workflows, and top bugs before sendin
 | `reference/hybrid-target-mapping.md` | Hybrid: أهداف متعددة الأركيتايبز |
 | `reference/first-5-tests-per-archetype.md` | أول 5 اختبارات لكل أركيتايب |
 | `reference/bounty-range-per-archetype.md` | نطاق الباونتي المتوقع لكل أركيتايب |
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE/target in skill; needs teardown or stays unverified
-<!-- bughive-repro-end -->

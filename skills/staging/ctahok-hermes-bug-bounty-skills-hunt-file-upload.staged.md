@@ -1,4 +1,4 @@
-<!-- harvested: ctahok/hermes-bug-bounty-skills/hunt-file-upload/SKILL.md on 2026-10-23T20:17:12.991564+00:00 -->
+<!-- harvested: ctahok/hermes-bug-bounty-skills/hunt-file-upload/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Ilkin Jamalli; commit: 9332d55c70a815441d35d7688791ce1f69b50e49; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
@@ -17,10 +17,6 @@ triggers:
   - unrestricted file upload
   - test upload functionality
 category: security
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 # File Upload Vulnerability Hunting
 
@@ -190,12 +186,3 @@ Before reporting:
 - [ ] For ZIP slip: path traversal to sensitive file confirmed
 - [ ] File persists after page refresh (not temp/transient)
 - [ ] Impact clearly described
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE/target in skill; needs teardown or stays unverified
-<!-- bughive-repro-end -->

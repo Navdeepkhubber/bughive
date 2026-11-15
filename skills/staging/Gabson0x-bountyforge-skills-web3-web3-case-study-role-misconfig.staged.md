@@ -1,4 +1,4 @@
-<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-case-study-role-misconfig/SKILL.md on 2026-10-23T20:17:17.065395+00:00 -->
+<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-case-study-role-misconfig/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
@@ -6,10 +6,6 @@
 name: web3-case-study-role-misconfig
 description: Case study - role misconfiguration bug class applied to a yield aggregator protocol. Use as a template for applying all 10 bug classes to a single target.
 Contains: architecture walkthrough, all bug class verdicts, 2 findings (DISTRIBUTOR_ROLE never granted, dust harvest DoS), complete PoC templates, report drafts, validation steps.
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # CASE STUDY: ROLE MISCONFIGURATION IN A YIELD AGGREGATOR
@@ -351,12 +347,3 @@ grep -r "grantRole" ./src/
 ---
 
 → NEXT: [08-ai-tools.md](08-ai-tools.md)
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

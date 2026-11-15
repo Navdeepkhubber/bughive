@@ -1,4 +1,4 @@
-<!-- harvested: ctahok/hermes-bug-bounty-skills/bug-bounty-hunting/SKILL.md on 2026-10-23T20:17:12.990489+00:00 -->
+<!-- harvested: ctahok/hermes-bug-bounty-skills/bug-bounty-hunting/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Ilkin Jamalli; commit: 9332d55c70a815441d35d7688791ce1f69b50e49; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
@@ -20,10 +20,6 @@ triggers:
   - look for bugs in
   - assess the security of
 category: security
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 # Bug Bounty Hunting — Master Orchestrator
 
@@ -356,12 +352,3 @@ For Immunefi: PoC-first — working code is primary deliverable.
 - **`redteam-mindset`** — Red team discipline, self-throttling anti-patterns, engagement cadence
 - **`references/original-skill-index.md`** — Full index of all 51 original skills, with adaptation status
 - Each `hunt-*` skill — per-class methodology, detection patterns, payloads, bypass tables
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

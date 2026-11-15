@@ -1,4 +1,4 @@
-<!-- harvested: 0x002132/skills-bugbounty/hunt-race-condition/SKILL.md on 2026-10-23T20:17:14.021594+00:00 -->
+<!-- harvested: 0x002132/skills-bugbounty/hunt-race-condition/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: 0x002132; commit: 566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
@@ -7,10 +7,6 @@ name: hunt-race-condition
 description: Hunting skill for race condition vulnerabilities. Built from 3 public bug bounty reports. Use when hunting race condition on any target.
 sources: github
 report_count: 3
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 ## Crown Jewel Targets
@@ -260,12 +256,3 @@ A cloud hosting provider enforced limits on the number of resources (e.g., dropl
 - **`hunt-api-misconfig`** — Wallet/balance/credit endpoints without atomic UPDATE are double-spend candidates. Chain primitive: race + atomic-update missing → double-spend balance → withdraw N× user balance.
 - **`security-arsenal`** — Load the Turbo Intruder single-packet template, h2.cl smuggling for atomic submit, and `curl --next` parallel multi-request patterns.
 - **`triage-validation`** — Apply the Statistical-Sampling gate: a single anomalous response is noise; require 1 successful + N duplicate / over-quota / stale-state demonstrations with response screenshots before reporting.
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

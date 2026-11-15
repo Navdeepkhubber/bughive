@@ -1,14 +1,10 @@
-<!-- harvested: 0x002132/skills-bugbounty/meme-coin-audit/SKILL.md on 2026-10-23T20:17:14.017202+00:00 -->
+<!-- harvested: 0x002132/skills-bugbounty/meme-coin-audit/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: 0x002132; commit: 566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: meme-coin-audit
 description: Meme coin and token security audit — rug pull detection (honeypot, hidden mint, fee manipulation, LP lock bypass), Solana SPL token analysis (freeze authority, mint authority, metadata mutability), Token-2022 extension risks (transfer hooks, permanent delegate), DEX liquidity pool attacks (sandwich amplification, LP drain, bonding curve exploits), pump.fun/Raydium/Jupiter integration risks, token_scanner.py automation, and real exploit examples from 2024-2025. Use for any token audit, rug pull assessment, meme coin security review, or pre-investment due diligence.
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # MEME COIN & TOKEN SECURITY AUDIT
@@ -385,12 +381,3 @@ Mitigations (rank by 2026 effectiveness):
 4. **Splitting orders** — N smaller trades vs 1 large; reduces sandwich profitability per trade
 
 If the mint is so illiquid that even split orders sandwich — that's the signal to skip the trade, not the signal to use better tooling.
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

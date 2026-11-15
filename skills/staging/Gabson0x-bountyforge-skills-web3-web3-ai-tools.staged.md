@@ -1,4 +1,4 @@
-<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-ai-tools/SKILL.md on 2026-10-23T20:17:17.065180+00:00 -->
+<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-ai-tools/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
@@ -6,10 +6,6 @@
 name: web3-ai-tools
 description: AI-powered tools for Web3 bug bounty automation. Use when you want to automate recon, run autonomous audits, or use AI agents for vulnerability discovery.
 Contains: CAI Framework, Shannon AI pentester, LuaN1ao dual-graph agent, SmartGuard multi-agent auditor, AI-generated code hunting patterns, Claude security skills.
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # AI TOOLS ARSENAL
@@ -469,12 +465,3 @@ RESULT: Coverage that would take 2 days manually.
 ---
 
 → NEXT: [36-solidity-audit-mcp.md](36-solidity-audit-mcp.md)
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

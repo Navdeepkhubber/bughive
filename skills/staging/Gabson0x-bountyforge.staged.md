@@ -1,14 +1,10 @@
-<!-- harvested: Gabson0x/bountyforge/SKILL.md on 2026-10-23T20:17:17.063097+00:00 -->
+<!-- harvested: Gabson0x/bountyforge/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: bountyforge
 description: Bug bounty and security audit engine — trust-first iterative hunting. The "3rd eye" for pentesting.
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # BountyForge — The 3rd Eye
@@ -106,12 +102,3 @@ Full detail: [[Methodology]]
 - **1-HOUR RULE** — stuck with no progress? Switch context
 - **20-MINUTE ROTATION** — "Am I making progress?" every 20 min
 - **No map → no hunt** — understand the target before attacking. See [[Methodology]]
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

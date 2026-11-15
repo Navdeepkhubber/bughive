@@ -1,4 +1,4 @@
-<!-- harvested: Aetherdz/huntpack/router/SKILL.md on 2026-10-23T20:17:14.752957+00:00 -->
+<!-- harvested: Aetherdz/huntpack/router/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: MIT; author: Aether-DZ; commit: f22ff6d30db803591ecad9eb91c619ddfadbbc9a; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
@@ -15,10 +15,6 @@ compatibility: Agent-agnostic dispatcher over the skills/ collection (12 skills,
 metadata:
   category: router
   difficulty: intermediate
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # Master Router — Bug Bounty Skill Dispatcher
@@ -108,12 +104,3 @@ chain_candidate: false
 ```
 
 No evidence → no claim → kill it.
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

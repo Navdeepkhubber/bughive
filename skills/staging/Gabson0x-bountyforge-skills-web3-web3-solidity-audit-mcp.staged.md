@@ -1,14 +1,10 @@
-<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-solidity-audit-mcp/SKILL.md on 2026-10-23T20:17:17.064810+00:00 -->
+<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-solidity-audit-mcp/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: web3-solidity-audit-mcp
 description: MCP server integrating Slither + Aderyn + SWC patterns into Claude Code for smart contract auditing. Use when analyzing Solidity files, running DeFi-specific detectors, or generating invariants. 10 MCP tools, 86 SWC detectors, DeFi preset pack, CI/CD workflow.
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # SOLIDITY AUDIT MCP
@@ -406,12 +402,3 @@ run_tests(projectRoot: ".", contractName: "ErnVault")
 ---
 
 → NEXT: [00-START-HERE.md](00-START-HERE.md)
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

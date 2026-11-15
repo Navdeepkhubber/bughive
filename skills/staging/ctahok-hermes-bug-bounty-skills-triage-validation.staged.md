@@ -1,4 +1,4 @@
-<!-- harvested: ctahok/hermes-bug-bounty-skills/triage-validation/SKILL.md on 2026-10-23T20:17:12.990947+00:00 -->
+<!-- harvested: ctahok/hermes-bug-bounty-skills/triage-validation/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Ilkin Jamalli; commit: 9332d55c70a815441d35d7688791ce1f69b50e49; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
@@ -16,10 +16,6 @@ triggers:
   - check if this is a real bug
   - what severity is this
 category: security
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 # Triage & Validation — The 7-Question Gate
 
@@ -215,12 +211,3 @@ If you can't build the chain today → **KILL IT.**
 - Stack traces in debug mode
 - Information disclosure of non-sensitive data
 - Clickjacking on non-sensitive pages
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

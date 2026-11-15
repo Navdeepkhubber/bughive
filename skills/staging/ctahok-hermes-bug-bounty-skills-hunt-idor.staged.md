@@ -1,4 +1,4 @@
-<!-- harvested: ctahok/hermes-bug-bounty-skills/hunt-idor/SKILL.md on 2026-10-23T20:17:12.991376+00:00 -->
+<!-- harvested: ctahok/hermes-bug-bounty-skills/hunt-idor/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Ilkin Jamalli; commit: 9332d55c70a815441d35d7688791ce1f69b50e49; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
@@ -18,10 +18,6 @@ triggers:
   - vertical privilege escalation
   - object level authorization
 category: security
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 # IDOR / Broken Object Level Authorization Hunting
 
@@ -287,12 +283,3 @@ Before reporting an IDOR:
 - [ ] For modification IDOR: confirmed the change persisted after refresh
 - [ ] For UUID: documented whether enumeration is practical
 - [ ] Impact clearly quantified: "Attacker can read X records of type Y belonging to any user"
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

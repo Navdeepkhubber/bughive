@@ -1,14 +1,10 @@
-<!-- harvested: Aetherdz/huntpack/skills/validation/triage-validation/SKILL.md on 2026-10-23T20:17:14.752340+00:00 -->
+<!-- harvested: Aetherdz/huntpack/skills/validation/triage-validation/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: MIT; author: Aether-DZ; commit: f22ff6d30db803591ecad9eb91c619ddfadbbc9a; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: triage-validation
 description: "Finding validation before report writing — 8-Question Gate, kill signals, never-submit list, chain table, CVSS ref. Use BEFORE any report. One wrong answer = kill. Protects N/A ratio."
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # TRIAGE & VALIDATION
@@ -61,12 +57,3 @@ AV:Network=6.2→AC:Low=1.0→PR:None=0.85/Low=0.62/High=0.27→UI:None=0.85/Req
 
 ## KILL FAST
 Can't fill Q1 in 5min → kill | >2 preconditions → kill | Nothing tangible → kill | Admin can do X → kill | Documented → kill | 30min no PoC → kill | No evidence_id → kill
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

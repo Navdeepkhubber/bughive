@@ -1,14 +1,10 @@
-<!-- harvested: 0x002132/skills-bugbounty/hunt-ato/SKILL.md on 2026-10-23T20:17:14.020360+00:00 -->
+<!-- harvested: 0x002132/skills-bugbounty/hunt-ato/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: 0x002132; commit: 566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: hunt-ato
 description: "Hunt account takeover taxonomy — 9 distinct paths to ATO, plus chains. Paths: (1) password reset flaws (host header injection redirects token to attacker, predictable token, token leaked in referer, race condition on reset link), (2) email change without re-auth, (3) OAuth account-link CSRF, (4) MFA bypass (per hunt-mfa-bypass), (5) session-fixation, (6) JWT manipulation, (7) password change without step-up (chain with password oracle), (8) social-recovery question abuse, (9) SSO subdomain takeover. Chain primitives: cookie theft + password oracle + missing step-up = persistent ATO; OAuth open redirect + redirect_uri = auth code theft = ATO; subdomain takeover at OAuth redirect_uri = ATO. Validate: actual account takeover demonstration on test account B from attacker A's session. Real paid examples for each path. Use when hunting ATO chains, when testing password reset / email change / MFA / OAuth / session, when chaining primitives toward Critical."
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 ## 13. ATO — ACCOUNT TAKEOVER TAXONOMY
@@ -64,11 +60,3 @@ PUT /api/user/email
 - **`security-arsenal`** — Pull the Password-Reset Bypass Tables for host-header variants (`X-Forwarded-Host`, `X-Host`, `X-HTTP-Host-Override`, dual-Host smuggling), token-entropy payloads (sequential numeric, time-based predictable), and the always-rejected list for "rate-limit on /forgot-password" reports.
 - **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an ATO that requires the victim to click a link AND enter credentials AND complete CAPTCHA. The reproducibility step (10-minute fresh-browser walkthrough on test account B from attacker A's session) is what separates Critical-paid from Self-XSS-tier rejected.
 
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

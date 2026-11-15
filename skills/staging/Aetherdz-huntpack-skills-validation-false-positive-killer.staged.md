@@ -1,14 +1,10 @@
-<!-- harvested: Aetherdz/huntpack/skills/validation/false-positive-killer/SKILL.md on 2026-10-23T20:17:14.752405+00:00 -->
+<!-- harvested: Aetherdz/huntpack/skills/validation/false-positive-killer/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: MIT; author: Aether-DZ; commit: f22ff6d30db803591ecad9eb91c619ddfadbbc9a; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: false-positive-killer
 description: "Proof-based finding validation. Re-tests from clean state, compares responses, eliminates theoretical bugs, assigns confidence scores. Use BEFORE triage-validation to protect N/A ratio. NOT for report writing (use report-writing after this gate passes)."
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # FALSE POSITIVE KILLER — Proof-Based Methodology
@@ -118,12 +114,3 @@ Load at START of any session. After confirmation, pass findings to `triage-valid
 ## FINAL GATE
 
 Before any report: 1) Do I have at least two independent signals? 2) Have I ruled out alternative explanations (WAF, CDN, SPA, caching)? 3) Can I reproduce from zero state? If no to any → kill.
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

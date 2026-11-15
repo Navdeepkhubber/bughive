@@ -1,14 +1,10 @@
-<!-- harvested: Gabson0x/bountyforge/skills/fizz/skills/fizz-sync/SKILL.md on 2026-10-23T20:17:17.069399+00:00 -->
+<!-- harvested: Gabson0x/bountyforge/skills/fizz/skills/fizz-sync/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: fizz-sync
 description: Reconcile an existing Fizz harness with a changed source tree. Detects added/removed/changed contract functions, quarantines stale properties, regenerates drifted handler stubs, and refreshes the snapshot. Trigger on "fizz-sync", "resync fuzzing", "sync fuzz harness", "refresh fuzzing properties", "fuzzing drift check".
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # Fizz Sync Skill — fizz-sync
@@ -334,12 +330,3 @@ Tell the user:
 - Never flip a `[ ]` or `[-]` checkbox to `[x]` in this skill. Only `[x] → [~]` for quarantining is allowed.
 - Always back up files before destructive edits. The `.pre-sync.bak` files are the user's safety net.
 - Always refresh the snapshot at the end of a successful `--apply` run, and NEVER refresh it mid-run before Step 6 passes — that would bake in the broken state.
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE/target in skill; needs teardown or stays unverified
-<!-- bughive-repro-end -->

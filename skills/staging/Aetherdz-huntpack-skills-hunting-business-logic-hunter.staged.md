@@ -1,14 +1,10 @@
-<!-- harvested: Aetherdz/huntpack/skills/hunting/business-logic-hunter/SKILL.md on 2026-10-23T20:17:14.752739+00:00 -->
+<!-- harvested: Aetherdz/huntpack/skills/hunting/business-logic-hunter/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: MIT; author: Aether-DZ; commit: f22ff6d30db803591ecad9eb91c619ddfadbbc9a; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: business-logic-hunter
 description: "EXECUTION MATRIX for business logic bugs — highest bounty category. Each pattern has SIGNAL → TEST → CONFIRM → KILL + response-driven next actions + sibling analysis. No theory, just commands. Load after app-model built. NOT for OWASP vulns (use web2-vuln-classes)."
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # BUSINESS LOGIC HUNTER — EXECUTION MATRIX + RESPONSE-DRIVEN
@@ -105,12 +101,3 @@ Fuzz IDs: for i in {1..N}; do curl /api/resource/$i; done
 | Verification | `reference/verification.md` |
 | Wallet Manipulation | `reference/wallet-balance-manipulation.md` |
 | Workflow Bypass | `reference/workflow-bypass.md` |
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE/target in skill; needs teardown or stays unverified
-<!-- bughive-repro-end -->

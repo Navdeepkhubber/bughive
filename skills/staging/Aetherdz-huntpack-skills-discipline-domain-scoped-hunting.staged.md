@@ -1,14 +1,10 @@
-<!-- harvested: Aetherdz/huntpack/skills/discipline/domain-scoped-hunting/SKILL.md on 2026-10-23T20:17:14.752266+00:00 -->
+<!-- harvested: Aetherdz/huntpack/skills/discipline/domain-scoped-hunting/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: MIT; author: Aether-DZ; commit: f22ff6d30db803591ecad9eb91c619ddfadbbc9a; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: domain-scoped-hunting
 description: "Discipline layer for ANY vuln hunt — the part our knowledge skills lack. Load AFTER you have selected a specific vuln domain (SQLi, IDOR, SSRF, business logic...). Forces: Domain declaration → Boundaries → Pivot Hints (where to go when blocked) → Exit Evidence (positive needs verified proof; negative needs min_attempts + honest 'not found under current evidence' language). Anti-fabrication: fingerprints/CVEs are never evidence of exploitability. NOT a knowledge reference (use web2-vuln-classes / business-logic-hunter for WHAT to test) — this is HOW to stay disciplined while hunting."
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # DOMAIN-SCOPED HUNTING — DISCIPLINE LAYER
@@ -89,12 +85,3 @@ Before leaving a domain (positive or negative):
 - Model building (before this): `application-model-builder`
 - Multi-account discipline: always compare two+ accounts (A/B) to surface authorization gaps
 - Evidence schema: log every observation as request/response pairs (see `false-positive-killer`)
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE/target in skill; needs teardown or stays unverified
-<!-- bughive-repro-end -->

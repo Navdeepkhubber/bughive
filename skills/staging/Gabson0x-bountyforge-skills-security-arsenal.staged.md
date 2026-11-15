@@ -1,14 +1,10 @@
-<!-- harvested: Gabson0x/bountyforge/skills/security-arsenal/SKILL.md on 2026-10-23T20:17:17.068641+00:00 -->
+<!-- harvested: Gabson0x/bountyforge/skills/security-arsenal/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: security-arsenal
 description: Security payloads, bypass tables, wordlists, gf pattern names, always-rejected bug list, conditionally-valid-with-chain table, temp email creation scripts, XXE/deserialization/host header injection payloads. Use when you need specific payloads for XSS/SSRF/SQLi/XXE/NoSQLi/command injection/SSTI/IDOR/path-traversal/HTTP smuggling/WebSocket/MFA bypass, bypass techniques, temp email setup for multi-account testing, or to check if a finding is submittable. Also use when asked about what NOT to submit.
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # SECURITY ARSENAL
@@ -1279,12 +1275,3 @@ sensitive.txt      # Sensitive paths (.env, config.json, backup, etc.)
 /v1
 /v2
 ```
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

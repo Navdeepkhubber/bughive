@@ -1,4 +1,4 @@
-<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-hunt-foundation/SKILL.md on 2026-10-23T20:17:17.063832+00:00 -->
+<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-hunt-foundation/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
@@ -6,10 +6,6 @@
 name: web3-hunt-foundation
 description: Hunter mindset, recon setup, and target scoring for Web3 bug bounty. Use at the START of any new protocol hunt - scoring targets, setting up environment, understanding architecture.
 Contains: attack/triage mental models, 10-point scorecard (score ≥6 to proceed), crown jewels approach, static analysis setup, recon checklist.
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # WEB3 HUNT FOUNDATION
@@ -291,12 +287,3 @@ STAKING / RESTAKING:
 ---
 
 → NEXT: [02-bug-classes.md](02-bug-classes.md)
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

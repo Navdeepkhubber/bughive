@@ -1,14 +1,10 @@
-<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-hunt-zksync-era/SKILL.md on 2026-10-23T20:17:17.065595+00:00 -->
+<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-hunt-zksync-era/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: web3-hunt-zksync-era
 description: ZKsync Era (Immunefi) completed hunt — 0 findings after exhaustive 5-session audit. Use as a DEFENSE STUDY — learn what makes a protocol unhuntable, which patterns block all 10 bug classes, and when to abandon a target. Contains architecture breakdown, 25 tested attack vectors, and pre-dive scoring refinements for large L1 bridge protocols.
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # LIVE HUNT: ZKsync Era — DEFENSE STUDY
@@ -185,12 +181,3 @@ SOFT KILL: If protocol has OZ/ToB/Cyfrin audit on current version AND codebase >
 ---
 
 > NEXT: [08-ai-tools.md](08-ai-tools.md)
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

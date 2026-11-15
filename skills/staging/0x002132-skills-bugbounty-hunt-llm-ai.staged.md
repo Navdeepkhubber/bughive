@@ -1,14 +1,10 @@
-<!-- harvested: 0x002132/skills-bugbounty/hunt-llm-ai/SKILL.md on 2026-10-23T20:17:14.023102+00:00 -->
+<!-- harvested: 0x002132/skills-bugbounty/hunt-llm-ai/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: 0x002132; commit: 566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: hunt-llm-ai
 description: "Hunt LLM/AI feature bugs — prompt injection, indirect injection, exfiltration via tool-use, ASCII smuggling, agentic AI security framework (ASI01-ASI10). Patterns: direct prompt injection in user input (bypass system prompt with 'ignore previous instructions'), indirect injection via documents/web pages the model reads, ASCII smuggling (Unicode tag block U+E0000-U+E007F invisible to humans, visible to model), tool-use exfiltration (model has fetch_url tool, attacker injects URL, model exfils chat history), system prompt extraction (manipulate model to reveal hidden instructions), training data extraction, IDOR-via-AI (model reads other-user data via system prompt confusion). Tools: chatbots, RAG endpoints, summarization, agentic copilots. Detection: any LLM-backed endpoint, document upload that triggers AI processing, autonomous agent with tools. Validate: cross-user data leak, system prompt revealed, tool-use exfil demonstrated. Use when hunting AI features, chatbots, RAG, agentic systems."
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 ## 11. LLM / AI FEATURES
@@ -60,11 +56,3 @@ Chatbot renders markdown → browser fires GET with sensitive data
 - **`security-arsenal`** — Load the LLM Payload Pack: ASCII smuggling (Unicode tag block U+E0000-U+E007F), system-prompt-extract phrases, markdown-exfil templates, indirect-injection PDF/HTML templates.
 - **`triage-validation`** — Apply the Body-Diff Rule: a system prompt leak alone is informational; require demonstrated cross-user data leak, tool-use exfil to attacker host, or RCE before reporting.
 
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE/target in skill; needs teardown or stays unverified
-<!-- bughive-repro-end -->

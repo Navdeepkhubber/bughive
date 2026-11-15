@@ -1,14 +1,10 @@
-<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-poc-foundry/SKILL.md on 2026-10-23T20:17:17.066227+00:00 -->
+<!-- harvested: Gabson0x/bountyforge/skills/web3/web3-poc-foundry/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Jeffrey; commit: 068399d6309b58d413daeb5b14ac691301302373; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: web3-poc-foundry
 description: Complete Foundry PoC writing guide + all cheatcodes + DeFiHackLabs reproduction patterns. Use this when building a proof of concept exploit, setting up a fork test, using Foundry cheatcodes, or reproducing a known DeFi hack for learning.
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # PoC WRITING + FOUNDRY COMPLETE REFERENCE
@@ -1144,12 +1140,3 @@ address constant ETH_USD_FEED = 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
 ---
 
 → NEXT: [05-triage-report-examples.md](05-triage-report-examples.md)
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

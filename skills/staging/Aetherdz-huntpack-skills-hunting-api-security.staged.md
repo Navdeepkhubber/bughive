@@ -1,14 +1,10 @@
-<!-- harvested: Aetherdz/huntpack/skills/hunting/api-security/SKILL.md on 2026-10-23T20:17:14.752803+00:00 -->
+<!-- harvested: Aetherdz/huntpack/skills/hunting/api-security/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: MIT; author: Aether-DZ; commit: f22ff6d30db803591ecad9eb91c619ddfadbbc9a; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
 name: api-security
 description: "REST/OAuth/JWT API security — each pattern has SIGNAL → TEST → CONFIRM → KILL + response-driven next actions + sibling endpoint analysis. NOT for GraphQL depth (use a dedicated GraphQL skill) or general web vulns (use web2-vuln-classes)."
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # API SECURITY — EXECUTION MATRIX + RESPONSE-DRIVEN
@@ -93,12 +89,3 @@ Found API endpoint?
 | Info Disclosure | `reference/info-disclosure.md` |
 | Method Override | `reference/method-override.md` |
 | BFF Testing | `reference/bff-testing.md` |
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->

@@ -1,4 +1,4 @@
-<!-- harvested: ctahok/hermes-bug-bounty-skills/hunt-xss/SKILL.md on 2026-10-23T20:17:12.990338+00:00 -->
+<!-- harvested: ctahok/hermes-bug-bounty-skills/hunt-xss/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
 <!-- license: unspecified; author: Ilkin Jamalli; commit: 9332d55c70a815441d35d7688791ce1f69b50e49; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
@@ -18,10 +18,6 @@ triggers:
   - dom xss
   - blind xss
 category: security
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
 ---
 
 # Cross-Site Scripting (XSS) Hunting Methodology
@@ -572,12 +568,3 @@ CSP bypass JSONP:     <script src="/jsonp?callback=alert(1)">
 ---
 
 *Methodology derived from 174+ disclosed HackerOne XSS reports. Always verify with multiple browsers and no extensions. When in doubt, exfiltrate — don't alert.*
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE mapped
-<!-- bughive-repro-end -->
