@@ -1,10 +1,3 @@
----
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
----
-
 # SKILL: business-logic
 ## Trigger Conditions
 A multi-step flow.
@@ -23,7 +16,7 @@ Unverified output stays unverified. Confirmed means a saved exchange or a verifi
 ## Example
 The local fixture returns a different saved response for the probe than for the baseline.
 
-<!-- provenance: {"id":"learned/staged-Aetherdz-huntpack-skills-hunting-business-logic-hunter","class":"business-logic","classes":["business-logic"],"mode":"permissive-copy","source_repo":"Aetherdz/huntpack","source_path":"skills/hunting/business-logic-hunter/SKILL.md","source_author":"unknown","source_license":"MIT","source_commit":"unknown","fetched":"2026-10-23T20:17:14.752739+00:00","staged":"Aetherdz-huntpack-skills-hunting-business-logic-hunter.staged.md"} -->
+<!-- provenance: {"id":"learned/staged-Aetherdz-huntpack-skills-hunting-business-logic-hunter","class":"business-logic","classes":["business-logic"],"mode":"permissive-copy","source_repo":"Aetherdz/huntpack","source_path":"skills/hunting/business-logic-hunter/SKILL.md","source_author":"Aether-DZ","source_license":"MIT","source_commit":"f22ff6d30db803591ecad9eb91c619ddfadbbc9a","fetched":"2026-10-23T20:17:14.752739+00:00","staged":"Aetherdz-huntpack-skills-hunting-business-logic-hunter.staged.md"} -->
 
 ## Provenance
 ```json
@@ -36,20 +29,24 @@ The local fixture returns a different saved response for the probe than for the 
   "mode": "permissive-copy",
   "source_repo": "Aetherdz/huntpack",
   "source_path": "skills/hunting/business-logic-hunter/SKILL.md",
-  "source_author": "unknown",
+  "source_author": "Aether-DZ",
   "source_license": "MIT",
-  "source_commit": "unknown",
+  "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
   "fetched": "2026-10-23T20:17:14.752739+00:00",
   "staged": "Aetherdz-huntpack-skills-hunting-business-logic-hunter.staged.md"
 }
 ```
 
 ## Source text
-License MIT. Copyright remains with unknown (Aetherdz/huntpack).
+License MIT. Copyright remains with Aether-DZ (Aetherdz/huntpack).
 
 ---
 name: business-logic-hunter
 description: "EXECUTION MATRIX for business logic bugs — highest bounty category. Each pattern has SIGNAL → TEST → CONFIRM → KILL + response-driven next actions + sibling analysis. No theory, just commands. Load after app-model built. NOT for OWASP vulns (use web2-vuln-classes)."
+# bughive-repro-start
+cve: null
+repro: unverified
+# bughive-repro-end
 ---
 
 # BUSINESS LOGIC HUNTER — EXECUTION MATRIX + RESPONSE-DRIVEN
@@ -155,3 +152,4 @@ Fuzz IDs: for i in {1..N}; do curl /api/resource/$i; done
 ### What's missing
 - no CVE/target in skill; needs teardown or stays unverified
 <!-- bughive-repro-end -->
+

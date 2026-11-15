@@ -1,11 +1,7 @@
 {
   "ingested": 30,
   "flagged": 88,
-  "seeds_created": [
-    "file-upload.md",
-    "rce.md",
-    "saml.md"
-  ],
+  "seeds_created": [],
   "files": [
     {
       "staged": "0x002132-skills-bugbounty-apk-redteam-pipeline.staged.md",
@@ -15,9 +11,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "apk-redteam-pipeline/SKILL.md",
       "fetched": "2026-10-23T20:17:14.022391+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-bb-local-toolkit.staged.md",
@@ -26,10 +22,10 @@
       "classes": [],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "bb-local-toolkit/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.017751+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-bb-methodology.staged.md",
@@ -39,9 +35,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "bb-methodology/SKILL.md",
       "fetched": "2026-10-23T20:17:14.019284+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-bug-bounty.staged.md",
@@ -50,10 +46,10 @@
       "classes": [],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "bug-bounty/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.022863+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-bugcrowd-reporting.staged.md",
@@ -63,9 +59,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "bugcrowd-reporting/SKILL.md",
       "fetched": "2026-10-23T20:17:14.020502+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-cloud-iam-deep.staged.md",
@@ -75,9 +71,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "cloud-iam-deep/SKILL.md",
       "fetched": "2026-10-23T20:17:14.019976+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-enterprise-vpn-attack.staged.md",
@@ -86,10 +82,10 @@
       "classes": [],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "enterprise-vpn-attack/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.018579+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-evidence-hygiene.staged.md",
@@ -99,9 +95,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "evidence-hygiene/SKILL.md",
       "fetched": "2026-10-23T20:17:14.020202+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-api-misconfig.staged.md",
@@ -111,9 +107,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-api-misconfig/SKILL.md",
       "fetched": "2026-10-23T20:17:14.021525+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-aspnet.staged.md",
@@ -122,10 +118,10 @@
       "classes": [],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-aspnet/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.016795+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-ato.staged.md",
@@ -140,9 +136,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-ato/SKILL.md",
       "fetched": "2026-10-23T20:17:14.020360+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-auth-bypass.staged.md",
@@ -156,10 +152,10 @@
       ],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-auth-bypass/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.023356+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-business-logic.staged.md",
@@ -174,9 +170,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-business-logic/SKILL.md",
       "fetched": "2026-10-23T20:17:14.020744+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-cache-poison.staged.md",
@@ -191,9 +187,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-cache-poison/SKILL.md",
       "fetched": "2026-10-23T20:17:14.020118+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-cloud-misconfig.staged.md",
@@ -203,9 +199,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-cloud-misconfig/SKILL.md",
       "fetched": "2026-10-23T20:17:14.018824+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-csrf.staged.md",
@@ -219,10 +215,10 @@
       ],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-csrf/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.016965+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-dispatch.staged.md",
@@ -232,9 +228,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-dispatch/SKILL.md",
       "fetched": "2026-10-23T20:17:14.021664+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-file-upload.staged.md",
@@ -248,10 +244,10 @@
       ],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-file-upload/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.023428+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-graphql.staged.md",
@@ -266,9 +262,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-graphql/SKILL.md",
       "fetched": "2026-10-23T20:17:14.021229+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-http-smuggling.staged.md",
@@ -282,10 +278,10 @@
       ],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-http-smuggling/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.018088+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-idor.staged.md",
@@ -301,9 +297,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-idor/SKILL.md",
       "fetched": "2026-10-23T20:17:14.022504+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-llm-ai.staged.md",
@@ -313,9 +309,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-llm-ai/SKILL.md",
       "fetched": "2026-10-23T20:17:14.023102+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-mfa-bypass.staged.md",
@@ -325,9 +321,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-mfa-bypass/SKILL.md",
       "fetched": "2026-10-23T20:17:14.021314+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-misc.staged.md",
@@ -337,9 +333,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-misc/SKILL.md",
       "fetched": "2026-10-23T20:17:14.021407+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-ntlm-info.staged.md",
@@ -349,9 +345,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-ntlm-info/SKILL.md",
       "fetched": "2026-10-23T20:17:14.020588+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-oauth.staged.md",
@@ -366,9 +362,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-oauth/SKILL.md",
       "fetched": "2026-10-23T20:17:14.021736+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-race-condition.staged.md",
@@ -383,9 +379,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-race-condition/SKILL.md",
       "fetched": "2026-10-23T20:17:14.021594+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-rce.staged.md",
@@ -399,10 +395,10 @@
       ],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-rce/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.018200+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-saml.staged.md",
@@ -417,9 +413,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-saml/SKILL.md",
       "fetched": "2026-10-23T20:17:14.016479+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-sharepoint.staged.md",
@@ -428,10 +424,10 @@
       "classes": [],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-sharepoint/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.018353+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-sqli.staged.md",
@@ -447,9 +443,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-sqli/SKILL.md",
       "fetched": "2026-10-23T20:17:14.020666+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-ssrf.staged.md",
@@ -464,9 +460,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-ssrf/SKILL.md",
       "fetched": "2026-10-23T20:17:14.023492+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-ssti.staged.md",
@@ -481,9 +477,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-ssti/SKILL.md",
       "fetched": "2026-10-23T20:17:14.023181+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-subdomain.staged.md",
@@ -498,9 +494,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-subdomain/SKILL.md",
       "fetched": "2026-10-23T20:17:14.020289+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-xss.staged.md",
@@ -514,10 +510,10 @@
       ],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-xss/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.019126+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-hunt-xxe.staged.md",
@@ -532,9 +528,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "hunt-xxe/SKILL.md",
       "fetched": "2026-10-23T20:17:14.016642+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-m365-entra-attack.staged.md",
@@ -544,9 +540,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "m365-entra-attack/SKILL.md",
       "fetched": "2026-10-23T20:17:14.019453+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-meme-coin-audit.staged.md",
@@ -556,9 +552,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "meme-coin-audit/SKILL.md",
       "fetched": "2026-10-23T20:17:14.017202+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-mid-engagement-ir-detection.staged.md",
@@ -568,9 +564,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "mid-engagement-ir-detection/SKILL.md",
       "fetched": "2026-10-23T20:17:14.019731+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-offensive-osint.staged.md",
@@ -579,10 +575,10 @@
       "classes": [],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "offensive-osint/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.020892+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-okta-attack.staged.md",
@@ -592,9 +588,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "okta-attack/SKILL.md",
       "fetched": "2026-10-23T20:17:14.020425+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-osint-methodology.staged.md",
@@ -604,9 +600,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "osint-methodology/SKILL.md",
       "fetched": "2026-10-23T20:17:14.021972+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-redteam-mindset.staged.md",
@@ -615,10 +611,10 @@
       "classes": [],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "redteam-mindset/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.023256+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-redteam-report-template.staged.md",
@@ -628,9 +624,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "redteam-report-template/SKILL.md",
       "fetched": "2026-10-23T20:17:14.017108+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-report-writing.staged.md",
@@ -639,10 +635,10 @@
       "classes": [],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "report-writing/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.018939+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-security-arsenal.staged.md",
@@ -652,9 +648,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "security-arsenal/SKILL.md",
       "fetched": "2026-10-23T20:17:14.021109+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-supply-chain-attack-recon.staged.md",
@@ -664,9 +660,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "supply-chain-attack-recon/SKILL.md",
       "fetched": "2026-10-23T20:17:14.018717+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-triage-validation.staged.md",
@@ -676,9 +672,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "triage-validation/SKILL.md",
       "fetched": "2026-10-23T20:17:14.019570+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-vmware-vcenter-attack.staged.md",
@@ -687,10 +683,10 @@
       "classes": [],
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "vmware-vcenter-attack/SKILL.md",
-      "fetched": "2026-10-23T20:17:14.019654+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "0x002132-skills-bugbounty-web2-recon.staged.md",
@@ -700,9 +696,9 @@
       "source_repo": "0x002132/skills-bugbounty",
       "source_path": "web2-recon/SKILL.md",
       "fetched": "2026-10-23T20:17:14.019827+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "0x002132",
+      "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+      "source_license": "unspecified"
     },
     {
       "staged": "Aetherdz-huntpack-docs-SKILL-FORMAT.md.staged.md",
@@ -712,8 +708,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "docs/SKILL-FORMAT.md",
       "fetched": "2026-10-23T20:17:14.753083+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -724,8 +720,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "router/SKILL.md",
       "fetched": "2026-10-23T20:17:14.752957+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -736,8 +732,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "skills/discipline/domain-scoped-hunting/SKILL.md",
       "fetched": "2026-10-23T20:17:14.752266+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -748,8 +744,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "skills/hunting/api-security/SKILL.md",
       "fetched": "2026-10-23T20:17:14.752803+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -765,8 +761,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "skills/hunting/business-logic-hunter/SKILL.md",
       "fetched": "2026-10-23T20:17:14.752739+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -777,8 +773,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "skills/hunting/web2-vuln-classes/SKILL.md",
       "fetched": "2026-10-23T20:17:14.752676+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -789,8 +785,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "skills/recon/web2-recon/SKILL.md",
       "fetched": "2026-10-23T20:17:14.752466+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -801,8 +797,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "skills/reporting/attack-path-builder/SKILL.md",
       "fetched": "2026-10-23T20:17:14.752168+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -813,8 +809,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "skills/reporting/report-writing/SKILL.md",
       "fetched": "2026-10-23T20:17:14.751909+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -825,8 +821,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "skills/understand/application-archetypes/SKILL.md",
       "fetched": "2026-10-23T20:17:14.752544+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -837,8 +833,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "skills/understand/application-model-builder/SKILL.md",
       "fetched": "2026-10-23T20:17:14.752613+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -849,8 +845,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "skills/validation/false-positive-killer/SKILL.md",
       "fetched": "2026-10-23T20:17:14.752405+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -861,8 +857,8 @@
       "source_repo": "Aetherdz/huntpack",
       "source_path": "skills/validation/triage-validation/SKILL.md",
       "fetched": "2026-10-23T20:17:14.752340+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
+      "source_author": "Aether-DZ",
+      "source_commit": "f22ff6d30db803591ecad9eb91c619ddfadbbc9a",
       "source_license": "MIT"
     },
     {
@@ -873,9 +869,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/bb-methodology/SKILL.md",
       "fetched": "2026-10-23T20:17:17.067125+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-bug-bounty.staged.md",
@@ -884,10 +880,10 @@
       "classes": [],
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/bug-bounty/SKILL.md",
-      "fetched": "2026-10-23T20:17:17.070611+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-code-sleuth.staged.md",
@@ -897,9 +893,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/code-sleuth/SKILL.md",
       "fetched": "2026-10-23T20:17:17.067268+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-fizz-skills-fizz-convert.staged.md",
@@ -909,9 +905,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/fizz/skills/fizz-convert/SKILL.md",
       "fetched": "2026-10-23T20:17:17.069594+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-fizz-skills-fizz-sync.staged.md",
@@ -921,9 +917,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/fizz/skills/fizz-sync/SKILL.md",
       "fetched": "2026-10-23T20:17:17.069399+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-fizz.staged.md",
@@ -933,9 +929,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/fizz/SKILL.md",
       "fetched": "2026-10-23T20:17:17.069053+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-godmod.staged.md",
@@ -945,9 +941,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/godmod/SKILL.md",
       "fetched": "2026-10-23T20:17:17.066629+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-hackenproof-triage-marketplace.staged.md",
@@ -957,9 +953,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/hackenproof-triage-marketplace/SKILL.md",
       "fetched": "2026-10-23T20:17:17.066790+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-meme-coin-audit.staged.md",
@@ -969,9 +965,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/meme-coin-audit/SKILL.md",
       "fetched": "2026-10-23T20:17:17.066433+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-pashov-solidity-auditor.staged.md",
@@ -981,9 +977,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/pashov/solidity-auditor/SKILL.md",
       "fetched": "2026-10-23T20:17:17.067707+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-pashov-x-ray.staged.md",
@@ -993,9 +989,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/pashov/x-ray/SKILL.md",
       "fetched": "2026-10-23T20:17:17.068025+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-report-writing.staged.md",
@@ -1004,10 +1000,10 @@
       "classes": [],
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/report-writing/SKILL.md",
-      "fetched": "2026-10-23T20:17:17.066922+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-security-arsenal.staged.md",
@@ -1017,9 +1013,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/security-arsenal/SKILL.md",
       "fetched": "2026-10-23T20:17:17.068641+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-smart-contract-audit.staged.md",
@@ -1029,9 +1025,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/smart-contract-audit/SKILL.md",
       "fetched": "2026-10-23T20:17:17.068268+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-triage-validation.staged.md",
@@ -1041,9 +1037,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/triage-validation/SKILL.md",
       "fetched": "2026-10-23T20:17:17.067411+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web2-recon.staged.md",
@@ -1053,9 +1049,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web2-recon/SKILL.md",
       "fetched": "2026-10-23T20:17:17.067561+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web2-vuln-classes.staged.md",
@@ -1064,10 +1060,10 @@
       "classes": [],
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web2-vuln-classes/SKILL.md",
-      "fetched": "2026-10-23T20:17:17.063417+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-audit.staged.md",
@@ -1077,9 +1073,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3-audit/SKILL.md",
       "fetched": "2026-10-23T20:17:17.068452+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-web3-ai-tools.staged.md",
@@ -1089,9 +1085,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3/web3-ai-tools/SKILL.md",
       "fetched": "2026-10-23T20:17:17.065180+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-web3-bug-classes.staged.md",
@@ -1101,9 +1097,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3/web3-bug-classes/SKILL.md",
       "fetched": "2026-10-23T20:17:17.065944+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-web3-case-study-role-misconfig.staged.md",
@@ -1113,9 +1109,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3/web3-case-study-role-misconfig/SKILL.md",
       "fetched": "2026-10-23T20:17:17.065395+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-web3-grep-arsenal.staged.md",
@@ -1125,9 +1121,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3/web3-grep-arsenal/SKILL.md",
       "fetched": "2026-10-23T20:17:17.065757+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-web3-hunt-foundation.staged.md",
@@ -1137,9 +1133,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3/web3-hunt-foundation/SKILL.md",
       "fetched": "2026-10-23T20:17:17.063832+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-web3-hunt-zksync-era.staged.md",
@@ -1149,9 +1145,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3/web3-hunt-zksync-era/SKILL.md",
       "fetched": "2026-10-23T20:17:17.065595+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-web3-methodology-research.staged.md",
@@ -1161,9 +1157,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3/web3-methodology-research/SKILL.md",
       "fetched": "2026-10-23T20:17:17.064353+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-web3-poc-foundry.staged.md",
@@ -1173,9 +1169,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3/web3-poc-foundry/SKILL.md",
       "fetched": "2026-10-23T20:17:17.066227+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-web3-solidity-audit-mcp.staged.md",
@@ -1185,9 +1181,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3/web3-solidity-audit-mcp/SKILL.md",
       "fetched": "2026-10-23T20:17:17.064810+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-web3-start-here.staged.md",
@@ -1197,9 +1193,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3/web3-start-here/SKILL.md",
       "fetched": "2026-10-23T20:17:17.064169+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge-skills-web3-web3-triage-report.staged.md",
@@ -1208,10 +1204,10 @@
       "classes": [],
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "skills/web3/web3-triage-report/SKILL.md",
-      "fetched": "2026-10-23T20:17:17.064592+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "Gabson0x-bountyforge.staged.md",
@@ -1221,9 +1217,9 @@
       "source_repo": "Gabson0x/bountyforge",
       "source_path": "SKILL.md",
       "fetched": "2026-10-23T20:17:17.063097+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Jeffrey",
+      "source_commit": "068399d6309b58d413daeb5b14ac691301302373",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-bug-bounty-hunting-references-original-skill-index.md.staged.md",
@@ -1233,9 +1229,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "bug-bounty-hunting/references/original-skill-index.md",
       "fetched": "2026-10-23T20:17:12.990858+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-bug-bounty-hunting.staged.md",
@@ -1245,9 +1241,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "bug-bounty-hunting/SKILL.md",
       "fetched": "2026-10-23T20:17:12.990489+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-hunt-api-misconfig.staged.md",
@@ -1257,9 +1253,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "hunt-api-misconfig/SKILL.md",
       "fetched": "2026-10-23T20:17:12.991316+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-hunt-ato.staged.md",
@@ -1274,9 +1270,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "hunt-ato/SKILL.md",
       "fetched": "2026-10-23T20:17:12.991069+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-hunt-auth-bypass.staged.md",
@@ -1291,9 +1287,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "hunt-auth-bypass/SKILL.md",
       "fetched": "2026-10-23T20:17:12.991496+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-hunt-file-upload.staged.md",
@@ -1308,9 +1304,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "hunt-file-upload/SKILL.md",
       "fetched": "2026-10-23T20:17:12.991564+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-hunt-idor.staged.md",
@@ -1326,9 +1322,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "hunt-idor/SKILL.md",
       "fetched": "2026-10-23T20:17:12.991376+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-hunt-rce.staged.md",
@@ -1342,10 +1338,10 @@
       ],
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "hunt-rce/SKILL.md",
-      "fetched": "2026-10-23T20:17:12.988896+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-hunt-sqli.staged.md",
@@ -1360,10 +1356,10 @@
       ],
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "hunt-sqli/SKILL.md",
-      "fetched": "2026-10-23T20:17:12.991160+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-hunt-ssrf.staged.md",
@@ -1378,9 +1374,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "hunt-ssrf/SKILL.md",
       "fetched": "2026-10-23T20:17:12.991626+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-hunt-xss.staged.md",
@@ -1395,9 +1391,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "hunt-xss/SKILL.md",
       "fetched": "2026-10-23T20:17:12.990338+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-redteam-mindset.staged.md",
@@ -1407,9 +1403,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "redteam-mindset/SKILL.md",
       "fetched": "2026-10-23T20:17:12.991437+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-report-writing.staged.md",
@@ -1418,10 +1414,10 @@
       "classes": [],
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "report-writing/SKILL.md",
-      "fetched": "2026-10-23T20:17:12.990205+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-security-arsenal.staged.md",
@@ -1431,9 +1427,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "security-arsenal/SKILL.md",
       "fetched": "2026-10-23T20:17:12.991248+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "ctahok-hermes-bug-bounty-skills-triage-validation.staged.md",
@@ -1443,9 +1439,9 @@
       "source_repo": "ctahok/hermes-bug-bounty-skills",
       "source_path": "triage-validation/SKILL.md",
       "fetched": "2026-10-23T20:17:12.990947+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "Ilkin Jamalli",
+      "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
+      "source_license": "unspecified"
     },
     {
       "staged": "murraywu-Bug-Bounty-Skills-Bug-Bounty-Burp-Guide.staged.md",
@@ -1455,9 +1451,9 @@
       "source_repo": "murraywu/Bug-Bounty-Skills",
       "source_path": "Bug-Bounty-Burp-Guide/SKILL.md",
       "fetched": "2026-10-23T20:17:15.480534+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "murraywu",
+      "source_commit": "df382e7429ce13ac66be91321c0f3a6bf58f10c0",
+      "source_license": "unspecified"
     },
     {
       "staged": "murraywu-Bug-Bounty-Skills-Bug-Bounty-Code-Review.staged.md",
@@ -1467,9 +1463,9 @@
       "source_repo": "murraywu/Bug-Bounty-Skills",
       "source_path": "Bug-Bounty-Code-Review/SKILL.md",
       "fetched": "2026-10-23T20:17:15.480945+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "murraywu",
+      "source_commit": "df382e7429ce13ac66be91321c0f3a6bf58f10c0",
+      "source_license": "unspecified"
     },
     {
       "staged": "murraywu-Bug-Bounty-Skills-Bug-Bounty-Learning-Guide.staged.md",
@@ -1479,9 +1475,9 @@
       "source_repo": "murraywu/Bug-Bounty-Skills",
       "source_path": "Bug-Bounty-Learning-Guide/SKILL.md",
       "fetched": "2026-10-23T20:17:15.480671+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "murraywu",
+      "source_commit": "df382e7429ce13ac66be91321c0f3a6bf58f10c0",
+      "source_license": "unspecified"
     },
     {
       "staged": "murraywu-Bug-Bounty-Skills-Bug-Bounty-Recon.staged.md",
@@ -1491,9 +1487,9 @@
       "source_repo": "murraywu/Bug-Bounty-Skills",
       "source_path": "Bug-Bounty-Recon/SKILL.md",
       "fetched": "2026-10-23T20:17:15.480422+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "murraywu",
+      "source_commit": "df382e7429ce13ac66be91321c0f3a6bf58f10c0",
+      "source_license": "unspecified"
     },
     {
       "staged": "murraywu-Bug-Bounty-Skills-Bug-Bounty-Report-Generator.staged.md",
@@ -1503,9 +1499,9 @@
       "source_repo": "murraywu/Bug-Bounty-Skills",
       "source_path": "Bug-Bounty-Report-Generator/SKILL.md",
       "fetched": "2026-10-23T20:17:15.480281+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "murraywu",
+      "source_commit": "df382e7429ce13ac66be91321c0f3a6bf58f10c0",
+      "source_license": "unspecified"
     },
     {
       "staged": "murraywu-Bug-Bounty-Skills-Bug-Bounty-SQLi-Helper.staged.md",
@@ -1521,9 +1517,9 @@
       "source_repo": "murraywu/Bug-Bounty-Skills",
       "source_path": "Bug-Bounty-SQLi-Helper/SKILL.md",
       "fetched": "2026-10-23T20:17:15.479833+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "murraywu",
+      "source_commit": "df382e7429ce13ac66be91321c0f3a6bf58f10c0",
+      "source_license": "unspecified"
     },
     {
       "staged": "murraywu-Bug-Bounty-Skills-Bug-Bounty-Security-Checklist.staged.md",
@@ -1533,9 +1529,9 @@
       "source_repo": "murraywu/Bug-Bounty-Skills",
       "source_path": "Bug-Bounty-Security-Checklist/SKILL.md",
       "fetched": "2026-10-23T20:17:15.479273+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "murraywu",
+      "source_commit": "df382e7429ce13ac66be91321c0f3a6bf58f10c0",
+      "source_license": "unspecified"
     },
     {
       "staged": "murraywu-Bug-Bounty-Skills-Bug-Bounty-Vulnerability-DB.staged.md",
@@ -1544,10 +1540,10 @@
       "classes": [],
       "source_repo": "murraywu/Bug-Bounty-Skills",
       "source_path": "Bug-Bounty-Vulnerability-DB/SKILL.md",
-      "fetched": "2026-10-23T20:17:15.480047+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "fetched": "2026-11-08T12:31:10.340502+00:00",
+      "source_author": "murraywu",
+      "source_commit": "df382e7429ce13ac66be91321c0f3a6bf58f10c0",
+      "source_license": "unspecified"
     },
     {
       "staged": "murraywu-Bug-Bounty-Skills-Bug-Bounty-Writeup-Helper.staged.md",
@@ -1557,9 +1553,9 @@
       "source_repo": "murraywu/Bug-Bounty-Skills",
       "source_path": "Bug-Bounty-Writeup-Helper/SKILL.md",
       "fetched": "2026-10-23T20:17:15.479710+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "murraywu",
+      "source_commit": "df382e7429ce13ac66be91321c0f3a6bf58f10c0",
+      "source_license": "unspecified"
     },
     {
       "staged": "murraywu-Bug-Bounty-Skills-Bug-Bounty-XSS-Helper.staged.md",
@@ -1574,9 +1570,9 @@
       "source_repo": "murraywu/Bug-Bounty-Skills",
       "source_path": "Bug-Bounty-XSS-Helper/SKILL.md",
       "fetched": "2026-10-23T20:17:15.479556+00:00",
-      "source_author": "unknown",
-      "source_commit": "unknown",
-      "source_license": "none"
+      "source_author": "murraywu",
+      "source_commit": "df382e7429ce13ac66be91321c0f3a6bf58f10c0",
+      "source_license": "unspecified"
     }
   ]
 }

@@ -1,10 +1,3 @@
----
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
----
-
 # SKILL: file-upload
 ## Trigger Conditions
 An upload that is stored and served.
@@ -23,7 +16,7 @@ Unverified output stays unverified. Confirmed means a saved exchange or a verifi
 ## Example
 The local fixture returns a different saved response for the probe than for the baseline.
 
-<!-- provenance: {"id":"learned/staged-ctahok-hermes-bug-bounty-skills-hunt-file-upload","class":"file-upload","classes":["file-upload"],"mode":"derived","source_repo":"ctahok/hermes-bug-bounty-skills","source_path":"hunt-file-upload/SKILL.md","source_author":"unknown","source_license":"none","source_commit":"unknown","fetched":"2026-10-23T20:17:12.991564+00:00","staged":"ctahok-hermes-bug-bounty-skills-hunt-file-upload.staged.md"} -->
+<!-- provenance: {"id":"learned/staged-ctahok-hermes-bug-bounty-skills-hunt-file-upload","class":"file-upload","classes":["file-upload"],"mode":"derived","source_repo":"ctahok/hermes-bug-bounty-skills","source_path":"hunt-file-upload/SKILL.md","source_author":"Ilkin Jamalli","source_license":"unspecified","source_commit":"9332d55c70a815441d35d7688791ce1f69b50e49","fetched":"2026-10-23T20:17:12.991564+00:00","staged":"ctahok-hermes-bug-bounty-skills-hunt-file-upload.staged.md"} -->
 
 ## Provenance
 ```json
@@ -36,19 +29,10 @@ The local fixture returns a different saved response for the probe than for the 
   "mode": "derived",
   "source_repo": "ctahok/hermes-bug-bounty-skills",
   "source_path": "hunt-file-upload/SKILL.md",
-  "source_author": "unknown",
-  "source_license": "none",
-  "source_commit": "unknown",
+  "source_author": "Ilkin Jamalli",
+  "source_license": "unspecified",
+  "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
   "fetched": "2026-10-23T20:17:12.991564+00:00",
   "staged": "ctahok-hermes-bug-bounty-skills-hunt-file-upload.staged.md"
 }
 ```
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE/target in skill; needs teardown or stays unverified
-<!-- bughive-repro-end -->

@@ -1,10 +1,3 @@
----
-# bughive-repro-start
-cve: null
-repro: unverified
-# bughive-repro-end
----
-
 # SKILL: csrf
 ## Trigger Conditions
 A state-changing request a browser will send.
@@ -23,7 +16,7 @@ Unverified output stays unverified. Confirmed means a saved exchange or a verifi
 ## Example
 The local fixture returns a different saved response for the probe than for the baseline.
 
-<!-- provenance: {"id":"learned/staged-0x002132-skills-bugbounty-hunt-csrf","class":"csrf","classes":["csrf"],"mode":"derived","source_repo":"0x002132/skills-bugbounty","source_path":"hunt-csrf/SKILL.md","source_author":"unknown","source_license":"none","source_commit":"unknown","fetched":"2026-10-23T20:17:14.016965+00:00","staged":"0x002132-skills-bugbounty-hunt-csrf.staged.md"} -->
+<!-- provenance: {"id":"learned/staged-0x002132-skills-bugbounty-hunt-csrf","class":"csrf","classes":["csrf"],"mode":"derived","source_repo":"0x002132/skills-bugbounty","source_path":"hunt-csrf/SKILL.md","source_author":"0x002132","source_license":"unspecified","source_commit":"566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52","fetched":"2026-11-08T12:31:10.340502+00:00","staged":"0x002132-skills-bugbounty-hunt-csrf.staged.md"} -->
 
 ## Provenance
 ```json
@@ -36,19 +29,10 @@ The local fixture returns a different saved response for the probe than for the 
   "mode": "derived",
   "source_repo": "0x002132/skills-bugbounty",
   "source_path": "hunt-csrf/SKILL.md",
-  "source_author": "unknown",
-  "source_license": "none",
-  "source_commit": "unknown",
-  "fetched": "2026-10-23T20:17:14.016965+00:00",
+  "source_author": "0x002132",
+  "source_license": "unspecified",
+  "source_commit": "566781c54b60b3cc687c2fbf7a1f8e73c3ebdf52",
+  "fetched": "2026-11-08T12:31:10.340502+00:00",
   "staged": "0x002132-skills-bugbounty-hunt-csrf.staged.md"
 }
 ```
-
-<!-- bughive-repro-start -->
-## Steps to reproduce
-
-> Status: `repro: unverified` — no CVE was resolved for this skill. Nothing below was invented.
-
-### What's missing
-- no CVE/target in skill; needs teardown or stays unverified
-<!-- bughive-repro-end -->
