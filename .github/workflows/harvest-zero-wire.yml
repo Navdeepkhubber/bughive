@@ -9,6 +9,9 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  # gh pr checks reads GitHub check runs (GitGuardian) and commit statuses.
+  checks: read
+  statuses: read
 
 concurrency:
   group: harvest-cloudflare-zero-wire
@@ -22,9 +25,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Harvest Zero Wire feed
         run: python3 scripts/harvest-zero-wire.py
       - name: Open pull request
+        id: zero-wire-pr
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -38,6 +45,14 @@ jobs:
 
             Each skill stores the item title, link, CVE ids, tags, pubDate, a short derived summary, `repro: unverified`, and the CC BY-NC 4.0 attribution. Description and `content:encoded` bodies are not stored. Reproduction steps are not invented. A 304 leaves the tree unchanged.
 
-            This workflow opens a pull request only when files change. It does not push to the default branch.
+            This workflow opens a pull request and squash-merges it once validation and checks pass.
           author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
           committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+      - name: Validate and squash-merge
+        if: ${{ success() && steps.zero-wire-pr.outputs.pull-request-number != '' && (steps.zero-wire-pr.outputs.pull-request-operation == 'created' || steps.zero-wire-pr.outputs.pull-request-operation == 'updated') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.zero-wire-pr.outputs.pull-request-number }}
+          PR_OPERATION: ${{ steps.zero-wire-pr.outputs.pull-request-operation }}
+          PR_HEAD_SHA: ${{ steps.zero-wire-pr.outputs.pull-request-head-sha }}
+        run: bash scripts/merge-zero-wire-pr.sh
