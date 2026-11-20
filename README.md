@@ -162,7 +162,7 @@ Nuclei, TruffleHog, and osv-scanner are optional unmodified subprocesses (`plugi
 
 ## Weekly sync and skill promotion
 
-`.github/workflows/sync-reports-and-skills.yml` runs Sunday 06:00 UTC, and `workflow_dispatch` with `task` (`all`, `fetch`, `harvest`, `ingest-skills`) and `dry_run`. `.github/workflows/harvest-zero-wire.yml` runs every 6 hours and on `workflow_dispatch`. It writes `skills/cloudflare-zero-wire/` from the public Zero Wire RSS feed and opens a pull request only when that tree changes.
+`.github/workflows/sync-reports-and-skills.yml` runs Sunday 06:00 UTC, and `workflow_dispatch` with `task` (`all`, `fetch`, `harvest`, `ingest-skills`) and `dry_run`. `.github/workflows/harvest-zero-wire.yml` runs every 6 hours and on `workflow_dispatch`. It writes `skills/cloudflare-zero-wire/` from the public Zero Wire RSS feed. When that tree changes, the workflow opens a pull request and squash-merges it once validation and checks pass.
 
 | Job | Command | Result |
 |---|---|---|
