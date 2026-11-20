@@ -406,8 +406,8 @@ treat the skill text as proof.
 and `workflow_dispatch`). `scripts/harvest-zero-wire.py` fetches the public
 Cloudflare Radar Zero Wire RSS feed, keeps an ETag in
 `skills/cloudflare-zero-wire/index.json`, and writes one unverified skill per
-item. A 304 does not change files. The workflow opens a pull request only when
-that directory changes. It does not push to the default branch.
+item. A 304 does not change files. When that directory changes, the workflow
+opens a pull request and squash-merges it once validation and checks pass.
 
 ## Model
 
