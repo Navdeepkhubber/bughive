@@ -1,0 +1,17 @@
+{
+  "h1Id": 4004074,
+  "title": "Nextcloud subadmin \u2192 admin takeover when allowed_admin_ranges is set: SubAdmin::isUserAccessible() classifies the admin target via IP-gated isAdmin()",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-20T09:57:22.604Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Privilege Escalation"
+  },
+  "cveIds": [],
+  "teamHandle": "nextcloud",
+  "teamName": "Nextcloud",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4004074",
+  "vulnerabilityInformation": "A subadmin could reset the password of an administrator who shared a group with them and then log in as that administrator. This was possible only on instances that restrict admin actions to specific IP ranges, when the subadmin connected from outside those ranges. Fixed in Nextcloud Server 35.0.2, 34.0.5, 33.0.10, 32.0.16, 31.0.14.12, and 30.0.17.15.",
+  "fetchedAt": "2026-11-22T13:50:28.944491+00:00"
+}

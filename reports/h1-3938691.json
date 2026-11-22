@@ -1,0 +1,17 @@
+{
+  "h1Id": 3938691,
+  "title": "Image upload reaches TIFF/JPEG heap overwrite (potential RCE)",
+  "severity": "Critical",
+  "disclosedAt": "2026-11-17T18:42:28.088Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Heap Overflow"
+  },
+  "cveIds": [],
+  "teamHandle": "basecamp",
+  "teamName": "Basecamp",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3938691",
+  "vulnerabilityInformation": "A critical heap buffer overflow vulnerability was identified in an image processing library. The vulnerability was triggered when a TIFF container with a one byte per pixel component count was paired with an embedded JPEG output requiring two bytes per pixel. This mismatch resulted in a deterministic heap buffer overwrite. Proof-of-concept files were provided demonstrating the issue, and control-flow hijacking was demonstrated as a potential exploitation method.",
+  "fetchedAt": "2026-11-22T13:50:28.944786+00:00"
+}

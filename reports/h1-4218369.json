@@ -1,0 +1,19 @@
+{
+  "h1Id": 4218369,
+  "title": "Cross-IP Cookie Disclosure via Empty Custom Host Header Truncation",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-20T09:56:02.185Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Information Disclosure"
+  },
+  "cveIds": [
+    "CVE-2026-6276"
+  ],
+  "teamHandle": "curl",
+  "teamName": "curl",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4218369",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-22T13:50:28.944535+00:00"
+}

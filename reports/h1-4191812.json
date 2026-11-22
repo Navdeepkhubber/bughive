@@ -1,0 +1,17 @@
+{
+  "h1Id": 4191812,
+  "title": "Unauthenticated arbitrary local file read via ABCpdf on www.\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+  "severity": "High",
+  "disclosedAt": "2026-11-18T08:46:40.518Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Path Traversal"
+  },
+  "cveIds": [],
+  "teamHandle": "essity",
+  "teamName": "Essity",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4191812",
+  "vulnerabilityInformation": "An unauthenticated HTML-to-PDF endpoint on a public website was found to render attacker-supplied iframe content using an outdated ABCpdf/Gecko engine. The renderer accepted file:/// URLs, which allowed local files and directory listings from the server to be read and embedded in the returned PDF without authentication. The issue was demonstrated by retrieving system configuration files, enumerating server directories, and exposing application deployment content. The root cause was the absence of URL scheme and path restrictions before rendering.",
+  "fetchedAt": "2026-11-22T13:50:28.944694+00:00"
+}

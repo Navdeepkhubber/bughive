@@ -1,0 +1,17 @@
+{
+  "h1Id": 4105212,
+  "title": "CPU Exhaustion via Crafted TOML Files in translation-finder",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-17T20:17:15.329Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Uncontrolled Resource Consumption"
+  },
+  "cveIds": [],
+  "teamHandle": "weblate",
+  "teamName": "Weblate",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4105212",
+  "vulnerabilityInformation": "A CPU exhaustion vulnerability was discovered in a translation file discovery library. The vulnerability existed in functions that checked TOML files to determine if they were in a specific format. These functions read files one character at a time in a loop without implementing line length restrictions. Specially crafted TOML files containing single lines approximately 1 MB in length were found to cause scanning operations to take 7 to 8 seconds instead of milliseconds. A repository containing approximately 64 such malicious files was demonstrated to trigger the full processing delay. The vulnerability was confirmed to affect version 3.7.1 and a specific commit of the affected project.",
+  "fetchedAt": "2026-11-22T13:50:28.944745+00:00"
+}

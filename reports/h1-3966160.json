@@ -1,0 +1,17 @@
+{
+  "h1Id": 3966160,
+  "title": "Unauthenticated remote process termination of Arc RPC nodes via custom JS tracer (Boa engine) leads to sustained node DoS",
+  "severity": "High",
+  "disclosedAt": "2026-11-15T14:35:24.509Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Uncontrolled Resource Consumption"
+  },
+  "cveIds": [],
+  "teamHandle": "arc-bbp",
+  "teamName": "Arc",
+  "bountyAmount": 10000,
+  "reportUrl": "https://hackerone.com/reports/3966160",
+  "vulnerabilityInformation": "A vulnerability was discovered in public blockchain RPC endpoints where custom JavaScript tracers were exposed without authentication or execution limits. The embedded JavaScript engine lacked wall-clock timeouts, memory caps, result-size limits, and process isolation.\n\nMultiple independent attack vectors were identified that could remotely terminate the RPC node process or exhaust its resources. These included parser stack overflow causing process abort, a garbage collection borrow error triggering non-unwinding panic, regular expression engine backtracking without limits causing thread exhaustion, and host-level functions that iterated over attacker-controlled array lengths in native code outside the JavaScript loop limit constraints.\n\nResponse amplification was also possible, with no caps on result sizes returned to clients. The existing JavaScript iteration and recursion limits could be bypassed through native code execution paths, and panic containment only worked for unwinding panics, not fatal runtime errors like stack overflows.\n\nThe vulnerabilities were confirmed against live endpoints through proof-of-concept testing demonstrating process termination, worker thread exhaustion, and memory exhaustion from single HTTP requests. The attack surface was further expanded by lack of rate limiting and arbitrary origin reflection in cross-origin requests.",
+  "fetchedAt": "2026-11-22T13:50:28.944829+00:00"
+}

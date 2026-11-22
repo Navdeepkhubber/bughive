@@ -1,0 +1,17 @@
+{
+  "h1Id": 3892948,
+  "title": "Broken access control: any member can self-assign arbitrary BuddyPress member types via the ungated \"types\" REST parameter, bypassing the bp_moderate ",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-22T11:33:05.851Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "wordpress",
+  "teamName": "WordPress",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3892948",
+  "vulnerabilityInformation": "A vulnerability was identified in BuddyPress 14.5.0's Members REST endpoint. The permission check only validated the \"member_type\" parameter, while a legacy \"types\" alias was processed afterward without authorization checks. This allowed any authenticated low-privilege user to assign arbitrary member types to their own profile, bypassing the bp_moderate capability requirement.",
+  "fetchedAt": "2026-11-22T13:50:28.944037+00:00"
+}

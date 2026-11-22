@@ -1,0 +1,17 @@
+{
+  "h1Id": 2119149,
+  "title": "Evernote(WindowsApp) XSS to RCE",
+  "severity": "High",
+  "disclosedAt": "2026-11-21T17:00:03.537Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Code Injection"
+  },
+  "cveIds": [],
+  "teamHandle": "evernote",
+  "teamName": "Evernote",
+  "bountyAmount": 2000,
+  "reportUrl": "https://hackerone.com/reports/2119149",
+  "vulnerabilityInformation": "A cross-site scripting (XSS) vulnerability was reported in the Windows version of the Evernote application. Malformed ENEX note files containing an HTML-encoded payload in the clipped-source-title attribute triggered script execution when imported. The injected script used the application's IPC bridge to launch a local executable, resulting in arbitrary program execution on the host system.",
+  "fetchedAt": "2026-11-22T13:50:28.944263+00:00"
+}

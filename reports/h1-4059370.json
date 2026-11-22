@@ -1,0 +1,19 @@
+{
+  "h1Id": 4059370,
+  "title": "Mass assignment in chat.sendMessage allows unprivileged users to forge message state: persistent room DoS, stored HTML injection, and cross-user write",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-20T13:34:39.378Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [
+    "CVE-2026-106075"
+  ],
+  "teamHandle": "rocket_chat",
+  "teamName": "Rocket.Chat",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4059370",
+  "vulnerabilityInformation": null,
+  "fetchedAt": "2026-11-22T13:50:28.944441+00:00"
+}

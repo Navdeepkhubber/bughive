@@ -1,0 +1,19 @@
+{
+  "h1Id": 3882740,
+  "title": " All stored Slack and Teams credentials can be deleted via Management Console CSRF",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-18T18:35:12.314Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Cross-Site Request Forgery (CSRF)"
+  },
+  "cveIds": [
+    "CVE-2026-110288"
+  ],
+  "teamHandle": "github",
+  "teamName": "GitHub",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/3882740",
+  "vulnerabilityInformation": "A cross-site request forgery vulnerability in GitHub Enterprise Server allowed an unauthenticated attacker to delete stored Slack and Microsoft Teams ChatOps configurations and provider credentials. Exploitation required an authenticated Management Console operator to visit attacker-controlled content while signed in. The flaw was tracked as CVE-2026-110288.",
+  "fetchedAt": "2026-11-22T13:50:28.944624+00:00"
+}

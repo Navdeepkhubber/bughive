@@ -1,0 +1,17 @@
+{
+  "h1Id": 2256569,
+  "title": "Access and see `reactions recieved` on the notification of any user",
+  "severity": "High",
+  "disclosedAt": "2026-11-19T15:14:19.489Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Authentication - Generic"
+  },
+  "cveIds": [],
+  "teamHandle": "discourse",
+  "teamName": "Discourse",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/2256569",
+  "vulnerabilityInformation": "A vulnerability was identified in Discourse where the reactions-received notifications endpoint lacked proper authorization checks. Unlike other notification endpoints, which correctly returned 403 Forbidden for non-owners, this endpoint returned the data to any user who changed the username in the URL, exposing another user's reactions received.",
+  "fetchedAt": "2026-11-22T13:50:28.944575+00:00"
+}

@@ -1,0 +1,20 @@
+{
+  "h1Id": 4119675,
+  "title": "Project-scoped language_aliases reaches LanguageManager.auto_create() unvalidated, creating site-wide Language rows without language.add",
+  "severity": "Medium",
+  "disclosedAt": "2026-11-21T12:53:03.751Z",
+  "weakness": null,
+  "cwe": {
+    "id": "Improper Access Control - Generic"
+  },
+  "cveIds": [
+    "CVE-2025-68398",
+    "CVE-2026-86035"
+  ],
+  "teamHandle": "weblate",
+  "teamName": "Weblate",
+  "bountyAmount": null,
+  "reportUrl": "https://hackerone.com/reports/4119675",
+  "vulnerabilityInformation": "A project-scoped language_aliases setting could be used to create site-wide Language records with unvalidated codes through LanguageManager.auto_create(), which bypasses the model's language code validator. A user holding only project edit permission, without language add permission, could create these records during component sync. The invalid records caused the global language listing endpoints to return HTTP 500 errors for all users until removed. This affected Weblate 6.0.9 and the flaw was reported as a missing validation and permission boundary issue.",
+  "fetchedAt": "2026-11-22T13:50:28.944337+00:00"
+}
