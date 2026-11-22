@@ -16,7 +16,7 @@ Unverified output stays unverified. Confirmed means a saved exchange or a verifi
 ## Example
 The local fixture returns a different saved response for the probe than for the baseline.
 
-<!-- provenance: {"id":"learned/staged-murraywu-Bug-Bounty-Skills-Bug-Bounty-XSS-Helper","class":"xss","classes":["xss"],"mode":"derived","source_repo":"murraywu/Bug-Bounty-Skills","source_path":"Bug-Bounty-XSS-Helper/SKILL.md","source_author":"murraywu","source_license":"unspecified","source_commit":"df382e7429ce13ac66be91321c0f3a6bf58f10c0","fetched":"2026-10-23T20:17:15.479556+00:00","staged":"murraywu-Bug-Bounty-Skills-Bug-Bounty-XSS-Helper.staged.md"} -->
+<!-- provenance: {"id":"learned/staged-murraywu-Bug-Bounty-Skills-Bug-Bounty-XSS-Helper","class":"xss","classes":["xss"],"mode":"derived","source_repo":"murraywu/Bug-Bounty-Skills","source_path":"Bug-Bounty-XSS-Helper/SKILL.md","source_author":"murraywu","source_license":"unspecified","source_commit":"df382e7429ce13ac66be91321c0f3a6bf58f10c0","fetched":"2026-11-15T13:14:41.230240+00:00","staged":"murraywu-Bug-Bounty-Skills-Bug-Bounty-XSS-Helper.staged.md"} -->
 
 ## Provenance
 ```json
@@ -32,7 +32,7 @@ The local fixture returns a different saved response for the probe than for the 
   "source_author": "murraywu",
   "source_license": "unspecified",
   "source_commit": "df382e7429ce13ac66be91321c0f3a6bf58f10c0",
-  "fetched": "2026-10-23T20:17:15.479556+00:00",
+  "fetched": "2026-11-15T13:14:41.230240+00:00",
   "staged": "murraywu-Bug-Bounty-Skills-Bug-Bounty-XSS-Helper.staged.md"
 }
 ```

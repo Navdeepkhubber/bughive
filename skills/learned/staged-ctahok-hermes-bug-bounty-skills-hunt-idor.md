@@ -16,7 +16,7 @@ Unverified output stays unverified. Confirmed means a saved exchange or a verifi
 ## Example
 The local fixture returns a different saved response for the probe than for the baseline.
 
-<!-- provenance: {"id":"learned/staged-ctahok-hermes-bug-bounty-skills-hunt-idor","class":"idor","classes":["idor","idor-write"],"mode":"derived","source_repo":"ctahok/hermes-bug-bounty-skills","source_path":"hunt-idor/SKILL.md","source_author":"Ilkin Jamalli","source_license":"unspecified","source_commit":"9332d55c70a815441d35d7688791ce1f69b50e49","fetched":"2026-10-23T20:17:12.991376+00:00","staged":"ctahok-hermes-bug-bounty-skills-hunt-idor.staged.md"} -->
+<!-- provenance: {"id":"learned/staged-ctahok-hermes-bug-bounty-skills-hunt-idor","class":"idor","classes":["idor","idor-write"],"mode":"derived","source_repo":"ctahok/hermes-bug-bounty-skills","source_path":"hunt-idor/SKILL.md","source_author":"Ilkin Jamalli","source_license":"unspecified","source_commit":"9332d55c70a815441d35d7688791ce1f69b50e49","fetched":"2026-11-15T13:14:41.230240+00:00","staged":"ctahok-hermes-bug-bounty-skills-hunt-idor.staged.md"} -->
 
 ## Provenance
 ```json
@@ -33,7 +33,7 @@ The local fixture returns a different saved response for the probe than for the 
   "source_author": "Ilkin Jamalli",
   "source_license": "unspecified",
   "source_commit": "9332d55c70a815441d35d7688791ce1f69b50e49",
-  "fetched": "2026-10-23T20:17:12.991376+00:00",
+  "fetched": "2026-11-15T13:14:41.230240+00:00",
   "staged": "ctahok-hermes-bug-bounty-skills-hunt-idor.staged.md"
 }
 ```
