@@ -1,5 +1,5 @@
 <!-- harvested: Aetherdz/huntpack/skills/hunting/web2-vuln-classes/SKILL.md on 2026-11-15T13:14:41.230240+00:00 -->
-<!-- license: MIT; author: Aether-DZ; commit: f22ff6d30db803591ecad9eb91c619ddfadbbc9a; source repo license, not permission to load or promote -->
+<!-- license: MIT; author: Arthur; commit: 19ca5fe8c782502fcde375609ab3b04de36346fc; source repo license, not permission to load or promote -->
 <!-- STAGING ONLY -- not loaded. ingest-skills writes a house-style skill; a permissive license may also keep this text in skills/learned/. -->
 
 ---
